@@ -1,19 +1,21 @@
 <!DOCTYPE html>
-<html
-    lang="{{ str_replace('_', '-', app()->getLocale()) }}"
-    class="layout-menu-fixed layout-compact"
-    data-assets-path="{{ asset('sneat/assets') }}/"
-    data-template="vertical-menu-template-free">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="layout-menu-fixed layout-compact"
+    data-assets-path="{{ asset('sneat/assets') }}/" data-template="vertical-menu-template-free">
+
 <head>
     <meta charset="utf-8" />
-    <meta
-        name="viewport"
+    <meta name="viewport"
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@hasSection('title')@yield('title') | @endif{{ 'Indo Fitness Gym Sport' }}</title>
+    <title>
+        @hasSection('title')
+            @yield('title') |
+        @endif{{ 'Indo Fitness Gym Sport' }}
+    </title>
 
-    <meta name="description" content="Sistem Informasi Penjadwalan Kunjungan Member pada Indo Fitness Gym Sport Tondano Berbasis Web" />
+    <meta name="description"
+        content="Sistem Informasi Penjadwalan Kunjungan Member pada Indo Fitness Gym Sport Tondano Berbasis Web" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('sneat/assets/img/favicon/favicon.ico') }}" />
@@ -50,14 +52,15 @@
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-            <!-- Menu / Sidebar (Akan dikerjakan pada tahap berikutnya) -->
             <!-- Menu / Sidebar -->
             @include('layouts.partials.sidebar')
             <!-- / Menu / Sidebar -->
 
             <!-- Layout page -->
             <div class="layout-page">
-                <!-- Navbar (Akan dikerjakan pada tahap berikutnya) -->
+                <!-- Navbar -->
+                @include('layouts.partials.navbar')
+                <!-- / Navbar -->
 
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
@@ -93,5 +96,5 @@
     @stack('page-js')
     @stack('scripts')
 </body>
-</html>
 
+</html>
