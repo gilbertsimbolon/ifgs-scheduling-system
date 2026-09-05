@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -119,6 +120,32 @@ class PenggunaController extends Controller
 
         return redirect()->route('pengguna.index')
             ->with('success', 'Pengguna berhasil diperbarui.');
+    }
+
+    /**
+     * Toggle the active status of the specified user.
+     */
+    public function toggleStatus(Request $request, User $user): RedirectResponse|JsonResponse
+    {
+        $newStatus = $user->status === User::STATUS_ACTIVE
+            ? User::STATUS_INACTIVE
+            : User::STATUS_ACTIVE;
+
+        $user->update(['status' => $newStatus]);
+
+        $label = $newStatus === User::STATUS_ACTIVE ? 'Aktif' : 'Tidak Aktif';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'status' => $newStatus,
+                'label' => $label,
+                'message' => "Status pengguna {$user->name} berhasil diubah menjadi {$label}.",
+            ]);
+        }
+
+        return redirect()->route('pengguna.index')
+            ->with('success', "Status pengguna {$user->name} berhasil diubah menjadi {$label}.");
     }
 
     /**

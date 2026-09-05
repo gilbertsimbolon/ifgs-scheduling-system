@@ -203,3 +203,41 @@ test('pengguna destroy deletes the user and redirects to /pengguna', function ()
 
     $this->assertDatabaseMissing('users', ['id' => $user->id]);
 });
+
+test('pengguna toggle status switches active to inactive and returns json', function () {
+    $user = User::factory()->create([
+        'name' => 'Active User',
+        'status' => User::STATUS_ACTIVE,
+    ]);
+
+    $response = $this->patchJson(route('pengguna.toggle-status', $user->slug));
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'status' => User::STATUS_INACTIVE,
+        'label' => 'Tidak Aktif',
+    ]);
+
+    $user->refresh();
+    expect($user->status)->toBe(User::STATUS_INACTIVE);
+});
+
+test('pengguna toggle status switches inactive to active and returns json', function () {
+    $user = User::factory()->create([
+        'name' => 'Inactive User',
+        'status' => User::STATUS_INACTIVE,
+    ]);
+
+    $response = $this->patchJson(route('pengguna.toggle-status', $user->slug));
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'status' => User::STATUS_ACTIVE,
+        'label' => 'Aktif',
+    ]);
+
+    $user->refresh();
+    expect($user->status)->toBe(User::STATUS_ACTIVE);
+});

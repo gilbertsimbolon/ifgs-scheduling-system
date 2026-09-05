@@ -139,13 +139,23 @@
                                     @endforelse
                                 </td>
                                 <td>
-                                    @if ($user->status === \App\Models\User::STATUS_ACTIVE)
-                                        <span class="badge bg-label-success">{{ $user->status }}</span>
-                                        <span class="badge bg-label-success">Aktif</span>
-                                    @else
-                                        <span class="badge bg-label-danger">{{ $user->status }}</span>
-                                        <span class="badge bg-label-danger">Tidak Aktif</span>
-                                    @endif
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="form-check form-switch mb-0">
+                                            <input class="form-check-input cursor-pointer toggle-status-switch"
+                                                type="checkbox" role="switch"
+                                                id="switchStatus{{ $user->id }}"
+                                                data-action="{{ route('pengguna.toggle-status', $user) }}"
+                                                title="Klik untuk on/off status akun"
+                                                {{ $user->status === \App\Models\User::STATUS_ACTIVE ? 'checked' : '' }}>
+                                        </div>
+                                        <label class="form-check-label cursor-pointer mb-0" for="switchStatus{{ $user->id }}">
+                                            @if ($user->status === \App\Models\User::STATUS_ACTIVE)
+                                                <span class="badge bg-label-success status-badge">Aktif</span>
+                                            @else
+                                                <span class="badge bg-label-danger status-badge">Tidak Aktif</span>
+                                            @endif
+                                        </label>
+                                    </div>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1">
@@ -545,6 +555,59 @@
                     }
                 });
             }
+
+            // Toggle Status On/Off Switch
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            document.querySelectorAll('.toggle-status-switch').forEach(function(switchEl) {
+                switchEl.addEventListener('change', function() {
+                    const currentSwitch = this;
+                    const action = currentSwitch.getAttribute('data-action');
+                    const badgeEl = currentSwitch.closest('td')?.querySelector('.status-badge');
+                    const isChecked = currentSwitch.checked;
+
+                    currentSwitch.disabled = true;
+
+                    fetch(action, {
+                        method: 'PATCH',
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Gagal memperbarui status');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        currentSwitch.disabled = false;
+                        if (data.success) {
+                            if (badgeEl) {
+                                badgeEl.textContent = data.label;
+                                badgeEl.className = 'badge status-badge ' + (data.status === 'Active' ? 'bg-label-success' : 'bg-label-danger');
+                            }
+
+                            const tr = currentSwitch.closest('tr');
+                            if (tr) {
+                                const detailBtn = tr.querySelector('[data-bs-target="#modalDetailPengguna"]');
+                                if (detailBtn) detailBtn.setAttribute('data-status', data.status);
+
+                                const editBtn = tr.querySelector('[data-bs-target="#modalEditPengguna"]');
+                                if (editBtn) editBtn.setAttribute('data-status', data.status);
+                            }
+                        } else {
+                            currentSwitch.checked = !isChecked;
+                        }
+                    })
+                    .catch(error => {
+                        currentSwitch.disabled = false;
+                        currentSwitch.checked = !isChecked;
+                        alert('Terjadi kesalahan saat mengubah status pengguna.');
+                    });
+                });
+            });
 
             // Auto reopen modal if validation fails
             @if ($errors->any())
