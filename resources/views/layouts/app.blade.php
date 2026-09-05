@@ -69,6 +69,9 @@
                     <!-- / Content -->
 
                     <!-- Footer (Akan dikerjakan pada tahap berikutnya) -->
+                    <!-- Footer -->
+                    @include('layouts.partials.footer')
+                    <!-- / Footer -->
 
                     <div class="content-backdrop fade"></div>
                 </div>
