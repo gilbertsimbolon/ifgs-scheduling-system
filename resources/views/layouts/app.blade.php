@@ -51,6 +51,9 @@
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu / Sidebar (Akan dikerjakan pada tahap berikutnya) -->
+            <!-- Menu / Sidebar -->
+            @include('layouts.partials.sidebar')
+            <!-- / Menu / Sidebar -->
 
             <!-- Layout page -->
             <div class="layout-page">
