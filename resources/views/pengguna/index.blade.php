@@ -80,6 +80,7 @@
                             @foreach ($statuses as $status)
                                 <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
                                     {{ $status }}
+                                    {{ $status === \App\Models\User::STATUS_ACTIVE ? 'Aktif' : 'Tidak Aktif' }}
                                 </option>
                             @endforeach
                         </select>
@@ -140,8 +141,10 @@
                                 <td>
                                     @if ($user->status === \App\Models\User::STATUS_ACTIVE)
                                         <span class="badge bg-label-success">{{ $user->status }}</span>
+                                        <span class="badge bg-label-success">Aktif</span>
                                     @else
                                         <span class="badge bg-label-danger">{{ $user->status }}</span>
+                                        <span class="badge bg-label-danger">Tidak Aktif</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -394,6 +397,7 @@
                                         <option value="{{ $status }}"
                                             {{ old('_modal') === 'edit' && old('status') === $status ? 'selected' : '' }}>
                                             {{ $status }}
+                                            {{ $status === \App\Models\User::STATUS_ACTIVE ? 'Aktif' : 'Tidak Aktif' }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -479,6 +483,8 @@
                     const statusEl = document.getElementById('detailStatus');
                     if (statusEl) {
                         statusEl.textContent = status;
+                        statusEl.textContent = status === 'Active' ? 'Aktif' : (status === 'Inactive' ?
+                            'Tidak Aktif' : status);
                         statusEl.className = 'badge ' + (status === 'Active' ? 'bg-label-success' :
                             'bg-label-danger');
                     }

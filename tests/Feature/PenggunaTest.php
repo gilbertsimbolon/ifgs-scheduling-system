@@ -30,6 +30,7 @@ test('pengguna index page can be rendered and contains all four modals and trigg
     $response->assertSee('gilbert-simbolon');
     $response->assertSee('gilbert@ifgs.test');
     $response->assertSee('Admin/Manager');
+    $response->assertSee('Aktif');
 
     // Verify all 4 modals exist in the DOM
     $response->assertSee('id="modalTambahPengguna"', false);

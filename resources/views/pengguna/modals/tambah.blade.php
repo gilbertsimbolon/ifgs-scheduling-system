@@ -75,7 +75,6 @@
                             <select
                                 class="form-select @if (old('_modal') === 'create') @error('role') is-invalid @enderror @endif"
                                 id="tambahRole" name="role" required>
-                                <option value="">-- Pilih Peran --</option>
                                 @foreach ($roles as $role)
                                     <option value="{{ $role }}"
                                         {{ old('_modal') === 'create' && old('role') === $role ? 'selected' : '' }}>
@@ -85,26 +84,6 @@
                             </select>
                             @if (old('_modal') === 'create')
                                 @error('role')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            @endif
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="tambahStatus">Status Akun <span
-                                    class="text-danger">*</span></label>
-                            <select
-                                class="form-select @if (old('_modal') === 'create') @error('status') is-invalid @enderror @endif"
-                                id="tambahStatus" name="status" required>
-                                @foreach ($statuses as $status)
-                                    <option value="{{ $status }}"
-                                        {{ (old('_modal') === 'create' ? old('status') === $status : $status === \App\Models\User::STATUS_ACTIVE) ? 'selected' : '' }}>
-                                        {{ $status }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if (old('_modal') === 'create')
-                                @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             @endif
