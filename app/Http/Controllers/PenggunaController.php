@@ -90,7 +90,6 @@ class PenggunaController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8'],
             'role' => ['required', 'string', Rule::in($availableRoles)],
-            'status' => ['required', 'string', Rule::in(User::STATUSES)],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -99,8 +98,6 @@ class PenggunaController extends Controller
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'role.required' => 'Peran wajib dipilih.',
             'role.in' => 'Peran yang dipilih tidak valid.',
-            'status.required' => 'Status wajib dipilih.',
-            'status.in' => 'Status yang dipilih tidak valid.',
         ]);
 
         if ($validated['name'] !== $user->name) {
@@ -109,7 +106,6 @@ class PenggunaController extends Controller
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->status = $validated['status'];
 
         if (! empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

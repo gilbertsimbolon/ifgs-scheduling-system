@@ -90,27 +90,6 @@
                                 @enderror
                             @endif
                         </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="editStatus">Status Akun <span
-                                    class="text-danger">*</span></label>
-                            <select
-                                class="form-select @if (old('_modal') === 'edit') @error('status') is-invalid @enderror @endif"
-                                id="editStatus" name="status" required>
-                                @foreach ($statuses as $status)
-                                    <option value="{{ $status }}"
-                                        {{ old('_modal') === 'edit' && old('status') === $status ? 'selected' : '' }}>
-                                        {{ $status }}
-                                        {{ $status === \App\Models\User::STATUS_ACTIVE ? 'Aktif' : 'Tidak Aktif' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if (old('_modal') === 'edit')
-                                @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            @endif
-                        </div>
                     </div>
                 </div>
 
