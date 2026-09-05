@@ -4,11 +4,7 @@
         <a href="{{ url('/') }}" class="app-brand-link">
             <span class="app-brand-logo demo">
                 <span class="text-primary">
-                    <svg
-                        width="25"
-                        viewBox="0 0 25 42"
-                        version="1.1"
-                        xmlns="http://www.w3.org/2000/svg"
+                    <svg width="25" viewBox="0 0 25 42" version="1.1" xmlns="http://www.w3.org/2000/svg"
                         xmlns:xlink="http://www.w3.org/1999/xlink">
                         <defs>
                             <path
@@ -41,8 +37,7 @@
                                             <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-4"></use>
                                         </g>
                                     </g>
-                                    <g
-                                        id="Triangle"
+                                    <g id="Triangle"
                                         transform="translate(19.000000, 11.000000) rotate(-300.000000) translate(-19.000000, -11.000000) ">
                                         <use fill="currentColor" xlink:href="#path-5"></use>
                                         <use fill-opacity="0.2" fill="#FFFFFF" xlink:href="#path-5"></use>
@@ -78,10 +73,10 @@
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">MANAJEMEN</span>
         </li>
-        <li class="menu-item {{ request()->is('users*') ? 'active' : '' }}">
-            <a href="{{ Route::has('users.index') ? route('users.index') : '#' }}" class="menu-link">
+        <li class="menu-item {{ request()->is('pengguna*') ? 'active' : '' }}">
+            <a href="{{ route('pengguna.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">User</div>
+                <div class="text-truncate">Pengguna</div>
             </a>
         </li>
         <li class="menu-item {{ request()->is('members*') ? 'active' : '' }}">
@@ -172,4 +167,3 @@
         </li>
     </ul>
 </aside>
-
