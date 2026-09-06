@@ -142,13 +142,13 @@
                                     <div class="d-flex align-items-center gap-2">
                                         <div class="form-check form-switch mb-0">
                                             <input class="form-check-input cursor-pointer toggle-status-switch"
-                                                type="checkbox" role="switch"
-                                                id="switchStatus{{ $user->id }}"
+                                                type="checkbox" role="switch" id="switchStatus{{ $user->id }}"
                                                 data-action="{{ route('pengguna.toggle-status', $user) }}"
                                                 title="Klik untuk on/off status akun"
                                                 {{ $user->status === \App\Models\User::STATUS_ACTIVE ? 'checked' : '' }}>
                                         </div>
-                                        <label class="form-check-label cursor-pointer mb-0" for="switchStatus{{ $user->id }}">
+                                        <label class="form-check-label cursor-pointer mb-0"
+                                            for="switchStatus{{ $user->id }}">
                                             @if ($user->status === \App\Models\User::STATUS_ACTIVE)
                                                 <span class="badge bg-label-success status-badge">Aktif</span>
                                             @else
@@ -211,22 +211,17 @@
             </div>
 
             <!-- Pagination -->
-            <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-3 gap-2">
-                <div>
+            <div class="card-footer d-flex justify-content-between align-items-center py-3">
+                <small class="text-muted">
                     @if ($users->total() > 0)
-                        <small class="text-muted">
-                            Menampilkan <strong>{{ $users->firstItem() }}</strong> sampai
-                            <strong>{{ $users->lastItem() }}</strong> dari total <strong>{{ $users->total() }}</strong>
-                            pengguna
-                        </small>
+                        Menampilkan {{ $users->firstItem() }}–{{ $users->lastItem() }} dari {{ $users->total() }}
+                        pengguna
                     @else
-                        <small class="text-muted">Total 0 pengguna</small>
+                        Tidak ada data pengguna
                     @endif
-                </div>
+                </small>
                 @if ($users->hasPages())
-                    <div>
-                        {{ $users->links('pagination::bootstrap-5') }}
-                    </div>
+                    {{ $users->onEachSide(1)->links('vendor.pagination.compact') }}
                 @endif
             </div>
         </div>
@@ -351,44 +346,49 @@
                     currentSwitch.disabled = true;
 
                     fetch(action, {
-                        method: 'PATCH',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Gagal memperbarui status');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        currentSwitch.disabled = false;
-                        if (data.success) {
-                            if (badgeEl) {
-                                badgeEl.textContent = data.label;
-                                badgeEl.className = 'badge status-badge ' + (data.status === 'Active' ? 'bg-label-success' : 'bg-label-danger');
+                            method: 'PATCH',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Gagal memperbarui status');
                             }
+                            return response.json();
+                        })
+                        .then(data => {
+                            currentSwitch.disabled = false;
+                            if (data.success) {
+                                if (badgeEl) {
+                                    badgeEl.textContent = data.label;
+                                    badgeEl.className = 'badge status-badge ' + (data.status ===
+                                        'Active' ? 'bg-label-success' : 'bg-label-danger');
+                                }
 
-                            const tr = currentSwitch.closest('tr');
-                            if (tr) {
-                                const detailBtn = tr.querySelector('[data-bs-target="#modalDetailPengguna"]');
-                                if (detailBtn) detailBtn.setAttribute('data-status', data.status);
+                                const tr = currentSwitch.closest('tr');
+                                if (tr) {
+                                    const detailBtn = tr.querySelector(
+                                        '[data-bs-target="#modalDetailPengguna"]');
+                                    if (detailBtn) detailBtn.setAttribute('data-status', data
+                                        .status);
 
-                                const editBtn = tr.querySelector('[data-bs-target="#modalEditPengguna"]');
-                                if (editBtn) editBtn.setAttribute('data-status', data.status);
+                                    const editBtn = tr.querySelector(
+                                        '[data-bs-target="#modalEditPengguna"]');
+                                    if (editBtn) editBtn.setAttribute('data-status', data
+                                        .status);
+                                }
+                            } else {
+                                currentSwitch.checked = !isChecked;
                             }
-                        } else {
+                        })
+                        .catch(error => {
+                            currentSwitch.disabled = false;
                             currentSwitch.checked = !isChecked;
-                        }
-                    })
-                    .catch(error => {
-                        currentSwitch.disabled = false;
-                        currentSwitch.checked = !isChecked;
-                        alert('Terjadi kesalahan saat mengubah status pengguna.');
-                    });
+                            alert('Terjadi kesalahan saat mengubah status pengguna.');
+                        });
                 });
             });
 
