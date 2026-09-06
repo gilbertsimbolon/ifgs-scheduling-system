@@ -123,7 +123,7 @@
                                 <div class="flex-grow-1">
                                     <h6 class="mb-0">{{ auth()->check() ? auth()->user()->name : 'Admin' }}</h6>
                                     <small
-                                        class="text-body-secondary">{{ auth()->check() ? auth()->user()->role ?? 'Administrator' : 'Administrator' }}</small>
+                                        class="text-body-secondary">{{ auth()->check() ? auth()->user()->roles->first()?->name ?? 'Administrator' : 'Administrator' }}</small>
                                 </div>
                             </div>
                         </a>
@@ -147,19 +147,12 @@
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                        @if (Route::has('logout'))
-                            <form method="POST" action="{{ route('logout') }}" id="navbar-logout-form">
-                                @csrf
-                                <a class="dropdown-item" href="{{ route('logout') }}"
-                                    onclick="event.preventDefault(); document.getElementById('navbar-logout-form').submit();">
-                                    <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Logout</span>
-                                </a>
-                            </form>
-                        @else
-                            <a class="dropdown-item" href="#">
-                                <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Logout</span>
-                            </a>
-                        @endif
+                        <form method="POST" action="{{ route('logout') }}" id="navbar-logout-form">
+                            @csrf
+                            <button type="submit" class="dropdown-item cursor-pointer border-0 bg-transparent w-100 text-start">
+                                <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Keluar</span>
+                            </button>
+                        </form>
                     </li>
                 </ul>
             </li>
