@@ -1,7 +1,13 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PenggunaController;
 use Illuminate\Support\Facades\Route;
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+});
 
 Route::get('/', function () {
     return view('welcome');
