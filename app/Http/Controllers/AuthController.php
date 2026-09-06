@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 use Spatie\Permission\Models\Role;
 
@@ -119,5 +120,30 @@ class AuthController extends Controller
         return redirect()
             ->route('login')
             ->with('success', 'Anda berhasil keluar dari akun.');
+    }
+
+    /**
+     * Tampilkan halaman permohonan reset kata sandi (lupa kata sandi).
+     */
+    public function showForgotPasswordForm(): View
+    {
+        return view('auth.forgot-password');
+    }
+
+    /**
+     * Kirim tautan reset kata sandi ke email pengguna.
+     */
+    public function sendResetLinkEmail(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'email' => ['required', 'email'],
+        ], [
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Email harus berupa alamat email yang valid.',
+        ]);
+
+        Password::sendResetLink($request->only('email'));
+
+        return back()->with('status', 'Jika email tersebut terdaftar, kami telah mengirimkan tautan untuk mengatur ulang kata sandi Anda.');
     }
 }

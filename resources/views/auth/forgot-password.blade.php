@@ -1,12 +1,12 @@
 @extends('layouts.auth')
 
-@section('title', 'Masuk')
+@section('title', 'Lupa Kata Sandi')
 
 @section('content')
     <div class="container-xxl">
         <div class="authentication-wrapper authentication-basic container-p-y">
             <div class="authentication-inner">
-                <!-- Login Card -->
+                <!-- Forgot Password Card -->
                 <div class="card px-sm-6 px-0">
                     <div class="card-body">
                         <!-- Logo -->
@@ -67,34 +67,23 @@
                         </div>
                         <!-- /Logo -->
 
-                        <h4 class="mb-1">Selamat Datang di IFGS! 👋</h4>
-                        <p class="mb-6">Silakan masuk ke akun Anda untuk melanjutkan</p>
+                        <h4 class="mb-1">Lupa Kata Sandi? 🔒</h4>
+                        <p class="mb-6">Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang
+                            kata sandi Anda.</p>
 
-                        {{-- Alert Success / Registration Success --}}
-                        @if (session('success'))
+                        {{-- Status / Success Alert --}}
+                        @if (session('status'))
                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                 <div class="d-flex align-items-center">
                                     <i class="bx bx-check-circle me-2 fs-5"></i>
-                                    <div>{{ session('success') }}</div>
+                                    <div>{{ session('status') }}</div>
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert"
                                     aria-label="Tutup"></button>
                             </div>
                         @endif
 
-                        {{-- Alert Authentication / Inactive Error --}}
-                        @if (session('error'))
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <div class="d-flex align-items-center">
-                                    <i class="bx bx-error-circle me-2 fs-5"></i>
-                                    <div>{{ session('error') }}</div>
-                                </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                    aria-label="Tutup"></button>
-                            </div>
-                        @endif
-
-                        <form id="formAuthentication" class="mb-6" action="{{ route('login') }}" method="POST">
+                        <form id="formAuthentication" class="mb-6" action="{{ route('password.email') }}" method="POST">
                             @csrf
                             <div class="mb-6">
                                 <label for="email" class="form-label">Email</label>
@@ -106,48 +95,18 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-6 form-password-toggle">
-                                <label class="form-label" for="password">Kata Sandi</label>
-                                <div class="input-group input-group-merge @error('password') is-invalid @enderror">
-                                    <input type="password" id="password"
-                                        class="form-control @error('password') is-invalid @enderror" name="password"
-                                        placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                        aria-describedby="password" autocomplete="current-password" required />
-                                    <span class="input-group-text cursor-pointer"><i
-                                            class="icon-base bx bx-hide"></i></span>
-                                </div>
-                                @error('password')
-                                    <div class="invalid-feedback d-block">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="mb-8">
-                                <div class="d-flex justify-content-between mt-n2">
-                                    <div class="form-check mb-0">
-                                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember"
-                                            value="1" {{ old('remember') ? 'checked' : '' }} />
-                                        <label class="form-check-label" for="remember-me"> Ingat Saya </label>
-                                    </div>
-                                    <a href="{{ route('password.request') }}">
-                                        <span>Lupa Kata Sandi?</span>
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="mb-6">
-                                <button class="btn btn-primary d-grid w-100" type="submit">Masuk</button>
-                            </div>
+                            <button class="btn btn-primary d-grid w-100" type="submit">Kirim Link Reset Password</button>
                         </form>
 
-                        <p class="text-center">
-                            <span>Belum memiliki akun?</span>
-                            <a href="{{ route('register') }}">
-                                <span>Daftar</span>
+                        <div class="text-center">
+                            <a href="{{ route('login') }}" class="d-flex align-items-center justify-content-center">
+                                <i class="icon-base bx bx-chevron-left me-1"></i>
+                                <span>Kembali ke Login</span>
                             </a>
-                        </p>
+                        </div>
                     </div>
                 </div>
-                <!-- /Login Card -->
+                <!-- /Forgot Password Card -->
             </div>
         </div>
     </div>
