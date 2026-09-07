@@ -2,6 +2,7 @@
 
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
@@ -51,7 +52,7 @@ test('password reset link can be requested by registered user with notification 
     $response->assertRedirect(route('password.request'));
     $response->assertSessionHas('status', 'Link reset password anda sudah kami kirim ke email member@ifgs.test');
 
-    Notification::assertSentTo($user, ResetPassword::class);
+    Notification::assertSentTo($user, ResetPasswordNotification::class);
 });
 
 test('unregistered email receives error indicating email is not registered', function () {

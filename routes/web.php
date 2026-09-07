@@ -15,6 +15,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', function () {
         abort(404);
     })->name('password.reset');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

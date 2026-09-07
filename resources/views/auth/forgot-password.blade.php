@@ -25,7 +25,8 @@
                         <!-- /Logo -->
 
                         <h4 class="mb-1 text-center">Lupa Kata Sandi?</h4>
-                        <p class="mb-6 text-justify">Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang
+                        <p class="mb-6 text-justify">Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk
+                            mengatur ulang
                             kata sandi Anda.</p>
 
                         {{-- Status / Success Alert --}}
