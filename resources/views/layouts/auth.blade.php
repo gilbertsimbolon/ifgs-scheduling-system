@@ -11,14 +11,14 @@
     <title>
         @hasSection('title')
             @yield('title') |
-        @endif{{ 'Indo Fitness Gym Sport' }}
+        @endif{{ 'Indo Fitness Gym Sport®' }}
     </title>
 
     <meta name="description"
         content="Sistem Informasi Penjadwalan Kunjungan Member pada Indo Fitness Gym Sport Tondano Berbasis Web" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('sneat/assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/jpeg" href="{{ asset('img/logo-ifgs.jpg') }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />

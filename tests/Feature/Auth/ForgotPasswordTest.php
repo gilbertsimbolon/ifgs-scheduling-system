@@ -18,7 +18,7 @@ test('forgot password screen can be rendered with sneat elements and indonesian 
     $response = $this->get(route('password.request'));
 
     $response->assertStatus(200);
-    $response->assertSee('IFGS');
+    $response->assertSee('Indo Fitness Gym Sport®');
     $response->assertSee('Lupa Kata Sandi? 🔒');
     $response->assertSee('Masukkan email yang terdaftar');
     $response->assertSee('Kirim Link Reset Password');
