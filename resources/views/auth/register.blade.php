@@ -24,7 +24,7 @@
                         </div>
                         <!-- /Logo -->
 
-                        <h4 class="mb-1">Pendaftaran Akun IFGS 🚀</h4>
+                        <h4 class="mb-1 text-center">Pendaftaran Akun</h4>
                         <p class="mb-6">Daftar sekarang untuk menjadwalkan kunjungan gym Anda!</p>
 
                         <form id="formAuthentication" class="mb-6" action="{{ route('register') }}" method="POST">
