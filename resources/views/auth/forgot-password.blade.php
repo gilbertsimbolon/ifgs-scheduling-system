@@ -24,8 +24,8 @@
                         </div>
                         <!-- /Logo -->
 
-                        <h4 class="mb-1">Lupa Kata Sandi? 🔒</h4>
-                        <p class="mb-6">Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang
+                        <h4 class="mb-1 text-center">Lupa Kata Sandi?</h4>
+                        <p class="mb-6 text-justify">Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk mengatur ulang
                             kata sandi Anda.</p>
 
                         {{-- Status / Success Alert --}}
