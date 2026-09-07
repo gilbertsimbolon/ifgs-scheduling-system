@@ -24,8 +24,8 @@
                         </div>
                         <!-- /Logo -->
 
-                        <h4 class="mb-1">Selamat Datang di IFGS! 👋</h4>
-                        <p class="mb-6">Silakan masuk ke akun Anda untuk melanjutkan</p>
+                        <h4 class="mb-1 text-center">Selamat Datang</h4>
+                        <p class="mb-6">Silakan masuk ke akun Anda untuk melanjutkan!</p>
 
                         {{-- Alert Success / Registration Success --}}
                         @if (session('success'))
