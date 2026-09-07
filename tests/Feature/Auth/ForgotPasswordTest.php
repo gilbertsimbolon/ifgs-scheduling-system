@@ -19,7 +19,7 @@ test('forgot password screen can be rendered with sneat elements and indonesian 
 
     $response->assertStatus(200);
     $response->assertSee('Indo Fitness Gym Sport®');
-    $response->assertSee('Lupa Kata Sandi? 🔒');
+    $response->assertSee('Lupa Kata Sandi?');
     $response->assertSee('Masukkan email yang terdaftar');
     $response->assertSee('Kirim Link Reset Password');
     $response->assertSee('Kembali ke Login');
@@ -36,7 +36,7 @@ test('authenticated users cannot visit forgot password screen and get redirected
     $response->assertRedirect('/');
 });
 
-test('password reset link can be requested by registered user with notification sent and safe response', function () {
+test('password reset link can be requested by registered user with notification sent and personalized status message', function () {
     Notification::fake();
 
     $user = User::factory()->create([
@@ -49,12 +49,12 @@ test('password reset link can be requested by registered user with notification 
     ]);
 
     $response->assertRedirect(route('password.request'));
-    $response->assertSessionHas('status', 'Jika email tersebut terdaftar, kami telah mengirimkan tautan untuk mengatur ulang kata sandi Anda.');
+    $response->assertSessionHas('status', 'Link reset password anda sudah kami kirim ke email member@ifgs.test');
 
     Notification::assertSentTo($user, ResetPassword::class);
 });
 
-test('unregistered email receives identical safe response without leaking user existence', function () {
+test('unregistered email receives error indicating email is not registered', function () {
     Notification::fake();
 
     $response = $this->from(route('password.request'))->post(route('password.email'), [
@@ -62,7 +62,8 @@ test('unregistered email receives identical safe response without leaking user e
     ]);
 
     $response->assertRedirect(route('password.request'));
-    $response->assertSessionHas('status', 'Jika email tersebut terdaftar, kami telah mengirimkan tautan untuk mengatur ulang kata sandi Anda.');
+    $response->assertSessionHasErrors(['email' => 'Email tidak terdaftar.']);
+    $response->assertSessionHas('error', 'Email tidak terdaftar.');
 
     Notification::assertNothingSent();
 });

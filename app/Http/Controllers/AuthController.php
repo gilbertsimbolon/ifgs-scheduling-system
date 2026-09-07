@@ -136,14 +136,32 @@ class AuthController extends Controller
     public function sendResetLinkEmail(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string', 'email'],
         ], [
             'email.required' => 'Email wajib diisi.',
+            'email.string' => 'Email harus berupa teks.',
             'email.email' => 'Email harus berupa alamat email yang valid.',
         ]);
 
-        Password::sendResetLink($request->only('email'));
+        $user = User::where('email', $request->email)->first();
 
-        return back()->with('status', 'Jika email tersebut terdaftar, kami telah mengirimkan tautan untuk mengatur ulang kata sandi Anda.');
+        if (! $user) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'Email tidak terdaftar.'])
+                ->with('error', 'Email tidak terdaftar.');
+        }
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()
+                ->with('status', 'Link reset password anda sudah kami kirim ke email '.$request->email);
+        }
+
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)])
+            ->with('error', __($status));
     }
 }

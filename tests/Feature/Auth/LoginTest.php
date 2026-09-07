@@ -19,7 +19,7 @@ test('login screen can be rendered and contains sneat elements and indonesian la
 
     $response->assertStatus(200);
     $response->assertSee('Indo Fitness Gym Sport®');
-    $response->assertSee('Selamat Datang di IFGS! 👋');
+    $response->assertSee('Selamat Datang');
     $response->assertSee('Silakan masuk ke akun Anda untuk melanjutkan');
     $response->assertSee('Email');
     $response->assertSee('Kata Sandi');

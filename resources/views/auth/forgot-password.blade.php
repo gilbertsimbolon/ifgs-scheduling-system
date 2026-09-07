@@ -40,6 +40,18 @@
                             </div>
                         @endif
 
+                        {{-- Alert Error --}}
+                        @if (session('error'))
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-error-circle me-2 fs-5"></i>
+                                    <div>{{ session('error') }}</div>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"
+                                    aria-label="Tutup"></button>
+                            </div>
+                        @endif
+
                         <form id="formAuthentication" class="mb-6" action="{{ route('password.email') }}" method="POST">
                             @csrf
                             <div class="mb-6">

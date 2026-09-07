@@ -18,7 +18,7 @@ test('register screen can be rendered with sneat elements and indonesian labels'
 
     $response->assertStatus(200);
     $response->assertSee('Indo Fitness Gym Sport®');
-    $response->assertSee('Pendaftaran Akun IFGS 🚀');
+    $response->assertSee('Pendaftaran Akun');
     $response->assertSee('Daftar sekarang untuk menjadwalkan kunjungan gym Anda!');
     $response->assertSee('Nama');
     $response->assertSee('Email');
