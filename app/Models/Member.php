@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'member_code'])]
+#[Fillable(['user_id', 'member_code', 'phone'])]
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */

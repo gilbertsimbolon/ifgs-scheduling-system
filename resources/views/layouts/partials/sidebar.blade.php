@@ -79,8 +79,8 @@
                 <div class="text-truncate">Pengguna</div>
             </a>
         </li>
-        <li class="menu-item {{ request()->is('members*') ? 'active' : '' }}">
-            <a href="{{ Route::has('members.index') ? route('members.index') : '#' }}" class="menu-link">
+        <li class="menu-item {{ request()->is('member*') && !request()->is('memberships*') ? 'active' : '' }}">
+            <a href="{{ route('member.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-group"></i>
                 <div class="text-truncate">Member</div>
             </a>

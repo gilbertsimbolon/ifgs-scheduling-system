@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PenggunaController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,4 +31,8 @@ Route::prefix('pengguna')->name('pengguna.')->group(function () {
     Route::put('/{user:slug}', [PenggunaController::class, 'update'])->name('update');
     Route::patch('/{user:slug}/status', [PenggunaController::class, 'toggleStatus'])->name('toggle-status');
     Route::delete('/{user:slug}', [PenggunaController::class, 'destroy'])->name('destroy');
+});
+
+Route::middleware(['auth', 'role:Admin/Manager|Kasir'])->group(function () {
+    Route::get('/member', [MemberController::class, 'index'])->name('member.index');
 });

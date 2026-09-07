@@ -20,6 +20,7 @@ class MemberFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
+            'phone' => fake()->phoneNumber(),
         ];
     }
 }
