@@ -3,6 +3,7 @@
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -165,4 +166,142 @@ test('pagination works properly when members exceed per page limit', function ()
     $responsePage2 = $this->actingAs($admin)->get(route('member.index', ['page' => 2]));
     $responsePage2->assertStatus(200);
     $responsePage2->assertSee('Menampilkan 11–15 dari 15 member');
+});
+
+test('admin can store a new member with user and role Member', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $response = $this->actingAs($admin)->post(route('member.store'), [
+        'name' => 'Michael Jordan',
+        'email' => 'michael@ifgs.test',
+        'phone' => '081299887766',
+        'password' => 'password123',
+        'status' => User::STATUS_ACTIVE,
+    ]);
+
+    $response->assertRedirect(route('member.index'));
+    $response->assertSessionHas('success', 'Member berhasil ditambahkan.');
+
+    $user = User::where('email', 'michael@ifgs.test')->first();
+    expect($user)->not->toBeNull()
+        ->and($user->name)->toBe('Michael Jordan')
+        ->and($user->status)->toBe(User::STATUS_ACTIVE)
+        ->and($user->hasRole('Member'))->toBeTrue();
+
+    $member = Member::where('user_id', $user->id)->first();
+    expect($member)->not->toBeNull()
+        ->and($member->phone)->toBe('081299887766')
+        ->and($member->member_code)->toStartWith('IFGS-');
+});
+
+test('store member fails with validation errors when inputs are invalid', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $existingUser = User::factory()->create(['email' => 'existing@ifgs.test']);
+
+    $response = $this->actingAs($admin)->post(route('member.store'), [
+        'name' => '',
+        'email' => 'existing@ifgs.test',
+        'phone' => '0812345678901234567890123', // exceeds 20 chars
+        'password' => 'short',
+        'status' => 'InvalidStatus',
+    ]);
+
+    $response->assertSessionHasErrors(['name', 'email', 'phone', 'password', 'status']);
+});
+
+test('admin can update member details and user account', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create([
+        'name' => 'Old Name',
+        'email' => 'old@ifgs.test',
+        'status' => User::STATUS_ACTIVE,
+    ]);
+    $user->assignRole('Member');
+
+    $member = Member::factory()->create([
+        'user_id' => $user->id,
+        'member_code' => 'IFGS-202609-0010',
+        'phone' => '0811111111',
+    ]);
+
+    $response = $this->actingAs($admin)->put(route('member.update', $member), [
+        'name' => 'New Name',
+        'email' => 'new@ifgs.test',
+        'phone' => '0822222222',
+        'password' => 'newpassword123',
+        'status' => User::STATUS_INACTIVE,
+    ]);
+
+    $response->assertRedirect(route('member.index'));
+    $response->assertSessionHas('success', 'Data member berhasil diperbarui.');
+
+    $user->refresh();
+    $member->refresh();
+
+    expect($user->name)->toBe('New Name')
+        ->and($user->email)->toBe('new@ifgs.test')
+        ->and($user->status)->toBe(User::STATUS_INACTIVE)
+        ->and(Hash::check('newpassword123', $user->password))->toBeTrue()
+        ->and($member->phone)->toBe('0822222222');
+});
+
+test('admin can toggle member status via ajax request', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create([
+        'name' => 'Toggle User',
+        'status' => User::STATUS_ACTIVE,
+    ]);
+    $member = Member::factory()->create([
+        'user_id' => $user->id,
+        'member_code' => 'IFGS-202609-0020',
+    ]);
+
+    $response = $this->actingAs($admin)->patchJson(route('member.toggle-status', $member));
+
+    $response->assertStatus(200);
+    $response->assertJson([
+        'success' => true,
+        'status' => User::STATUS_INACTIVE,
+        'label' => 'Tidak Aktif',
+    ]);
+
+    expect($user->fresh()->status)->toBe(User::STATUS_INACTIVE);
+
+    // Toggle back to Active
+    $response2 = $this->actingAs($admin)->patchJson(route('member.toggle-status', $member));
+    $response2->assertStatus(200);
+    $response2->assertJson([
+        'success' => true,
+        'status' => User::STATUS_ACTIVE,
+        'label' => 'Aktif',
+    ]);
+
+    expect($user->fresh()->status)->toBe(User::STATUS_ACTIVE);
+});
+
+test('admin can delete a member and user is also deleted', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create(['name' => 'Delete Me']);
+    $user->assignRole('Member');
+    $member = Member::factory()->create([
+        'user_id' => $user->id,
+        'member_code' => 'IFGS-202609-0030',
+    ]);
+
+    $response = $this->actingAs($admin)->delete(route('member.destroy', $member));
+
+    $response->assertRedirect(route('member.index'));
+    $response->assertSessionHas('success', 'Member Delete Me berhasil dihapus.');
+
+    expect(User::find($user->id))->toBeNull();
+    expect(Member::find($member->id))->toBeNull();
 });

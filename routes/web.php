@@ -37,4 +37,8 @@ Route::prefix('pengguna')->name('pengguna.')->group(function () {
 
 Route::middleware(['auth', 'role:Admin/Manager|Kasir'])->prefix('member')->name('member.')->group(function () {
     Route::get('/', [MemberController::class, 'index'])->name('index');
+    Route::post('/', [MemberController::class, 'store'])->name('store');
+    Route::put('/{member}', [MemberController::class, 'update'])->name('update');
+    Route::patch('/{member}/status', [MemberController::class, 'toggleStatus'])->name('toggle-status');
+    Route::delete('/{member}', [MemberController::class, 'destroy'])->name('destroy');
 });
