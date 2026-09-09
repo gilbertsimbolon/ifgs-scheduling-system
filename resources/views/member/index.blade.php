@@ -181,8 +181,11 @@
         </div>
     </div>
 
-    <!-- Modal Tambah Member -->
+    <!-- Modal Tambah Member (Pilih Pengguna) -->
     @include('member.modals.tambah')
+
+    <!-- Modal Tambah Pengguna Baru (Jika belum ada di User) -->
+    @include('member.modals.tambah-user')
 
     <!-- Modal Detail Member -->
     @include('member.modals.detail')
@@ -355,11 +358,15 @@
 
             // Auto reopen modal if validation fails
             @if ($errors->any())
-                @if (old('_modal') === 'create')
-                    const modalTambahEl = document.getElementById('modalTambahMember');
-                    if (modalTambahEl && typeof bootstrap !== 'undefined') {
-                        const modalTambah = new bootstrap.Modal(modalTambahEl);
-                        modalTambah.show();
+                @if (old('_modal') === 'create_member')
+                    const modalTambahMemberEl = document.getElementById('modalTambahMember');
+                    if (modalTambahMemberEl && typeof bootstrap !== 'undefined') {
+                        new bootstrap.Modal(modalTambahMemberEl).show();
+                    }
+                @elseif (old('_modal') === 'create_user')
+                    const modalTambahUserEl = document.getElementById('modalTambahUser');
+                    if (modalTambahUserEl && typeof bootstrap !== 'undefined') {
+                        new bootstrap.Modal(modalTambahUserEl).show();
                     }
                 @elseif (old('_modal') === 'edit')
                     const formEdit = document.getElementById('formEditMember');
@@ -369,8 +376,7 @@
                     }
                     const modalEditEl = document.getElementById('modalEditMember');
                     if (modalEditEl && typeof bootstrap !== 'undefined') {
-                        const modalEdit = new bootstrap.Modal(modalEditEl);
-                        modalEdit.show();
+                        new bootstrap.Modal(modalEditEl).show();
                     }
                 @endif
             @endif

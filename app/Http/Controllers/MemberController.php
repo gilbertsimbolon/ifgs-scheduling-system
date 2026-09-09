@@ -21,8 +21,9 @@ class MemberController extends Controller
     {
         $members = Member::with('user')->latest()->paginate(10);
         $statuses = User::STATUSES;
+        $availableUsers = User::doesntHave('member')->orderBy('name')->get();
 
-        return view('member.index', compact('members', 'statuses'));
+        return view('member.index', compact('members', 'statuses', 'availableUsers'));
     }
 
     /**
@@ -30,6 +31,33 @@ class MemberController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if ($request->filled('user_id')) {
+            $validated = $request->validate([
+                'user_id' => ['required', 'exists:users,id', 'unique:members,user_id'],
+                'phone' => ['nullable', 'string', 'max:20'],
+            ], [
+                'user_id.required' => 'Pengguna wajib dipilih.',
+                'user_id.exists' => 'Pengguna tidak ditemukan.',
+                'user_id.unique' => 'Pengguna ini sudah terdaftar sebagai member.',
+                'phone.max' => 'Nomor HP maksimal 20 karakter.',
+            ]);
+
+            DB::transaction(function () use ($validated) {
+                $user = User::findOrFail($validated['user_id']);
+                if (! $user->hasRole('Member')) {
+                    $user->assignRole('Member');
+                }
+
+                Member::create([
+                    'user_id' => $user->id,
+                    'phone' => $validated['phone'] ?? null,
+                ]);
+            });
+
+            return redirect()->route('member.index')
+                ->with('success', 'Member berhasil ditambahkan dari akun pengguna terdaftar.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -37,8 +65,8 @@ class MemberController extends Controller
             'phone' => ['nullable', 'string', 'max:20'],
             'status' => ['required', 'string', Rule::in(User::STATUSES)],
         ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
+            'name.required' => 'Nama pengguna wajib diisi.',
+            'email.required' => 'Email pengguna wajib diisi.',
             'email.email' => 'Format email tidak valid.',
             'email.unique' => 'Email sudah terdaftar.',
             'password.required' => 'Kata sandi wajib diisi.',
@@ -66,7 +94,7 @@ class MemberController extends Controller
         });
 
         return redirect()->route('member.index')
-            ->with('success', 'Member berhasil ditambahkan.');
+            ->with('success', 'Pengguna baru berhasil dibuat dan didaftarkan sebagai Member.');
     }
 
     /**

@@ -7,10 +7,10 @@
             </div>
             <form action="{{ route('member.store') }}" method="POST">
                 @csrf
-                <input type="hidden" name="_modal" value="create">
+                <input type="hidden" name="_modal" value="create_member">
 
                 <div class="modal-body">
-                    @if ($errors->any() && old('_modal') === 'create')
+                    @if ($errors->any() && old('_modal') === 'create_member')
                         <div class="alert alert-danger mb-3">
                             <ul class="mb-0 ps-3">
                                 @foreach ($errors->all() as $error)
@@ -20,86 +20,58 @@
                         </div>
                     @endif
 
+                    <div class="alert alert-primary d-flex align-items-center mb-3 py-2 px-3" role="alert">
+                        <i class="bx bx-info-circle me-2 fs-5"></i>
+                        <div class="small">
+                            Nama member berasal dari akun Pengguna (User). Pilih pengguna terdaftar di bawah, atau buat akun pengguna baru terlebih dahulu jika belum terdaftar.
+                        </div>
+                    </div>
+
                     <div class="mb-3">
-                        <label class="form-label" for="tambahName">Nama Lengkap <span class="text-danger">*</span></label>
-                        <input type="text"
-                            class="form-control @if (old('_modal') === 'create') @error('name') is-invalid @enderror @endif"
-                            id="tambahName" name="name" placeholder="Masukkan nama lengkap"
-                            value="{{ old('_modal') === 'create' ? old('name') : '' }}" required />
-                        @if (old('_modal') === 'create')
-                            @error('name')
+                        <label class="form-label" for="tambahUserId">Pilih Pengguna <span class="text-danger">*</span></label>
+                        <select
+                            class="form-select @if (old('_modal') === 'create_member') @error('user_id') is-invalid @enderror @endif"
+                            id="tambahUserId" name="user_id" required>
+                            <option value="">-- Pilih Pengguna Terdaftar --</option>
+                            @foreach ($availableUsers as $availableUser)
+                                <option value="{{ $availableUser->id }}"
+                                    {{ old('_modal') === 'create_member' && old('user_id') == $availableUser->id ? 'selected' : '' }}>
+                                    {{ $availableUser->name }} ({{ $availableUser->email }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @if (old('_modal') === 'create_member')
+                            @error('user_id')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        @endif
+
+                        @if ($availableUsers->isEmpty())
+                            <div class="form-text text-warning mt-1">
+                                <i class="bx bx-info-circle me-1"></i> Tidak ada pengguna yang tersedia. Silakan buat akun pengguna baru.
+                            </div>
                         @endif
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label" for="tambahEmail">Alamat Email <span class="text-danger">*</span></label>
-                        <input type="email"
-                            class="form-control @if (old('_modal') === 'create') @error('email') is-invalid @enderror @endif"
-                            id="tambahEmail" name="email" placeholder="nama@email.com"
-                            value="{{ old('_modal') === 'create' ? old('email') : '' }}" required />
-                        @if (old('_modal') === 'create')
-                            @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        @endif
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="tambahPhone">Nomor HP</label>
+                        <label class="form-label" for="tambahMemberPhone">Nomor HP</label>
                         <input type="text"
-                            class="form-control @if (old('_modal') === 'create') @error('phone') is-invalid @enderror @endif"
-                            id="tambahPhone" name="phone" placeholder="Contoh: 08123456789"
-                            value="{{ old('_modal') === 'create' ? old('phone') : '' }}" />
-                        @if (old('_modal') === 'create')
+                            class="form-control @if (old('_modal') === 'create_member') @error('phone') is-invalid @enderror @endif"
+                            id="tambahMemberPhone" name="phone" placeholder="Contoh: 08123456789"
+                            value="{{ old('_modal') === 'create_member' ? old('phone') : '' }}" />
+                        @if (old('_modal') === 'create_member')
                             @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         @endif
                     </div>
 
-                    <div class="mb-3 form-password-toggle">
-                        <label class="form-label" for="tambahPassword">Kata Sandi <span class="text-danger">*</span></label>
-                        <div class="input-group input-group-merge">
-                            <input type="password" id="tambahPassword" name="password"
-                                class="form-control @if (old('_modal') === 'create') @error('password') is-invalid @enderror @endif"
-                                placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
-                                required />
-                            <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
-                        </div>
-                        @if (old('_modal') === 'create')
-                            @error('password')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @else
-                                <div class="form-text">Minimal 8 karakter.</div>
-                            @enderror
-                        @else
-                            <div class="form-text">Minimal 8 karakter.</div>
-                        @endif
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="tambahStatus">Status Akun <span class="text-danger">*</span></label>
-                            <select
-                                class="form-select @if (old('_modal') === 'create') @error('status') is-invalid @enderror @endif"
-                                id="tambahStatus" name="status" required>
-                                <option value="{{ \App\Models\User::STATUS_ACTIVE }}"
-                                    {{ old('_modal') === 'create' && old('status') === \App\Models\User::STATUS_ACTIVE ? 'selected' : (!old('_modal') ? 'selected' : '') }}>
-                                    Aktif
-                                </option>
-                                <option value="{{ \App\Models\User::STATUS_INACTIVE }}"
-                                    {{ old('_modal') === 'create' && old('status') === \App\Models\User::STATUS_INACTIVE ? 'selected' : '' }}>
-                                    Tidak Aktif
-                                </option>
-                            </select>
-                            @if (old('_modal') === 'create')
-                                @error('status')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            @endif
-                        </div>
+                    <div class="border-top pt-3 mt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <span class="text-muted small">Pengguna belum memiliki akun?</span>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-dismiss="modal"
+                            data-bs-toggle="modal" data-bs-target="#modalTambahUser">
+                            <i class="bx bx-user-plus me-1"></i> Buat Pengguna Baru
+                        </button>
                     </div>
                 </div>
 

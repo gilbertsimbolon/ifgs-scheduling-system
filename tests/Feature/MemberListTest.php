@@ -181,7 +181,7 @@ test('admin can store a new member with user and role Member', function () {
     ]);
 
     $response->assertRedirect(route('member.index'));
-    $response->assertSessionHas('success', 'Member berhasil ditambahkan.');
+    $response->assertSessionHas('success', 'Pengguna baru berhasil dibuat dan didaftarkan sebagai Member.');
 
     $user = User::where('email', 'michael@ifgs.test')->first();
     expect($user)->not->toBeNull()
@@ -193,6 +193,29 @@ test('admin can store a new member with user and role Member', function () {
     expect($member)->not->toBeNull()
         ->and($member->phone)->toBe('081299887766')
         ->and($member->member_code)->toStartWith('IFGS-');
+});
+
+test('admin can store member from existing user', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $existingUser = User::factory()->create([
+        'name' => 'Existing Person',
+        'email' => 'existingperson@ifgs.test',
+    ]);
+
+    $response = $this->actingAs($admin)->post(route('member.store'), [
+        'user_id' => $existingUser->id,
+        'phone' => '081233445566',
+    ]);
+
+    $response->assertRedirect(route('member.index'));
+    $response->assertSessionHas('success', 'Member berhasil ditambahkan dari akun pengguna terdaftar.');
+
+    $member = Member::where('user_id', $existingUser->id)->first();
+    expect($member)->not->toBeNull()
+        ->and($member->phone)->toBe('081233445566')
+        ->and($existingUser->fresh()->hasRole('Member'))->toBeTrue();
 });
 
 test('store member fails with validation errors when inputs are invalid', function () {
