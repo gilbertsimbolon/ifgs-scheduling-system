@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['user_id', 'member_code', 'phone'])]
 class Member extends Model
@@ -32,6 +33,27 @@ class Member extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get all membership packages purchased by this member.
+     */
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(Membership::class);
+    }
+
+    /**
+     * Get the current active membership for this member.
+     */
+    public function activeMembership(): ?Membership
+    {
+        return $this->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->latest('end_date')
+            ->first();
     }
 
     /**

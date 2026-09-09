@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PenggunaController;
+use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -35,10 +37,33 @@ Route::prefix('pengguna')->name('pengguna.')->group(function () {
     Route::delete('/{user:slug}', [PenggunaController::class, 'destroy'])->name('destroy');
 });
 
-Route::middleware(['auth', 'role:Admin/Manager|Kasir'])->prefix('member')->name('member.')->group(function () {
-    Route::get('/', [MemberController::class, 'index'])->name('index');
-    Route::post('/', [MemberController::class, 'store'])->name('store');
-    Route::put('/{member}', [MemberController::class, 'update'])->name('update');
-    Route::patch('/{member}/status', [MemberController::class, 'toggleStatus'])->name('toggle-status');
-    Route::delete('/{member}', [MemberController::class, 'destroy'])->name('destroy');
+Route::middleware(['auth', 'role:Admin/Manager|Kasir'])->group(function () {
+    // Member
+    Route::prefix('member')->name('member.')->group(function () {
+        Route::get('/', [MemberController::class, 'index'])->name('index');
+        Route::post('/', [MemberController::class, 'store'])->name('store');
+        Route::put('/{member}', [MemberController::class, 'update'])->name('update');
+        Route::patch('/{member}/status', [MemberController::class, 'toggleStatus'])->name('toggle-status');
+        Route::delete('/{member}', [MemberController::class, 'destroy'])->name('destroy');
+    });
+
+    // Master Produk / Layanan Gym
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::get('/{product}', [ProductController::class, 'show'])->name('show');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::patch('/{product}/status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Transaksi Membership
+    Route::prefix('memberships')->name('memberships.')->group(function () {
+        Route::get('/', [MembershipController::class, 'index'])->name('index');
+        Route::post('/', [MembershipController::class, 'store'])->name('store');
+        Route::get('/calculate-end-date', [MembershipController::class, 'calculateEndDate'])->name('calculate-end-date');
+        Route::put('/{membership}', [MembershipController::class, 'update'])->name('update');
+        Route::patch('/{membership}/cancel', [MembershipController::class, 'cancel'])->name('cancel');
+        Route::delete('/{membership}', [MembershipController::class, 'destroy'])->name('destroy');
+    });
 });

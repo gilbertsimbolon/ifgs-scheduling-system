@@ -55,6 +55,12 @@
                 <div class="text-truncate">Membership</div>
             </a>
         </li>
+        <li class="menu-item {{ request()->is('products*') ? 'active' : '' }}">
+            <a href="{{ Route::has('products.index') ? route('products.index') : '#' }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-package"></i>
+                <div class="text-truncate">Paket Layanan</div>
+            </a>
+        </li>
 
         <!-- KUNJUNGAN -->
         <li class="menu-header small text-uppercase">

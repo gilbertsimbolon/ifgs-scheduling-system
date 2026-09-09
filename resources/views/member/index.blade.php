@@ -112,6 +112,15 @@
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1">
                                         <!-- Detail Modal Trigger -->
+                                        @php
+                                            $activeMem = $member->activeMembership();
+                                            $memText = $activeMem
+                                                ? $activeMem->product?->name .
+                                                    ' (s.d. ' .
+                                                    $activeMem->end_date->format('d M Y') .
+                                                    ')'
+                                                : 'Belum Ada / Tidak Aktif';
+                                        @endphp
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-info"
                                             title="Detail Member" data-bs-toggle="modal" data-bs-target="#modalDetailMember"
                                             data-name="{{ $member->user?->name ?? '-' }}"
@@ -119,6 +128,7 @@
                                             data-email="{{ $member->user?->email ?? '-' }}"
                                             data-phone="{{ $member->phone ?? '-' }}"
                                             data-status="{{ $member->user?->status ?? '-' }}"
+                                            data-membership="{{ $memText }}"
                                             data-created="{{ $member->created_at ? $member->created_at->format('d M Y, H:i') : '-' }}"
                                             data-updated="{{ $member->updated_at ? $member->updated_at->format('d M Y, H:i') : '-' }}">
                                             <i class="bx bx-show"></i>
@@ -168,8 +178,7 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($members->total() > 0)
-                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
-                        member
+                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }} member
                     @else
                         Tidak ada data member
                     @endif
@@ -212,6 +221,7 @@
                     const email = button.getAttribute('data-email') || '-';
                     const phone = button.getAttribute('data-phone') || '-';
                     const status = button.getAttribute('data-status') || '-';
+                    const membership = button.getAttribute('data-membership') || '-';
                     const created = button.getAttribute('data-created') || '-';
                     const updated = button.getAttribute('data-updated') || '-';
 
@@ -219,6 +229,10 @@
                     document.getElementById('detailKodeMember').textContent = code;
                     document.getElementById('detailEmail').textContent = email;
                     document.getElementById('detailPhone').textContent = phone;
+                    const memEl = document.getElementById('detailMembership');
+                    if (memEl) {
+                        memEl.textContent = membership;
+                    }
 
                     const avatarInitial = document.getElementById('detailAvatarInitial');
                     if (avatarInitial) {

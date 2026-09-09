@@ -20,6 +20,7 @@ class MemberController extends Controller
     public function index(): View
     {
         $members = Member::with('user')->latest()->paginate(10);
+        $members = Member::with(['user', 'memberships.product'])->latest()->paginate(10);
         $statuses = User::STATUSES;
         $availableUsers = User::doesntHave('member')->orderBy('name')->get();
 

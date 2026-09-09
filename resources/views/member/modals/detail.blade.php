@@ -1,4 +1,4 @@
-﻿<div class="modal fade" id="modalDetailMember" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalDetailMember" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -34,8 +34,15 @@
                             <tr>
                                 <th class="ps-0">
                                     <i class="bx bx-check-circle me-1 text-primary"></i> Status
+                                    <i class="bx bx-check-circle me-1 text-primary"></i> Status Akun
                                 </th>
                                 <td>: <span id="detailStatus" class="badge bg-label-success"></span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
+                                    <i class="bx bx-credit-card me-1 text-primary"></i> Membership
+                                </th>
+                                <td>: <span id="detailMembership"></span></td>
                             </tr>
                             <tr>
                                 <th class="ps-0">
