@@ -53,6 +53,12 @@
                             </tr>
                             <tr>
                                 <th class="ps-0">
+                                    <i class="bx bx-credit-card-front me-1 text-primary"></i> Metode Pembayaran
+                                </th>
+                                <td>: <span id="detailMembershipPaymentMethod" class="badge bg-label-info font-monospace"></span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
                                     <i class="bx bx-badge-check me-1 text-primary"></i> Status
                                 </th>
                                 <td>: <span id="detailMembershipStatusBadge" class="badge"></span></td>

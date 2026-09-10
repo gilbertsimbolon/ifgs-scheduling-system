@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,15 @@ Route::middleware(['auth', 'role:Admin/Manager|Kasir'])->group(function () {
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::patch('/{product}/status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Master Data Metode Pembayaran
+    Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
+        Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
+        Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
+        Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
+        Route::patch('/{paymentMethod}/status', [PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
+        Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
     });
 
     // Transaksi Membership

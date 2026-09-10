@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -19,7 +20,7 @@ class MembershipController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Membership::with(['member.user', 'product'])->latest();
+        $query = Membership::with(['member.user', 'product', 'paymentMethod'])->latest();
 
         // Filter status
         if ($request->filled('status') && in_array($request->status, Membership::STATUSES)) {
@@ -29,6 +30,11 @@ class MembershipController extends Controller
         // Filter paket layanan (dinamis dari master produk)
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
+        }
+
+        // Filter metode pembayaran
+        if ($request->filled('payment_method_id')) {
+            $query->where('payment_method_id', $request->payment_method_id);
         }
 
         // Pencarian (Nama member, kode member, atau nama produk)
@@ -78,6 +84,12 @@ class MembershipController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Daftar metode pembayaran aktif untuk pilihan dropdown Tambah Membership
+        $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)
+            ->orderBy('name')
+            ->get();
+
+        $allPaymentMethods = PaymentMethod::orderBy('name')->get();
         $allProducts = Product::orderBy('name')->get();
         $products = $allProducts;
         $statuses = Membership::STATUSES;
@@ -89,6 +101,8 @@ class MembershipController extends Controller
             'activeProducts',
             'allProducts',
             'products',
+            'activePaymentMethods',
+            'allPaymentMethods',
             'statuses'
         ));
     }
@@ -101,6 +115,12 @@ class MembershipController extends Controller
         $validated = $request->validate([
             'member_id' => ['required', 'exists:members,id'],
             'product_id' => ['required', 'exists:products,id'],
+            'payment_method_id' => [
+                'required',
+                Rule::exists('payment_methods', 'id')->where(function ($query) {
+                    $query->where('status', PaymentMethod::STATUS_ACTIVE);
+                }),
+            ],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'price' => ['nullable', 'numeric', 'min:0'],
@@ -110,6 +130,8 @@ class MembershipController extends Controller
             'member_id.exists' => 'Member tidak ditemukan.',
             'product_id.required' => 'Paket layanan wajib dipilih.',
             'product_id.exists' => 'Paket layanan tidak ditemukan.',
+            'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
+            'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid atau tidak aktif.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'start_date.date' => 'Format tanggal mulai tidak valid.',
             'end_date.date' => 'Format tanggal berakhir tidak valid.',
@@ -172,6 +194,7 @@ class MembershipController extends Controller
     {
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'price' => ['required', 'numeric', 'min:0'],
@@ -179,6 +202,8 @@ class MembershipController extends Controller
         ], [
             'product_id.required' => 'Paket layanan wajib dipilih.',
             'product_id.exists' => 'Paket layanan tidak ditemukan.',
+            'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
+            'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
             'start_date.date' => 'Format tanggal mulai tidak valid.',
             'end_date.required' => 'Tanggal berakhir wajib diisi.',

@@ -144,6 +144,34 @@
                             @enderror
                         @endif
                     </div>
+
+                    <!-- Metode Pembayaran -->
+                    <div class="mb-3">
+                        <label class="form-label" for="tambahPaymentMethodId">
+                            Metode Pembayaran <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select @if (old('_modal') === 'create_membership') @error('payment_method_id') is-invalid @enderror @endif"
+                            id="tambahPaymentMethodId" name="payment_method_id" required>
+                            <option value="">-- Pilih Metode Pembayaran --</option>
+                            @foreach ($activePaymentMethods as $pm)
+                                <option value="{{ $pm->id }}"
+                                    {{ old('_modal') === 'create_membership' && old('payment_method_id') == $pm->id ? 'selected' : '' }}>
+                                    {{ $pm->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if (old('_modal') === 'create_membership')
+                            @error('payment_method_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        @endif
+                        @if ($activePaymentMethods->isEmpty())
+                            <div class="form-text text-warning mt-1">
+                                <i class="bx bx-info-circle me-1"></i> Belum ada metode pembayaran aktif.
+                                <a href="{{ route('payment-methods.index') }}">Kelola metode pembayaran</a>.
+                            </div>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="modal-footer">

@@ -102,6 +102,27 @@
                         @endif
                     </div>
 
+                    <!-- Metode Pembayaran -->
+                    <div class="mb-3">
+                        <label class="form-label" for="editPaymentMethodId">
+                            Metode Pembayaran <span class="text-danger">*</span>
+                        </label>
+                        <select class="form-select @if (old('_modal') === 'edit_membership') @error('payment_method_id') is-invalid @enderror @endif"
+                            id="editPaymentMethodId" name="payment_method_id" required>
+                            @foreach ($allPaymentMethods as $pm)
+                                <option value="{{ $pm->id }}"
+                                    {{ old('_modal') === 'edit_membership' && old('payment_method_id') == $pm->id ? 'selected' : '' }}>
+                                    {{ $pm->name }} {{ $pm->status !== \App\Models\PaymentMethod::STATUS_ACTIVE ? '(Non-Aktif)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if (old('_modal') === 'edit_membership')
+                            @error('payment_method_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        @endif
+                    </div>
+
                     <!-- Status -->
                     <div class="mb-3">
                         <label class="form-label" for="editStatus">

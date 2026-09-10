@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['member_id', 'product_id', 'start_date', 'end_date', 'price', 'status'])]
+#[Fillable(['member_id', 'product_id', 'payment_method_id', 'start_date', 'end_date', 'price', 'status'])]
 class Membership extends Model
 {
     /** @use HasFactory<MembershipFactory> */
@@ -54,6 +54,14 @@ class Membership extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the payment method used for this membership transaction.
+     */
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -83,10 +84,12 @@ test('membership snapshots product price at creation and does not change when pr
         'duration_unit' => Product::DURATION_MONTH,
         'status' => Product::STATUS_ACTIVE,
     ]);
+    $pm = PaymentMethod::factory()->create(['status' => 'active']);
 
     $response = $this->actingAs($admin)->post(route('memberships.store'), [
         'member_id' => $member->id,
         'product_id' => $product->id,
+        'payment_method_id' => $pm->id,
         'start_date' => now()->format('Y-m-d'),
     ]);
 
@@ -95,6 +98,7 @@ test('membership snapshots product price at creation and does not change when pr
     $membership = Membership::where('member_id', $member->id)->first();
     expect($membership)->not->toBeNull();
     expect((float) $membership->price)->toBe(150000.00);
+    expect($membership->payment_method_id)->toBe($pm->id);
 
     // Update master product price to 200.000
     $product->update(['price' => 200000.00]);
@@ -114,6 +118,7 @@ test('auto calculates end_date when end_date is omitted in store', function () {
         'duration_unit' => Product::DURATION_MONTH,
         'status' => Product::STATUS_ACTIVE,
     ]);
+    $pm = PaymentMethod::factory()->create(['status' => 'active']);
 
     $startDate = '2026-03-01';
     $expectedEndDate = '2026-06-01';
@@ -121,6 +126,7 @@ test('auto calculates end_date when end_date is omitted in store', function () {
     $this->actingAs($admin)->post(route('memberships.store'), [
         'member_id' => $member->id,
         'product_id' => $product->id,
+        'payment_method_id' => $pm->id,
         'start_date' => $startDate,
     ]);
 
@@ -134,15 +140,36 @@ test('cannot create membership with an inactive product', function () {
 
     $member = Member::factory()->create();
     $inactiveProduct = Product::factory()->inactive()->create();
+    $pm = PaymentMethod::factory()->create(['status' => 'active']);
 
     $response = $this->actingAs($admin)->from(route('memberships.index'))->post(route('memberships.store'), [
         'member_id' => $member->id,
         'product_id' => $inactiveProduct->id,
+        'payment_method_id' => $pm->id,
         'start_date' => now()->format('Y-m-d'),
     ]);
 
     $response->assertRedirect(route('memberships.index'));
     $response->assertSessionHas('error');
+    expect(Membership::count())->toBe(0);
+});
+
+test('cannot create membership with an inactive payment method', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $member = Member::factory()->create();
+    $product = Product::factory()->create(['status' => Product::STATUS_ACTIVE]);
+    $inactivePm = PaymentMethod::factory()->inactive()->create();
+
+    $response = $this->actingAs($admin)->post(route('memberships.store'), [
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'payment_method_id' => $inactivePm->id,
+        'start_date' => now()->format('Y-m-d'),
+    ]);
+
+    $response->assertSessionHasErrors('payment_method_id');
     expect(Membership::count())->toBe(0);
 });
 
@@ -152,10 +179,12 @@ test('validates end_date must be after or equal to start_date', function () {
 
     $member = Member::factory()->create();
     $product = Product::factory()->create(['status' => Product::STATUS_ACTIVE]);
+    $pm = PaymentMethod::factory()->create(['status' => 'active']);
 
     $response = $this->actingAs($admin)->post(route('memberships.store'), [
         'member_id' => $member->id,
         'product_id' => $product->id,
+        'payment_method_id' => $pm->id,
         'start_date' => '2026-05-10',
         'end_date' => '2026-05-01',
     ]);
@@ -283,10 +312,12 @@ test('membership index can be filtered dynamically by product_id', function () {
     $userB = User::factory()->create(['name' => 'Member Reguler User']);
     $userB->assignRole('Member');
     $memberB = Member::factory()->create(['user_id' => $userB->id]);
+    $pm = PaymentMethod::factory()->create();
 
     $membershipA = Membership::create([
         'member_id' => $memberA->id,
         'product_id' => $productA->id,
+        'payment_method_id' => $pm->id,
         'price' => $productA->price,
         'start_date' => now()->format('Y-m-d'),
         'end_date' => now()->addMonth()->format('Y-m-d'),
@@ -296,6 +327,7 @@ test('membership index can be filtered dynamically by product_id', function () {
     $membershipB = Membership::create([
         'member_id' => $memberB->id,
         'product_id' => $productB->id,
+        'payment_method_id' => $pm->id,
         'price' => $productB->price,
         'start_date' => now()->format('Y-m-d'),
         'end_date' => now()->addMonth()->format('Y-m-d'),
@@ -340,4 +372,32 @@ test('membership index displays filtered empty state when filter finds nothing',
     $response->assertOk();
     $response->assertSee('Tidak ada data membership yang ditemukan');
     $response->assertSee('Coba ubah kata kunci pencarian atau bersihkan filter.');
+});
+
+test('can update membership and change payment method', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $pm1 = PaymentMethod::factory()->create(['name' => 'Metode Lama']);
+    $pm2 = PaymentMethod::factory()->create(['name' => 'Metode Baru']);
+
+    $membership = Membership::factory()->create([
+        'payment_method_id' => $pm1->id,
+        'price' => 100000,
+    ]);
+
+    $response = $this->actingAs($admin)->put(route('memberships.update', $membership), [
+        'product_id' => $membership->product_id,
+        'payment_method_id' => $pm2->id,
+        'start_date' => $membership->start_date->format('Y-m-d'),
+        'end_date' => $membership->end_date->format('Y-m-d'),
+        'price' => 120000,
+        'status' => 'active',
+    ]);
+
+    $response->assertRedirect(route('memberships.index'));
+    $membership->refresh();
+
+    expect($membership->payment_method_id)->toBe($pm2->id);
+    expect((float) $membership->price)->toBe(120000.00);
 });

@@ -62,6 +62,13 @@
             </a>
         </li>
 
+        <li class="menu-item {{ request()->is('payment-methods*') ? 'active' : '' }}">
+            <a href="{{ Route::has('payment-methods.index') ? route('payment-methods.index') : '#' }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
+                <div class="text-truncate">Metode Pembayaran</div>
+            </a>
+        </li>
+
         <!-- KUNJUNGAN -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">KUNJUNGAN</span>

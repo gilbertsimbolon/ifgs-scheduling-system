@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,6 +27,7 @@ class MembershipFactory extends Factory
         return [
             'member_id' => Member::factory(),
             'product_id' => $product->id,
+            'payment_method_id' => PaymentMethod::factory(),
             'start_date' => $startDate->format('Y-m-d'),
             'end_date' => $endDate->format('Y-m-d'),
             'price' => $product->price,
