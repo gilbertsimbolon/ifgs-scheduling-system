@@ -21,7 +21,7 @@ test('authorized user with Admin/Manager role can access /member', function () {
     $response = $this->actingAs($admin)->get(route('member.index'));
 
     $response->assertStatus(200);
-    $response->assertSee('Home /');
+    $response->assertSee('Manajemen /');
     $response->assertSee('Member');
     $response->assertSee('Kelola data member yang terdaftar pada sistem.');
 });
@@ -327,4 +327,94 @@ test('admin can delete a member and user is also deleted', function () {
 
     expect(User::find($user->id))->toBeNull();
     expect(Member::find($member->id))->toBeNull();
+});
+
+test('member list can be filtered by search term matching name, email, member_code, or phone', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $userA = User::factory()->create(['name' => 'Budi Santoso', 'email' => 'budi@ifgs.test']);
+    $userA->assignRole('Member');
+    $memberA = Member::factory()->create([
+        'user_id' => $userA->id,
+        'member_code' => 'IFGS-202609-0101',
+        'phone' => '081234567890',
+    ]);
+
+    $userB = User::factory()->create(['name' => 'Siti Nurhaliza', 'email' => 'siti@ifgs.test']);
+    $userB->assignRole('Member');
+    $memberB = Member::factory()->create([
+        'user_id' => $userB->id,
+        'member_code' => 'IFGS-202609-0202',
+        'phone' => '089876543210',
+    ]);
+
+    // Search by name
+    $resName = $this->actingAs($admin)->get(route('member.index', ['search' => 'Budi']));
+    $resName->assertStatus(200);
+    $resName->assertSee('Budi Santoso');
+    $resName->assertDontSee('Siti Nurhaliza');
+
+    // Search by email
+    $resEmail = $this->actingAs($admin)->get(route('member.index', ['search' => 'siti@ifgs.test']));
+    $resEmail->assertStatus(200);
+    $resEmail->assertSee('Siti Nurhaliza');
+    $resEmail->assertDontSee('Budi Santoso');
+
+    // Search by member_code
+    $resCode = $this->actingAs($admin)->get(route('member.index', ['search' => '0101']));
+    $resCode->assertStatus(200);
+    $resCode->assertSee('IFGS-202609-0101');
+    $resCode->assertDontSee('IFGS-202609-0202');
+
+    // Search by phone
+    $resPhone = $this->actingAs($admin)->get(route('member.index', ['search' => '089876543210']));
+    $resPhone->assertStatus(200);
+    $resPhone->assertSee('Siti Nurhaliza');
+    $resPhone->assertDontSee('Budi Santoso');
+});
+
+test('member list can be filtered by status', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $activeUser = User::factory()->create([
+        'name' => 'Member Aktif',
+        'status' => User::STATUS_ACTIVE,
+    ]);
+    $activeUser->assignRole('Member');
+    $activeMember = Member::factory()->create(['user_id' => $activeUser->id]);
+
+    $inactiveUser = User::factory()->create([
+        'name' => 'Member Nonaktif',
+        'status' => User::STATUS_INACTIVE,
+    ]);
+    $inactiveUser->assignRole('Member');
+    $inactiveMember = Member::factory()->create(['user_id' => $inactiveUser->id]);
+
+    // Filter Active
+    $resActive = $this->actingAs($admin)->get(route('member.index', ['status' => User::STATUS_ACTIVE]));
+    $resActive->assertStatus(200);
+    $resActive->assertSee('Member Aktif');
+    $resActive->assertDontSee('Member Nonaktif');
+
+    // Filter Inactive
+    $resInactive = $this->actingAs($admin)->get(route('member.index', ['status' => User::STATUS_INACTIVE]));
+    $resInactive->assertStatus(200);
+    $resInactive->assertSee('Member Nonaktif');
+    $resInactive->assertDontSee('Member Aktif');
+});
+
+test('member list displays filtered empty state when search returns no match', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create(['name' => 'Ada Member']);
+    $user->assignRole('Member');
+    Member::factory()->create(['user_id' => $user->id]);
+
+    $response = $this->actingAs($admin)->get(route('member.index', ['search' => 'KeywordTidakAda']));
+    $response->assertStatus(200);
+    $response->assertSee('Tidak ada data member yang ditemukan');
+    $response->assertSee('Coba ubah kata kunci pencarian atau bersihkan filter.');
 });

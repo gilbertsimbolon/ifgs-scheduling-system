@@ -241,3 +241,36 @@ test('pengguna toggle status switches inactive to active and returns json', func
     $user->refresh();
     expect($user->status)->toBe(User::STATUS_ACTIVE);
 });
+
+test('pengguna index excludes users with role Member and users who are members', function () {
+    $admin = User::factory()->create(['name' => 'Admin Staff']);
+    $admin->assignRole('Admin/Manager');
+
+    $kasir = User::factory()->create(['name' => 'Kasir Staff']);
+    $kasir->assignRole('Kasir');
+
+    $memberUser = User::factory()->create(['name' => 'Gym Customer']);
+    $memberUser->assignRole('Member');
+
+    $response = $this->get(route('pengguna.index'));
+
+    $response->assertStatus(200);
+    $response->assertSee('Admin Staff');
+    $response->assertSee('Kasir Staff');
+    $response->assertDontSee('Gym Customer');
+    $response->assertViewHas('roles', function ($roles) {
+        return ! $roles->contains('Member') && $roles->contains('Admin/Manager') && $roles->contains('Kasir');
+    });
+});
+
+test('cannot assign Member role via pengguna store', function () {
+    $response = $this->post(route('pengguna.store'), [
+        'name' => 'Invalid Role User',
+        'email' => 'invalidrole@ifgs.test',
+        'password' => 'password123',
+        'role' => 'Member',
+    ]);
+
+    $response->assertSessionHasErrors('role');
+    $this->assertDatabaseMissing('users', ['email' => 'invalidrole@ifgs.test']);
+});

@@ -19,6 +19,11 @@ class PenggunaController extends Controller
     public function index(Request $request): View
     {
         $query = User::with('roles');
+        $query = User::with('roles')
+            ->whereDoesntHave('roles', function ($q) {
+                $q->where('name', 'Member');
+            })
+            ->whereDoesntHave('member');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -37,6 +42,7 @@ class PenggunaController extends Controller
 
         $users = $query->latest()->paginate(10)->withQueryString();
         $roles = Role::pluck('name');
+        $roles = Role::where('name', '!=', 'Member')->pluck('name');
         $statuses = User::STATUSES;
 
         return view('pengguna.index', compact('users', 'roles', 'statuses'));
@@ -48,6 +54,7 @@ class PenggunaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $availableRoles = Role::pluck('name')->toArray();
+        $availableRoles = Role::where('name', '!=', 'Member')->pluck('name')->toArray();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -84,6 +91,7 @@ class PenggunaController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         $availableRoles = Role::pluck('name')->toArray();
+        $availableRoles = Role::where('name', '!=', 'Member')->pluck('name')->toArray();
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],

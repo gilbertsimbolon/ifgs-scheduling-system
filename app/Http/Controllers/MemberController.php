@@ -17,10 +17,29 @@ class MemberController extends Controller
     /**
      * Menampilkan daftar member yang terdaftar pada sistem.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         $members = Member::with('user')->latest()->paginate(10);
         $members = Member::with(['user', 'memberships.product'])->latest()->paginate(10);
+        $query = Member::with(['user', 'memberships.product'])->latest();
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('member_code', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($uq) use ($search) {
+                        $uq->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('status') && in_array($request->status, User::STATUSES, true)) {
+            $query->whereHas('user', fn ($q) => $q->where('status', $request->status));
+        }
+
+        $members = $query->paginate(10)->withQueryString();
         $statuses = User::STATUSES;
         $availableUsers = User::doesntHave('member')->orderBy('name')->get();
 

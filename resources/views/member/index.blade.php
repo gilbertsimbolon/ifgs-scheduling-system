@@ -5,10 +5,10 @@
 @section('content')
     <div class="container-xxl flex-grow-1">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
             <div>
                 <h5 class="fw-bold py-3 mb-0">
-                    <span class="text-muted fw-light">Home /</span> Member
+                    <span class="text-muted fw-light">Manajemen /</span> Member
                 </h5>
                 <p class="text-muted mb-0">Kelola data member yang terdaftar pada sistem.</p>
             </div>
@@ -49,6 +49,44 @@
 
         <!-- Main Card -->
         <div class="card">
+            <!-- Search and Filter Form -->
+            <div class="card-body border-bottom">
+                <form action="{{ route('member.index') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label" for="search">Cari Member</label>
+                        <div class="input-group input-group-merge">
+                            <span class="input-group-text"><i class="bx bx-search"></i></span>
+                            <input type="text" id="search" name="search" class="form-control"
+                                placeholder="Cari nama, email, kode member, atau no. HP..."
+                                value="{{ request('search') }}" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="status">Filter Status</label>
+                        <select name="status" id="status" class="form-select">
+                            <option value="">Semua Status</option>
+                            @foreach ($statuses as $status)
+                                <option value="{{ $status }}" {{ request('status') === $status ? 'selected' : '' }}>
+                                    {{ $status === \App\Models\User::STATUS_ACTIVE ? 'Aktif' : 'Tidak Aktif' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bx bx-filter-alt me-1"></i> Filter
+                        </button>
+                        @if (request()->hasAny(['search', 'status']))
+                            <a href="{{ route('member.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                                <i class="bx bx-reset"></i>
+                            </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+
             <!-- Tabel Member -->
             <div class="table-responsive text-nowrap">
                 <table class="table table-hover">
@@ -166,6 +204,20 @@
                                         </div>
                                         <h6 class="fw-semibold mb-1">Belum ada member</h6>
                                         <span class="text-muted">Belum ada member yang terdaftar pada sistem.</span>
+                                        <h6 class="fw-semibold mb-1">
+                                            @if (request()->hasAny(['search', 'status']))
+                                                Tidak ada data member yang ditemukan
+                                            @else
+                                                Belum ada member
+                                            @endif
+                                        </h6>
+                                        <span class="text-muted">
+                                            @if (request()->hasAny(['search', 'status']))
+                                                Coba ubah kata kunci pencarian atau bersihkan filter.
+                                            @else
+                                                Belum ada member yang terdaftar pada sistem.
+                                            @endif
+                                        </span>
                                     </div>
                                 </td>
                             </tr>

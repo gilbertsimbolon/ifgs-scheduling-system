@@ -34,7 +34,6 @@
                             <tr>
                                 <th class="ps-0">
                                     <i class="bx bx-check-circle me-1 text-primary"></i> Status
-                                    <i class="bx bx-check-circle me-1 text-primary"></i> Status Akun
                                 </th>
                                 <td>: <span id="detailStatus" class="badge bg-label-success"></span></td>
                             </tr>

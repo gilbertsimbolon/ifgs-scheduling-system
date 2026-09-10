@@ -158,7 +158,7 @@ class AuthController extends Controller
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()
-                ->with('status', 'Link reset password anda sudah kami kirim ke email ' . $request->email);
+                ->with('status', 'Link reset password anda sudah kami kirim ke email '.$request->email);
         }
 
         return back()

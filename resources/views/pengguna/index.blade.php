@@ -5,12 +5,12 @@
 @section('content')
     <div class="container-xxl flex-grow-1">
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
             <div>
                 <h5 class="fw-bold py-3 mb-0">
                     <span class="text-muted fw-light">Manajemen /</span> Pengguna
                 </h5>
-                <p class="text-muted mb-0">Kelola data pengguna sistem, hak akses peran, dan status akun.</p>
+                <p class="text-muted mb-0">Kelola akun staf internal (Admin/Manager & Kasir) dan hak akses sistem.</p>
             </div>
             <div>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPengguna">

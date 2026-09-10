@@ -5,17 +5,13 @@
 @section('content')
     <div class="container-xxl flex-grow-1">
         <!-- Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 mt-2 gap-2">
             <div>
                 <h5 class="fw-bold py-3 mb-0">
-                    <span class="text-muted fw-light"><a href="{{ route('memberships.index') }}" class="text-muted">Membership</a> /</span> Paket Layanan
+                    <span class="text-muted fw-light">Manajemen /</span> Produk Layanan
                 </h5>
-                <p class="text-muted mb-0">Kelola master paket dan produk layanan fitness/gym yang ditawarkan.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ route('memberships.index') }}" class="btn btn-outline-secondary">
-                    <i class="bx bx-arrow-back me-1"></i> Kembali ke Membership
-                </a>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahProduct">
                     <i class="bx bx-plus me-1"></i> Tambah Paket
                 </button>

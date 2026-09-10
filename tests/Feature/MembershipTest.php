@@ -268,3 +268,76 @@ test('product CRUD operations and prevention of deleting used product', function
     $delResponse->assertSessionHas('error');
     expect(Product::find($usedProduct->id))->not->toBeNull();
 });
+
+test('membership index can be filtered dynamically by product_id', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $productA = Product::factory()->create(['name' => 'Paket Platinum VIP', 'price' => 500000]);
+    $productB = Product::factory()->create(['name' => 'Paket Reguler Siang', 'price' => 100000]);
+
+    $userA = User::factory()->create(['name' => 'Member Platinum User']);
+    $userA->assignRole('Member');
+    $memberA = Member::factory()->create(['user_id' => $userA->id]);
+
+    $userB = User::factory()->create(['name' => 'Member Reguler User']);
+    $userB->assignRole('Member');
+    $memberB = Member::factory()->create(['user_id' => $userB->id]);
+
+    $membershipA = Membership::create([
+        'member_id' => $memberA->id,
+        'product_id' => $productA->id,
+        'price' => $productA->price,
+        'start_date' => now()->format('Y-m-d'),
+        'end_date' => now()->addMonth()->format('Y-m-d'),
+        'status' => 'active',
+    ]);
+
+    $membershipB = Membership::create([
+        'member_id' => $memberB->id,
+        'product_id' => $productB->id,
+        'price' => $productB->price,
+        'start_date' => now()->format('Y-m-d'),
+        'end_date' => now()->addMonth()->format('Y-m-d'),
+        'status' => 'active',
+    ]);
+
+    // View displays both products in dropdown dynamically
+    $responseIndex = $this->actingAs($admin)->get(route('memberships.index'));
+    $responseIndex->assertOk();
+    $responseIndex->assertSee('Paket Platinum VIP');
+    $responseIndex->assertSee('Paket Reguler Siang');
+
+    // Filter by Product A
+    $responseFilterA = $this->actingAs($admin)->get(route('memberships.index', ['product_id' => $productA->id]));
+    $responseFilterA->assertOk();
+    $responseFilterA->assertViewHas('memberships', function ($m) use ($membershipA, $membershipB) {
+        return $m->contains($membershipA) && ! $m->contains($membershipB);
+    });
+
+    // Filter by Product B
+    $responseFilterB = $this->actingAs($admin)->get(route('memberships.index', ['product_id' => $productB->id]));
+    $responseFilterB->assertOk();
+    $responseFilterB->assertViewHas('memberships', function ($m) use ($membershipA, $membershipB) {
+        return $m->contains($membershipB) && ! $m->contains($membershipA);
+    });
+});
+
+test('membership index displays filtered empty state when filter finds nothing', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $product = Product::factory()->create(['name' => 'Paket Ada']);
+    $user = User::factory()->create(['name' => 'Member Ada']);
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('memberships.index', ['search' => 'TidakAdaKeyword']));
+    $response->assertOk();
+    $response->assertSee('Tidak ada data membership yang ditemukan');
+    $response->assertSee('Coba ubah kata kunci pencarian atau bersihkan filter.');
+});

@@ -26,6 +26,11 @@ class MembershipController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Filter paket layanan (dinamis dari master produk)
+        if ($request->filled('product_id')) {
+            $query->where('product_id', $request->product_id);
+        }
+
         // Pencarian (Nama member, kode member, atau nama produk)
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -74,6 +79,7 @@ class MembershipController extends Controller
             ->get();
 
         $allProducts = Product::orderBy('name')->get();
+        $products = $allProducts;
         $statuses = Membership::STATUSES;
 
         return view('membership.index', compact(
@@ -82,6 +88,7 @@ class MembershipController extends Controller
             'activeMembers',
             'activeProducts',
             'allProducts',
+            'products',
             'statuses'
         ));
     }
