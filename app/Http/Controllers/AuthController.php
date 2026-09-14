@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -78,6 +80,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'phone' => ['nullable', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required' => 'Nama wajib diisi.',
@@ -88,21 +91,30 @@ class AuthController extends Controller
             'email.email' => 'Email harus berupa alamat email yang valid.',
             'email.max' => 'Email maksimal 255 karakter.',
             'email.unique' => 'Email sudah terdaftar.',
+            'phone.max' => 'Nomor HP maksimal 20 karakter.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.string' => 'Kata sandi harus berupa teks.',
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'status' => User::STATUS_ACTIVE,
-        ]);
+        DB::transaction(function () use ($validated) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'status' => User::STATUS_ACTIVE,
+            ]);
 
-        Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
-        $user->assignRole('Member');
+            Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
+            $user->assignRole('Member');
+
+            // Otomatis buat profil Member beserta Kode Member unik
+            Member::create([
+                'user_id' => $user->id,
+                'phone' => $validated['phone'] ?? null,
+            ]);
+        });
 
         return redirect()
             ->route('login')

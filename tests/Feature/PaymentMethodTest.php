@@ -24,10 +24,9 @@ test('authorized Admin/Manager and Kasir can access /payment-methods', function 
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
-    $this->actingAs($admin)->get(route('payment-methods.index'))->assertOk();
     $this->actingAs($admin)->get(route('payment-methods.index'))
         ->assertOk()
-        ->assertSee('Manajemen /')
+        ->assertSee('Master Data /')
         ->assertSee('Metode Pembayaran');
     $this->actingAs($kasir)->get(route('payment-methods.index'))->assertOk();
 });

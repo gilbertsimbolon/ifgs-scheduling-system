@@ -32,6 +32,14 @@ class PaymentMethod extends Model
     }
 
     /**
+     * Get all transactions paid using this payment method.
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
      * Determine if this payment method is currently active.
      */
     public function isActive(): bool

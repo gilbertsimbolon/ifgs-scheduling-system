@@ -49,6 +49,20 @@
                                 @enderror
                             </div>
 
+                            <div class="mb-6">
+                                <label for="phone" class="form-label">Nomor Handphone / WhatsApp</label>
+                                <div class="input-group input-group-merge @error('phone') is-invalid @enderror">
+                                    <span class="input-group-text"><i class="bx bx-phone"></i></span>
+                                    <input type="tel" class="form-control @error('phone') is-invalid @enderror"
+                                        id="phone" name="phone" value="{{ old('phone') }}"
+                                        placeholder="Contoh: 08123456789" autocomplete="tel" />
+                                </div>
+                                @error('phone')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Opsional, namun memudahkan staf menghubungi Anda.</div>
+                            </div>
+
                             <div class="mb-6 form-password-toggle">
                                 <label class="form-label" for="password">Kata Sandi</label>
                                 <div class="input-group input-group-merge @error('password') is-invalid @enderror">

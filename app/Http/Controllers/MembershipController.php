@@ -21,6 +21,7 @@ class MembershipController extends Controller
     public function index(Request $request): View
     {
         $query = Membership::with(['member.user', 'product', 'paymentMethod'])->latest();
+        $query = Membership::with(['member.user', 'product', 'paymentMethod', 'transaction.user'])->latest();
 
         // Filter status
         if ($request->filled('status') && in_array($request->status, Membership::STATUSES)) {
@@ -38,6 +39,7 @@ class MembershipController extends Controller
         }
 
         // Pencarian (Nama member, kode member, atau nama produk)
+        // Pencarian (Nama member, kode member, nama produk, atau nomor invoice)
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
@@ -50,6 +52,9 @@ class MembershipController extends Controller
                     })
                     ->orWhereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('transaction', function ($tq) use ($search) {
+                        $tq->where('invoice_number', 'like', "%{$search}%");
                     });
             });
         }
@@ -109,61 +114,12 @@ class MembershipController extends Controller
 
     /**
      * Menyimpan data transaksi membership baru.
+     * Alur transaksi baru membership dialihkan melalui POS Kasir.
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'member_id' => ['required', 'exists:members,id'],
-            'product_id' => ['required', 'exists:products,id'],
-            'payment_method_id' => [
-                'required',
-                Rule::exists('payment_methods', 'id')->where(function ($query) {
-                    $query->where('status', PaymentMethod::STATUS_ACTIVE);
-                }),
-            ],
-            'start_date' => ['required', 'date'],
-            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'price' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', 'string', Rule::in(Membership::STATUSES)],
-        ], [
-            'member_id.required' => 'Member wajib dipilih.',
-            'member_id.exists' => 'Member tidak ditemukan.',
-            'product_id.required' => 'Paket layanan wajib dipilih.',
-            'product_id.exists' => 'Paket layanan tidak ditemukan.',
-            'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
-            'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid atau tidak aktif.',
-            'start_date.required' => 'Tanggal mulai wajib diisi.',
-            'start_date.date' => 'Format tanggal mulai tidak valid.',
-            'end_date.date' => 'Format tanggal berakhir tidak valid.',
-            'end_date.after_or_equal' => 'Tanggal berakhir harus sama atau setelah tanggal mulai.',
-            'price.numeric' => 'Harga harus berupa angka.',
-            'price.min' => 'Harga tidak boleh negatif.',
-        ]);
-
-        $product = Product::findOrFail($validated['product_id']);
-
-        if ($product->status !== Product::STATUS_ACTIVE) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Paket layanan yang dipilih sedang tidak aktif.');
-        }
-
-        // Kalkulasi tanggal berakhir jika tidak diisi manual
-        if (empty($validated['end_date'])) {
-            $validated['end_date'] = $product->calculateEndDate($validated['start_date'])->format('Y-m-d');
-        }
-
-        // Snapshot harga saat transaksi jika tidak diinput manual
-        if (! isset($validated['price']) || $validated['price'] === null || $validated['price'] === '') {
-            $validated['price'] = $product->price;
-        }
-
-        $validated['status'] = $validated['status'] ?? Membership::STATUS_ACTIVE;
-
-        Membership::create($validated);
-
-        return redirect()->route('memberships.index')
-            ->with('success', 'Transaksi membership berhasil ditambahkan.');
+        return redirect()->route('pos.index')
+            ->with('info', 'Transaksi membership baru sekarang dilakukan melalui menu POS / Kasir.');
     }
 
     /**

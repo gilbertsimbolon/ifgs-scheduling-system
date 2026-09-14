@@ -90,6 +90,22 @@
                                 @enderror
                             @endif
                         </div>
+                        <div class="col-md-6 mb-3" id="editPhoneWrapper">
+                            <label class="form-label" for="editPhone">No. HP / WhatsApp</label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="bx bx-phone"></i></span>
+                                <input type="tel"
+                                    class="form-control @if (old('_modal') === 'edit') @error('phone') is-invalid @enderror @endif"
+                                    id="editPhone" name="phone" placeholder="Contoh: 08123456789"
+                                    value="{{ old('_modal') === 'edit' ? old('phone') : '' }}" />
+                            </div>
+                            @if (old('_modal') === 'edit')
+                                @error('phone')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            @endif
+                            <div class="form-text">Hanya untuk pengguna dengan peran Member.</div>
+                        </div>
                     </div>
                 </div>
 

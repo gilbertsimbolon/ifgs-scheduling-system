@@ -44,6 +44,30 @@ class Member extends Model
     }
 
     /**
+     * Get all transactions performed by this member.
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get all visit reservations made by this member.
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Get all scheduled visits for this member.
+     */
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    /**
      * Get the current active membership for this member.
      */
     public function activeMembership(): ?Membership
@@ -57,24 +81,32 @@ class Member extends Model
     }
 
     /**
+     * Check whether the member has an active membership subscription.
+     */
+    public function hasActiveMembership(): bool
+    {
+        return $this->activeMembership() !== null;
+    }
+
+    /**
      * Generate a unique member code for gym identification.
      * Format: IFGS-YYYYMM-XXXX (e.g. IFGS-202609-0001)
      */
     public static function generateUniqueMemberCode(): string
     {
-        $prefix = 'IFGS-'.now()->format('Ym').'-';
+        $prefix = 'IFGS-' . now()->format('Ym') . '-';
 
         $lastMember = static::where('member_code', 'like', "{$prefix}%")
             ->orderByDesc('member_code')
             ->first();
 
         $nextSequence = 1;
-        if ($lastMember && preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $lastMember->member_code, $matches)) {
+        if ($lastMember && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $lastMember->member_code, $matches)) {
             $nextSequence = ((int) $matches[1]) + 1;
         }
 
         do {
-            $code = $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $code = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (static::where('member_code', $code)->exists());
 

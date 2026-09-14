@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['member_id', 'product_id', 'payment_method_id', 'start_date', 'end_date', 'price', 'status'])]
+#[Fillable(['transaction_id', 'member_id', 'product_id', 'payment_method_id', 'start_date', 'end_date', 'price', 'status'])]
 class Membership extends Model
 {
     /** @use HasFactory<MembershipFactory> */
@@ -41,6 +42,14 @@ class Membership extends Model
     }
 
     /**
+     * Get the transaction that generated this membership.
+     */
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
+    }
+
+    /**
      * Get the member that owns this membership record.
      */
     public function member(): BelongsTo
@@ -62,6 +71,14 @@ class Membership extends Model
     public function paymentMethod(): BelongsTo
     {
         return $this->belongsTo(PaymentMethod::class);
+    }
+
+    /**
+     * Get all visit reservations under this membership.
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 
     /**

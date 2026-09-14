@@ -10,12 +10,14 @@
                 <h5 class="fw-bold py-3 mb-0">
                     <span class="text-muted fw-light">Manajemen /</span> Membership
                 </h5>
-                <p class="text-muted mb-0">Kelola transaksi dan paket membership member gym.</p>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahMembership">
                     <i class="bx bx-plus me-1"></i> Tambah Membership
                 </button>
+                <a href="{{ route('pos.index') }}" class="btn btn-primary">
+                    <i class="bx bx-cart me-1"></i> Transaksi Baru (POS)
+                </a>
             </div>
         </div>
 
@@ -116,7 +118,8 @@
                             <div class="content-left">
                                 <span class="text-muted fw-semibold">Total Pendapatan</span>
                                 <div class="d-flex align-items-center my-1">
-                                    <h5 class="mb-0 me-2 text-heading">Rp {{ number_format($metrics['revenue'], 0, ',', '.') }}</h5>
+                                    <h5 class="mb-0 me-2 text-heading">Rp
+                                        {{ number_format($metrics['revenue'], 0, ',', '.') }}</h5>
                                 </div>
                                 <small class="text-muted">Transaksi sah</small>
                             </div>
@@ -141,8 +144,7 @@
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-search"></i></span>
                             <input type="text" id="search" name="search" class="form-control"
-                                placeholder="Cari nama member, kode, atau paket..."
-                                value="{{ request('search') }}" />
+                                placeholder="Cari nama member, kode, atau paket..." value="{{ request('search') }}" />
                         </div>
                     </div>
 
@@ -151,7 +153,8 @@
                         <select name="product_id" id="product_id" class="form-select">
                             <option value="">Semua Paket Layanan</option>
                             @foreach ($allProducts as $product)
-                                <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
+                                <option value="{{ $product->id }}"
+                                    {{ request('product_id') == $product->id ? 'selected' : '' }}>
                                     {{ $product->name }}
                                 </option>
                             @endforeach
@@ -163,8 +166,10 @@
                         <select name="status" id="status" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
-                            <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Kadaluarsa</option>
-                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
+                            <option value="expired" {{ request('status') === 'expired' ? 'selected' : '' }}>Kadaluarsa
+                            </option>
+                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Dibatalkan
+                            </option>
                         </select>
                     </div>
 
@@ -173,7 +178,8 @@
                             <i class="bx bx-filter-alt me-1"></i> Filter
                         </button>
                         @if (request()->hasAny(['search', 'product_id', 'status']))
-                            <a href="{{ route('memberships.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <a href="{{ route('memberships.index') }}" class="btn btn-outline-secondary"
+                                title="Reset Filter">
                                 <i class="bx bx-reset"></i>
                             </a>
                         @endif
@@ -207,7 +213,8 @@
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column">
-                                            <span class="fw-semibold text-heading text-truncate" style="max-width: 200px;">
+                                            <span class="fw-semibold text-heading text-truncate"
+                                                style="max-width: 200px;">
                                                 {{ $membership->member?->user?->name ?? '-' }}
                                             </span>
                                             <small class="text-muted font-monospace">
@@ -219,7 +226,8 @@
                                 <td>
                                     <div class="d-flex flex-column">
                                         <span class="fw-semibold">{{ $membership->product?->name ?? '-' }}</span>
-                                        <small class="text-muted">{{ $membership->product?->duration_formatted ?? '-' }}</small>
+                                        <small
+                                            class="text-muted">{{ $membership->product?->duration_formatted ?? '-' }}</small>
                                     </div>
                                 </td>
                                 <td>
@@ -236,9 +244,19 @@
                                 <td>
                                     <div class="d-flex flex-column">
                                         <strong class="text-success">{{ $membership->formatted_price }}</strong>
-                                        <span class="badge bg-label-secondary font-monospace mt-1" style="width: fit-content;">
-                                            <i class="bx bx-credit-card-front me-1"></i>{{ $membership->paymentMethod?->name ?? 'Tunai' }}
+                                        <span class="badge bg-label-secondary font-monospace mt-1"
+                                            style="width: fit-content;">
+                                            <i
+                                                class="bx bx-credit-card-front me-1"></i>{{ $membership->paymentMethod?->name ?? 'Tunai' }}
                                         </span>
+                                        @if ($membership->transaction)
+                                            <a href="{{ route('transactions.index', ['search' => $membership->transaction->invoice_number]) }}"
+                                                class="badge bg-label-primary font-monospace mt-1"
+                                                style="width: fit-content;" title="Lihat Invoice Transaksi">
+                                                <i
+                                                    class="bx bx-receipt me-1"></i>{{ $membership->transaction->invoice_number }}
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                                 <td>
@@ -250,8 +268,8 @@
                                     <div class="d-inline-flex gap-1">
                                         <!-- Detail Button -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-info"
-                                            title="Detail Transaksi" data-bs-toggle="modal"
-                                            data-bs-target="#modalDetailMembership"
+                                            title="Detail Transaksi" data-bs-toggle="modal" title="Detail Membership"
+                                            data-bs-toggle="modal" data-bs-target="#modalDetailMembership"
                                             data-name="{{ $membership->member?->user?->name ?? '-' }}"
                                             data-code="{{ $membership->member?->member_code ?? '-' }}"
                                             data-product="{{ $membership->product?->name ?? '-' }}"
@@ -263,6 +281,9 @@
                                             data-status="{{ $membership->status_label }}"
                                             data-status-class="{{ $membership->status_badge_class }}"
                                             data-created="{{ $membership->created_at->format('d M Y, H:i') }}">
+                                            data-created="{{ $membership->created_at->format('d M Y, H:i') }}"
+                                            data-invoice="{{ $membership->transaction?->invoice_number ?? '-' }}"
+                                            data-cashier="{{ $membership->transaction?->user?->name ?? 'Sistem' }}">
                                             <i class="bx bx-show"></i>
                                         </button>
 
@@ -323,8 +344,15 @@
                                                 Coba ubah kata kunci pencarian atau bersihkan filter.
                                             @else
                                                 Klik tombol "Tambah Membership" untuk mendaftarkan transaksi pertama.
+                                                Belum ada transaksi membership. Transaksi baru diproses melalui menu POS
+                                                Kasir.
                                             @endif
                                         </span>
+                                        @if (!request()->hasAny(['search', 'product_id', 'status']))
+                                            <a href="{{ route('pos.index') }}" class="btn btn-sm btn-primary mt-3">
+                                                <i class="bx bx-cart me-1"></i> Buka Menu POS Kasir
+                                            </a>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -337,7 +365,8 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($memberships->total() > 0)
-                        Menampilkan {{ $memberships->firstItem() }}–{{ $memberships->lastItem() }} dari {{ $memberships->total() }} data
+                        Menampilkan {{ $memberships->firstItem() }}–{{ $memberships->lastItem() }} dari
+                        {{ $memberships->total() }} data
                     @else
                         Tidak ada data
                     @endif
@@ -350,7 +379,6 @@
     </div>
 
     <!-- Modals -->
-    @include('membership.modals.tambah')
     @include('membership.modals.edit')
     @include('membership.modals.detail')
     @include('membership.modals.batal')
@@ -452,6 +480,8 @@
                     const status = btn.getAttribute('data-status') || '-';
                     const statusClass = btn.getAttribute('data-status-class') || 'bg-label-secondary';
                     const created = btn.getAttribute('data-created') || '-';
+                    const invoice = btn.getAttribute('data-invoice') || '-';
+                    const cashier = btn.getAttribute('data-cashier') || '-';
 
                     document.getElementById('detailMembershipMemberName').textContent = name;
                     document.getElementById('detailMembershipMemberCode').textContent = code;
@@ -461,6 +491,12 @@
                     document.getElementById('detailMembershipEndDate').textContent = end;
                     document.getElementById('detailMembershipPrice').textContent = price;
                     document.getElementById('detailMembershipCreatedAt').textContent = created;
+
+                    const invoiceEl = document.getElementById('detailMembershipInvoice');
+                    if (invoiceEl) invoiceEl.textContent = invoice;
+
+                    const cashierEl = document.getElementById('detailMembershipCashier');
+                    if (cashierEl) cashierEl.textContent = cashier;
 
                     const pmEl = document.getElementById('detailMembershipPaymentMethod');
                     if (pmEl) {
@@ -504,7 +540,7 @@
 
                     document.getElementById('editMemberDisplayName').value = memberName;
                     document.getElementById('editProductId').value = productId;
-                    
+
                     const pmSelect = document.getElementById('editPaymentMethodId');
                     if (pmSelect && paymentMethodId) {
                         pmSelect.value = paymentMethodId;
@@ -554,23 +590,16 @@
             }
 
             // Auto reopen modal on validation failure
-            @if ($errors->any())
-                @if (old('_modal') === 'create_membership')
-                    const modalTambahEl = document.getElementById('modalTambahMembership');
-                    if (modalTambahEl && typeof bootstrap !== 'undefined') {
-                        new bootstrap.Modal(modalTambahEl).show();
-                    }
-                @elseif (old('_modal') === 'edit_membership')
-                    const prevAction = '{{ old('_action') }}';
-                    const formEdit = document.getElementById('formEditMembership');
-                    if (formEdit && prevAction) {
-                        formEdit.action = prevAction;
-                    }
-                    const modalEditEl = document.getElementById('modalEditMembership');
-                    if (modalEditEl && typeof bootstrap !== 'undefined') {
-                        new bootstrap.Modal(modalEditEl).show();
-                    }
-                @endif
+            @if ($errors->any() && old('_modal') === 'edit_membership')
+                const prevAction = '{{ old('_action') }}';
+                const formEdit = document.getElementById('formEditMembership');
+                if (formEdit && prevAction) {
+                    formEdit.action = prevAction;
+                }
+                const modalEditEl = document.getElementById('modalEditMembership');
+                if (modalEditEl && typeof bootstrap !== 'undefined') {
+                    new bootstrap.Modal(modalEditEl).show();
+                }
             @endif
         });
     </script>

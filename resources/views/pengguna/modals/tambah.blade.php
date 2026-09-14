@@ -88,6 +88,21 @@
                                 @enderror
                             @endif
                         </div>
+                        <div class="col-md-6 mb-3" id="tambahPhoneWrapper" style="display: none;">
+                            <label class="form-label" for="tambahPhone">No. HP / WhatsApp</label>
+                            <div class="input-group input-group-merge">
+                                <span class="input-group-text"><i class="bx bx-phone"></i></span>
+                                <input type="tel"
+                                    class="form-control @if (old('_modal') === 'create') @error('phone') is-invalid @enderror @endif"
+                                    id="tambahPhone" name="phone" placeholder="Contoh: 08123456789"
+                                    value="{{ old('_modal') === 'create' ? old('phone') : '' }}" />
+                            </div>
+                            @if (old('_modal') === 'create')
+                                @error('phone')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                            @endif
+                        </div>
                     </div>
                 </div>
 
@@ -101,3 +116,21 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tambahRole = document.getElementById('tambahRole');
+        const tambahPhoneWrapper = document.getElementById('tambahPhoneWrapper');
+
+        function togglePhoneField() {
+            if (tambahRole && tambahPhoneWrapper) {
+                tambahPhoneWrapper.style.display = tambahRole.value === 'Member' ? 'block' : 'none';
+            }
+        }
+
+        if (tambahRole) {
+            tambahRole.addEventListener('change', togglePhoneField);
+            togglePhoneField(); // run on load in case of validation error reopen
+        }
+    });
+</script>

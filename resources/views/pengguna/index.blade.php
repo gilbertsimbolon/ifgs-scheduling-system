@@ -10,12 +10,13 @@
                 <h5 class="fw-bold py-3 mb-0">
                     <span class="text-muted fw-light">Manajemen /</span> Pengguna
                 </h5>
-                <p class="text-muted mb-0">Kelola akun staf internal (Admin/Manager & Kasir) dan hak akses sistem.</p>
             </div>
             <div>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPengguna">
-                    <i class="bx bx-plus me-1"></i> Tambah Pengguna
-                </button>
+                @hasrole('Admin/Manager')
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPengguna">
+                        <i class="bx bx-plus me-1"></i> Tambah Pengguna
+                    </button>
+                @endhasrole
             </div>
         </div>
 
@@ -104,11 +105,12 @@
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 60px;">#</th>
+                            <th style="width: 60px;">NO</th>
                             <th>Pengguna</th>
-                            <th>Email</th>
+                            <th>No. HP</th>
                             <th>Peran</th>
-                            <th>Status</th>
+                            <th class="text-center">Status Member</th>
+                            <th>Status Akun</th>
                             <th class="text-center" style="width: 160px;">Aksi</th>
                         </tr>
                     </thead>
@@ -124,19 +126,66 @@
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column">
-                                            <span class="fw-semibold text-heading text-truncate" style="max-width: 220px;">
+                                            <span class="fw-semibold text-heading text-truncate" style="max-width: 200px;">
                                                 {{ $user->name }}
                                             </span>
+                                            <small class="text-muted text-truncate"
+                                                style="max-width: 200px;">{{ $user->email }}</small>
+                                            @if ($user->member && $user->member->member_code)
+                                                <small class="text-primary fw-medium"><i
+                                                        class="bx bx-id-card me-1"></i>{{ $user->member->member_code }}</small>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $user->email }}</td>
+                                <td>
+                                    @if ($user->member && $user->member->phone)
+                                        <span class="text-nowrap">
+                                            <i class="bx bx-phone me-1 text-muted"></i>{{ $user->member->phone }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     @forelse ($user->roles as $role)
-                                        <span class="badge bg-label-primary">{{ $role->name }}</span>
+                                        @if ($role->name === 'Admin/Manager')
+                                            <span class="badge bg-label-primary">{{ $role->name }}</span>
+                                        @elseif ($role->name === 'Kasir')
+                                            <span class="badge bg-label-info">{{ $role->name }}</span>
+                                        @elseif ($role->name === 'Member')
+                                            <span class="badge bg-label-dark">{{ $role->name }}</span>
+                                        @else
+                                            <span class="badge bg-label-secondary">{{ $role->name }}</span>
+                                        @endif
                                     @empty
                                         <span class="badge bg-label-secondary">Tanpa Peran</span>
                                     @endforelse
+                                </td>
+                                <td class="text-center">
+                                    @if ($user->hasRole('Member'))
+                                        @php
+                                            $activeMem = $user->member?->activeMembership();
+                                        @endphp
+                                        @if ($activeMem)
+                                            <span class="badge bg-label-success"
+                                                title="Paket: {{ $activeMem->product->name ?? 'Paket Gym' }} (s/d {{ $activeMem->end_date->format('d/m/Y') }})">
+                                                <i class="bx bx-check-circle me-1"></i> Berlangganan Aktif
+                                            </span>
+                                            <div class="text-muted" style="font-size: 0.75rem;">
+                                                s/d {{ $activeMem->end_date->format('d M Y') }}
+                                            </div>
+                                        @else
+                                            <span class="badge bg-label-warning"
+                                                title="Akun terdaftar di sistem, belum berlangganan paket gym">
+                                                <i class="bx bx-time-five me-1"></i> Belum Berlangganan
+                                            </span>
+                                        @endif
+                                    @else
+                                        <span class="badge bg-label-secondary">
+                                            Staf Gym
+                                        </span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -164,6 +213,9 @@
                                             title="Detail Pengguna" data-bs-toggle="modal"
                                             data-bs-target="#modalDetailPengguna" data-name="{{ $user->name }}"
                                             data-slug="{{ $user->slug }}" data-email="{{ $user->email }}"
+                                            data-phone="{{ $user->member?->phone ?? '-' }}"
+                                            data-member-code="{{ $user->member?->member_code ?? '-' }}"
+                                            data-membership="{{ $user->hasRole('Member') ? ($user->member?->activeMembership() ? 'Berlangganan Aktif (' . ($user->member->activeMembership()->product->name ?? 'Paket Gym') . ' s/d ' . $user->member->activeMembership()->end_date->format('d M Y') . ')' : 'Belum Berlangganan') : 'Staf Gym' }}"
                                             data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'Tanpa Peran' }}"
                                             data-status="{{ $user->status }}"
                                             data-created="{{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }}"
@@ -171,32 +223,35 @@
                                             <i class="bx bx-show"></i>
                                         </button>
 
-                                        <!-- Edit Modal Trigger -->
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
-                                            title="Edit Pengguna" data-bs-toggle="modal"
-                                            data-bs-target="#modalEditPengguna"
-                                            data-action="{{ route('pengguna.update', $user) }}"
-                                            data-name="{{ $user->name }}" data-slug="{{ $user->slug }}"
-                                            data-email="{{ $user->email }}"
-                                            data-role="{{ $user->roles->first()?->name ?? '' }}"
-                                            data-status="{{ $user->status }}">
-                                            <i class="bx bx-edit-alt"></i>
-                                        </button>
+                                        @hasrole('Admin/Manager')
+                                            <!-- Edit Modal Trigger -->
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
+                                                title="Edit Pengguna" data-bs-toggle="modal"
+                                                data-bs-target="#modalEditPengguna"
+                                                data-action="{{ route('pengguna.update', $user) }}"
+                                                data-name="{{ $user->name }}" data-slug="{{ $user->slug }}"
+                                                data-email="{{ $user->email }}"
+                                                data-phone="{{ $user->member?->phone ?? '' }}"
+                                                data-role="{{ $user->roles->first()?->name ?? '' }}"
+                                                data-status="{{ $user->status }}">
+                                                <i class="bx bx-edit-alt"></i>
+                                            </button>
 
-                                        <!-- Delete Modal Trigger -->
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                            title="Hapus Pengguna" data-bs-toggle="modal"
-                                            data-bs-target="#modalHapusPengguna"
-                                            data-action="{{ route('pengguna.destroy', $user) }}"
-                                            data-name="{{ $user->name }}">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
+                                            <!-- Delete Modal Trigger -->
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
+                                                title="Hapus Pengguna" data-bs-toggle="modal"
+                                                data-bs-target="#modalHapusPengguna"
+                                                data-action="{{ route('pengguna.destroy', $user) }}"
+                                                data-name="{{ $user->name }}">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        @endhasrole
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-5">
+                                <td colspan="7" class="text-center py-5">
                                     <div class="d-flex flex-column align-items-center justify-content-center w-100 py-3">
                                         <div class="mb-2">
                                             <i class="bx bx-user-x fs-1 text-secondary"></i>
@@ -253,15 +308,29 @@
                     const name = button.getAttribute('data-name') || '-';
                     const slug = button.getAttribute('data-slug') || '-';
                     const email = button.getAttribute('data-email') || '-';
+                    const phone = button.getAttribute('data-phone') || '-';
+                    const memberCode = button.getAttribute('data-member-code') || '-';
                     const role = button.getAttribute('data-role') || '-';
                     const status = button.getAttribute('data-status') || '-';
                     const created = button.getAttribute('data-created') || '-';
                     const updated = button.getAttribute('data-updated') || '-';
 
+                    const membership = button.getAttribute('data-membership') || '-';
+
                     document.getElementById('detailNama').textContent = name;
                     document.getElementById('detailSlug').textContent = slug;
                     document.getElementById('detailEmail').textContent = email;
+                    document.getElementById('detailPhone').textContent = phone;
+                    document.getElementById('detailMemberCode').textContent = memberCode;
                     document.getElementById('detailRole').textContent = role;
+
+                    const memEl = document.getElementById('detailMembership');
+                    if (memEl) {
+                        memEl.textContent = membership;
+                        memEl.className = 'badge ' + (membership.includes('Berlangganan Aktif') ?
+                            'bg-label-success' : (membership.includes('Belum') ? 'bg-label-warning' :
+                                'bg-label-secondary'));
+                    }
 
                     const avatarInitial = document.getElementById('detailAvatarInitial');
                     if (avatarInitial) {
@@ -292,6 +361,7 @@
                     const action = button.getAttribute('data-action') || '';
                     const name = button.getAttribute('data-name') || '';
                     const email = button.getAttribute('data-email') || '';
+                    const phone = button.getAttribute('data-phone') || '';
                     const role = button.getAttribute('data-role') || '';
                     const status = button.getAttribute('data-status') || '';
 
@@ -309,6 +379,8 @@
                     document.getElementById('editPassword').value = '';
                     document.getElementById('editRole').value = role;
                     document.getElementById('editStatus').value = status;
+                    const editPhoneEl = document.getElementById('editPhone');
+                    if (editPhoneEl) editPhoneEl.value = phone;
                 });
             }
 

@@ -9,7 +9,6 @@
             <div>
                 <h5 class="fw-bold py-3 mb-0">
                     <span class="text-muted fw-light">Master Data /</span> Metode Pembayaran
-                    <span class="text-muted fw-light">Manajemen /</span> Metode Pembayaran
                 </h5>
                 <p class="text-muted mb-0">Kelola master data metode pembayaran untuk transaksi Membership & POS.</p>
             </div>

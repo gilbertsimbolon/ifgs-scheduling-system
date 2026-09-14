@@ -23,6 +23,12 @@
                         <tbody>
                             <tr>
                                 <th class="ps-0" style="width: 38%;">
+                                    <i class="bx bx-receipt me-1 text-primary"></i> No. Invoice POS
+                                </th>
+                                <td>: <strong class="text-primary font-monospace" id="detailMembershipInvoice">-</strong></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
                                     <i class="bx bx-package me-1 text-primary"></i> Paket Layanan
                                 </th>
                                 <td>: <strong id="detailMembershipProductName"></strong></td>
@@ -62,6 +68,12 @@
                                     <i class="bx bx-badge-check me-1 text-primary"></i> Status
                                 </th>
                                 <td>: <span id="detailMembershipStatusBadge" class="badge"></span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
+                                    <i class="bx bx-user-check me-1 text-primary"></i> Petugas Kasir
+                                </th>
+                                <td>: <span id="detailMembershipCashier">-</span></td>
                             </tr>
                             <tr>
                                 <th class="ps-0">

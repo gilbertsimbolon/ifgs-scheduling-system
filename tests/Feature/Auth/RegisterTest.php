@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -22,6 +23,7 @@ test('register screen can be rendered with sneat elements and indonesian labels'
     $response->assertSee('Daftar sekarang untuk menjadwalkan kunjungan gym Anda!');
     $response->assertSee('Nama');
     $response->assertSee('Email');
+    $response->assertSee('Nomor Handphone');
     $response->assertSee('Kata Sandi');
     $response->assertSee('Konfirmasi Kata Sandi');
     $response->assertSee('Daftar');
@@ -45,6 +47,7 @@ test('users can register with valid data and are assigned member role and active
     $response = $this->post(route('register'), [
         'name' => 'Member Baru IFGS',
         'email' => 'memberbaru@ifgs.test',
+        'phone' => '08123456789',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -65,6 +68,16 @@ test('users can register with valid data and are assigned member role and active
     $this->assertTrue($user->hasRole('Member'));
     $this->assertFalse($user->hasRole('Admin/Manager'));
     $this->assertFalse($user->hasRole('Kasir'));
+
+    // Profil Member harus otomatis terbuat beserta kode member unik
+    $this->assertDatabaseHas('members', [
+        'user_id' => $user->id,
+        'phone' => '08123456789',
+    ]);
+    $member = $user->member;
+    $this->assertNotNull($member);
+    $this->assertNotEmpty($member->member_code);
+    $this->assertStringStartsWith('IFGS-', $member->member_code);
 });
 
 test('registered user password is saved as hash and not plaintext', function () {

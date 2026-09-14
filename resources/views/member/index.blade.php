@@ -186,7 +186,8 @@
 
                                         <!-- Delete Modal Trigger -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                            title="Hapus Member" data-bs-toggle="modal" data-bs-target="#modalHapusMember"
+                                            title="Hapus Member" data-bs-toggle="modal"
+                                            data-bs-target="#modalHapusMember"
                                             data-action="{{ route('member.destroy', $member) }}"
                                             data-name="{{ $member->user?->name ?? '-' }}"
                                             data-code="{{ $member->member_code }}">
@@ -230,7 +231,10 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($members->total() > 0)
-                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }} member
+                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
+                        member
+                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
+                        member
                     @else
                         Tidak ada data member
                     @endif

@@ -62,6 +62,14 @@ class Product extends Model
     }
 
     /**
+     * Get all transaction items for this product.
+     */
+    public function transactionItems(): HasMany
+    {
+        return $this->hasMany(TransactionItem::class);
+    }
+
+    /**
      * Format unit label in Indonesian.
      */
     public function getDurationUnitLabelAttribute(): string

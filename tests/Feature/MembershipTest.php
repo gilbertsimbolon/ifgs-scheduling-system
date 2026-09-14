@@ -4,6 +4,7 @@ use App\Models\Member;
 use App\Models\Membership;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
@@ -72,125 +73,42 @@ test('relationships between User, Member, Membership, and Product work correctly
     expect($product->memberships)->toHaveCount(1);
 });
 
-test('membership snapshots product price at creation and does not change when product price changes', function () {
+test('direct post to /memberships redirects to pos.index to enforce POS transaction flow', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
-    $member = Member::factory()->create();
-    $product = Product::factory()->create([
-        'name' => 'Paket Gym 1 Bulan',
+    $response = $this->actingAs($admin)->post(route('memberships.store'));
+
+    $response->assertRedirect(route('pos.index'));
+    $response->assertSessionHas('info');
+});
+
+test('membership belongs to transaction when created and links correctly', function () {
+    $transaction = Transaction::factory()->create();
+    $membership = Membership::factory()->create([
+        'transaction_id' => $transaction->id,
         'price' => 150000.00,
-        'duration_value' => 1,
-        'duration_unit' => Product::DURATION_MONTH,
-        'status' => Product::STATUS_ACTIVE,
-    ]);
-    $pm = PaymentMethod::factory()->create(['status' => 'active']);
-
-    $response = $this->actingAs($admin)->post(route('memberships.store'), [
-        'member_id' => $member->id,
-        'product_id' => $product->id,
-        'payment_method_id' => $pm->id,
-        'start_date' => now()->format('Y-m-d'),
     ]);
 
-    $response->assertRedirect(route('memberships.index'));
-
-    $membership = Membership::where('member_id', $member->id)->first();
-    expect($membership)->not->toBeNull();
-    expect((float) $membership->price)->toBe(150000.00);
-    expect($membership->payment_method_id)->toBe($pm->id);
-
-    // Update master product price to 200.000
-    $product->update(['price' => 200000.00]);
-
-    // Membership price must remain 150.000 (snapshot)
-    $membership->refresh();
-    expect((float) $membership->price)->toBe(150000.00);
+    expect($membership->transaction->id)->toBe($transaction->id);
+    expect($transaction->membership->id)->toBe($membership->id);
 });
 
-test('auto calculates end_date when end_date is omitted in store', function () {
+test('memberships index displays invoice number when membership has linked transaction', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
-    $member = Member::factory()->create();
-    $product = Product::factory()->create([
-        'duration_value' => 3,
-        'duration_unit' => Product::DURATION_MONTH,
-        'status' => Product::STATUS_ACTIVE,
+    $transaction = Transaction::factory()->create([
+        'invoice_number' => 'TRX-20260910-7777',
     ]);
-    $pm = PaymentMethod::factory()->create(['status' => 'active']);
-
-    $startDate = '2026-03-01';
-    $expectedEndDate = '2026-06-01';
-
-    $this->actingAs($admin)->post(route('memberships.store'), [
-        'member_id' => $member->id,
-        'product_id' => $product->id,
-        'payment_method_id' => $pm->id,
-        'start_date' => $startDate,
+    Membership::factory()->create([
+        'transaction_id' => $transaction->id,
     ]);
 
-    $membership = Membership::where('member_id', $member->id)->first();
-    expect($membership->end_date->format('Y-m-d'))->toBe($expectedEndDate);
-});
+    $response = $this->actingAs($admin)->get(route('memberships.index'));
 
-test('cannot create membership with an inactive product', function () {
-    $admin = User::factory()->create();
-    $admin->assignRole('Admin/Manager');
-
-    $member = Member::factory()->create();
-    $inactiveProduct = Product::factory()->inactive()->create();
-    $pm = PaymentMethod::factory()->create(['status' => 'active']);
-
-    $response = $this->actingAs($admin)->from(route('memberships.index'))->post(route('memberships.store'), [
-        'member_id' => $member->id,
-        'product_id' => $inactiveProduct->id,
-        'payment_method_id' => $pm->id,
-        'start_date' => now()->format('Y-m-d'),
-    ]);
-
-    $response->assertRedirect(route('memberships.index'));
-    $response->assertSessionHas('error');
-    expect(Membership::count())->toBe(0);
-});
-
-test('cannot create membership with an inactive payment method', function () {
-    $admin = User::factory()->create();
-    $admin->assignRole('Admin/Manager');
-
-    $member = Member::factory()->create();
-    $product = Product::factory()->create(['status' => Product::STATUS_ACTIVE]);
-    $inactivePm = PaymentMethod::factory()->inactive()->create();
-
-    $response = $this->actingAs($admin)->post(route('memberships.store'), [
-        'member_id' => $member->id,
-        'product_id' => $product->id,
-        'payment_method_id' => $inactivePm->id,
-        'start_date' => now()->format('Y-m-d'),
-    ]);
-
-    $response->assertSessionHasErrors('payment_method_id');
-    expect(Membership::count())->toBe(0);
-});
-
-test('validates end_date must be after or equal to start_date', function () {
-    $admin = User::factory()->create();
-    $admin->assignRole('Admin/Manager');
-
-    $member = Member::factory()->create();
-    $product = Product::factory()->create(['status' => Product::STATUS_ACTIVE]);
-    $pm = PaymentMethod::factory()->create(['status' => 'active']);
-
-    $response = $this->actingAs($admin)->post(route('memberships.store'), [
-        'member_id' => $member->id,
-        'product_id' => $product->id,
-        'payment_method_id' => $pm->id,
-        'start_date' => '2026-05-10',
-        'end_date' => '2026-05-01',
-    ]);
-
-    $response->assertSessionHasErrors('end_date');
-    expect(Membership::count())->toBe(0);
+    $response->assertOk()
+        ->assertSee('TRX-20260910-7777');
 });
 
 test('membership status checks and activeMembership helper work correctly', function () {

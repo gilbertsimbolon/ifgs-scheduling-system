@@ -27,6 +27,24 @@
                             </tr>
                             <tr>
                                 <th class="ps-0">
+                                    <i class="bx bx-phone me-1 text-primary"></i> No. HP
+                                </th>
+                                <td>: <span id="detailPhone"></span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
+                                    <i class="bx bx-id-card me-1 text-primary"></i> Kode Member
+                                </th>
+                                <td>: <code id="detailMemberCode" class="text-primary"></code></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
+                                    <i class="bx bx-badge-check me-1 text-primary"></i> Status Member
+                                </th>
+                                <td>: <span id="detailMembership"></span></td>
+                            </tr>
+                            <tr>
+                                <th class="ps-0">
                                     <i class="bx bx-shield-quarter me-1 text-primary"></i> Peran
                                 </th>
                                 <td>: <span id="detailRole" class="badge bg-label-primary"></span></td>
