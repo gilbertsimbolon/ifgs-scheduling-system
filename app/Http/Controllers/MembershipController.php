@@ -6,10 +6,13 @@ use App\Models\Member;
 use App\Models\Membership;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -21,6 +24,11 @@ class MembershipController extends Controller
     public function index(Request $request): View
     {
         $query = Membership::with(['member.user', 'product', 'paymentMethod'])->latest();
+        // Sinkronisasi otomatis status kadaluarsa oleh sistem
+        Membership::where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '<', now()->toDateString())
+            ->update(['status' => Membership::STATUS_EXPIRED]);
+
         $query = Membership::with(['member.user', 'product', 'paymentMethod', 'transaction.user'])->latest();
 
         // Filter status
@@ -82,7 +90,7 @@ class MembershipController extends Controller
                 $q->where('status', User::STATUS_ACTIVE);
             })
             ->get()
-            ->sortBy(fn($m) => strtolower($m->user?->name ?? ''));
+            ->sortBy(fn ($m) => strtolower($m->user?->name ?? ''));
 
         // Daftar produk aktif untuk pilihan dropdown Tambah Membership
         $activeProducts = Product::where('status', Product::STATUS_ACTIVE)
@@ -114,11 +122,81 @@ class MembershipController extends Controller
 
     /**
      * Menyimpan data transaksi membership baru.
+     * Status ditentukan secara otomatis oleh sistem, transaksi dicatat dengan pembuat (kasir/pelanggan).
      */
     public function store(Request $request): RedirectResponse
     {
+        $validated = $request->validate([
+            'member_id' => ['required', 'exists:members,id'],
+            'product_id' => ['required', 'exists:products,id'],
+            'payment_method_id' => ['required', 'exists:payment_methods,id'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'price' => ['nullable', 'numeric', 'min:0'],
+        ], [
+            'member_id.required' => 'Member wajib dipilih.',
+            'member_id.exists' => 'Member yang dipilih tidak valid.',
+            'product_id.required' => 'Paket layanan wajib dipilih.',
+            'product_id.exists' => 'Paket layanan tidak ditemukan.',
+            'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
+            'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid.',
+            'start_date.required' => 'Tanggal mulai wajib diisi.',
+            'start_date.date' => 'Format tanggal mulai tidak valid.',
+            'end_date.after_or_equal' => 'Tanggal berakhir harus sama atau setelah tanggal mulai.',
+            'price.numeric' => 'Biaya transaksi harus berupa angka.',
+        ]);
+
+        $product = Product::findOrFail($validated['product_id']);
+        $endDate = ! empty($validated['end_date'])
+            ? $validated['end_date']
+            : $product->calculateEndDate($validated['start_date'])->format('Y-m-d');
+        $price = isset($validated['price']) && $validated['price'] !== ''
+            ? (float) $validated['price']
+            : (float) $product->price;
+
+        // Status diatur 100% oleh sistem berdasarkan tanggal berakhir
+        $status = Carbon::parse($endDate)->isPast() && ! Carbon::parse($endDate)->isToday()
+            ? Membership::STATUS_EXPIRED
+            : Membership::STATUS_ACTIVE;
+
+        DB::transaction(function () use ($validated, $product, $endDate, $price, $status) {
+            // 1. Catat Transaksi Header dengan user_id pembuat (kasir atau pelanggan)
+            $transaction = Transaction::create([
+                'invoice_number' => Transaction::generateInvoiceNumber(),
+                'member_id' => $validated['member_id'],
+                'user_id' => auth()->id(),
+                'payment_method_id' => $validated['payment_method_id'],
+                'total_amount' => $price,
+                'paid_amount' => $price,
+                'change_amount' => 0.00,
+                'status' => Transaction::STATUS_COMPLETED,
+                'notes' => 'Pendaftaran Membership '.$product->name,
+            ]);
+
+            // 2. Catat Item Transaksi
+            $transaction->items()->create([
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'price' => $price,
+                'quantity' => 1,
+                'subtotal' => $price,
+            ]);
+
+            // 3. Terbitkan Membership Baru
+            Membership::create([
+                'transaction_id' => $transaction->id,
+                'member_id' => $validated['member_id'],
+                'product_id' => $product->id,
+                'payment_method_id' => $validated['payment_method_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $endDate,
+                'price' => $price,
+                'status' => $status,
+            ]);
+        });
+
         return redirect()->route('memberships.index')
-            ->with('info', 'Fitur penambahan transaksi member sedang dalam penyesuaian logika baru.');
+            ->with('success', 'Transaksi membership baru berhasil ditambahkan.');
     }
 
     /**

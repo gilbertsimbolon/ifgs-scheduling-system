@@ -73,14 +73,55 @@ test('relationships between User, Member, Membership, and Product work correctly
     expect($product->memberships)->toHaveCount(1);
 });
 
-test('direct post to /memberships redirects to memberships.index with info message', function () {
-    $admin = User::factory()->create();
+test('can store new membership with transaction recorded and status active by system', function () {
+    $admin = User::factory()->create(['name' => 'Kasir Admin']);
     $admin->assignRole('Admin/Manager');
 
-    $response = $this->actingAs($admin)->post(route('memberships.store'));
+    $memberUser = User::factory()->create(['name' => 'Budi Santoso']);
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
+    $product = Product::factory()->create([
+        'price' => 150000,
+        'duration_value' => 1,
+        'duration_unit' => 'month',
+    ]);
+    $paymentMethod = PaymentMethod::factory()->create();
+
+    $response = $this->actingAs($admin)->post(route('memberships.store'), [
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'payment_method_id' => $paymentMethod->id,
+        'start_date' => now()->format('Y-m-d'),
+        'price' => 150000,
+    ]);
 
     $response->assertRedirect(route('memberships.index'));
-    $response->assertSessionHas('info');
+    $response->assertSessionHas('success');
+
+    $membership = Membership::where('member_id', $member->id)->first();
+    expect($membership)->not->toBeNull();
+    expect($membership->status)->toBe(Membership::STATUS_ACTIVE);
+    expect($membership->transaction)->not->toBeNull();
+    expect($membership->transaction->user_id)->toBe($admin->id);
+    expect($membership->cashier_name)->toBe('Kasir Admin');
+});
+
+test('membership created by customer displays customer name as cashier/operator', function () {
+    $customer = User::factory()->create(['name' => 'Pelanggan Mandiri']);
+    $customer->assignRole('Kasir');
+    $member = Member::factory()->create(['user_id' => $customer->id]);
+    $product = Product::factory()->create(['price' => 100000]);
+    $pm = PaymentMethod::factory()->create();
+
+    $this->actingAs($customer)->post(route('memberships.store'), [
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'payment_method_id' => $pm->id,
+        'start_date' => now()->format('Y-m-d'),
+        'price' => 100000,
+    ]);
+
+    $membership = Membership::where('member_id', $member->id)->first();
+    expect($membership->cashier_name)->toBe('Pelanggan Mandiri');
 });
 
 test('membership belongs to transaction when created and links correctly', function () {
@@ -94,21 +135,26 @@ test('membership belongs to transaction when created and links correctly', funct
     expect($transaction->membership->id)->toBe($membership->id);
 });
 
-test('memberships index displays invoice number when membership has linked transaction', function () {
+test('memberships index can find membership by linked transaction invoice number', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
+    $memberUser = User::factory()->create(['name' => 'Member Khusus Invoice']);
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
     $transaction = Transaction::factory()->create([
         'invoice_number' => 'TRX-20260910-7777',
+        'member_id' => $member->id,
     ]);
     Membership::factory()->create([
+        'member_id' => $member->id,
         'transaction_id' => $transaction->id,
     ]);
 
-    $response = $this->actingAs($admin)->get(route('memberships.index'));
+    $response = $this->actingAs($admin)->get(route('memberships.index', ['search' => 'TRX-20260910-7777']));
 
     $response->assertOk()
-        ->assertSee('TRX-20260910-7777');
+        ->assertSee('TRX-20260910-7777')
+        ->assertSee('Member Khusus Invoice');
 });
 
 test('membership status checks and activeMembership helper work correctly', function () {
@@ -292,32 +338,43 @@ test('membership index displays filtered empty state when filter finds nothing',
     $response->assertSee('Coba ubah kata kunci pencarian atau bersihkan filter.');
 });
 
-test('can update membership and change payment method', function () {
+test('membership status is determined strictly by system based on dates and cancellation', function () {
+    $activeMembership = Membership::factory()->create([
+        'start_date' => now()->subDays(5)->format('Y-m-d'),
+        'end_date' => now()->addDays(20)->format('Y-m-d'),
+        'status' => 'active',
+    ]);
+    expect($activeMembership->status)->toBe(Membership::STATUS_ACTIVE);
+    expect($activeMembership->status_label)->toBe('Aktif');
+
+    $expiredMembership = Membership::factory()->create([
+        'start_date' => now()->subMonths(2)->format('Y-m-d'),
+        'end_date' => now()->subMonth()->format('Y-m-d'),
+        'status' => 'active',
+    ]);
+    // System computes status as expired automatically because end_date is in past
+    expect($expiredMembership->status)->toBe(Membership::STATUS_EXPIRED);
+    expect($expiredMembership->status_label)->toBe('Kadaluarsa');
+
+    $cancelledMembership = Membership::factory()->create([
+        'status' => Membership::STATUS_CANCELLED,
+    ]);
+    expect($cancelledMembership->status)->toBe(Membership::STATUS_CANCELLED);
+    expect($cancelledMembership->status_label)->toBe('Dibatalkan');
+});
+
+test('membership index includes modal tambah, no edit modal/button, and detail modal has no pos invoice', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
-    $pm1 = PaymentMethod::factory()->create(['name' => 'Metode Lama']);
-    $pm2 = PaymentMethod::factory()->create(['name' => 'Metode Baru']);
+    $response = $this->actingAs($admin)->get(route('memberships.index'));
 
-    $membership = Membership::factory()->create([
-        'payment_method_id' => $pm1->id,
-        'price' => 100000,
-    ]);
-
-    $response = $this->actingAs($admin)->put(route('memberships.update', $membership), [
-        'product_id' => $membership->product_id,
-        'payment_method_id' => $pm2->id,
-        'start_date' => $membership->start_date->format('Y-m-d'),
-        'end_date' => $membership->end_date->format('Y-m-d'),
-        'price' => 120000,
-        'status' => 'active',
-    ]);
-
-    $response->assertRedirect(route('memberships.index'));
-    $membership->refresh();
-
-    expect($membership->payment_method_id)->toBe($pm2->id);
-    expect((float) $membership->price)->toBe(120000.00);
+    $response->assertOk()
+        ->assertSee('id="modalTambahMembership"', false)
+        ->assertSee('Tambah Membership')
+        ->assertDontSee('modalEditMembership')
+        ->assertDontSee('btn-outline-warning')
+        ->assertDontSee('No. Invoice POS');
 });
 
 test('memberships index displays split columns for mulai, akhir, biaya, and metode without pos buttons', function () {

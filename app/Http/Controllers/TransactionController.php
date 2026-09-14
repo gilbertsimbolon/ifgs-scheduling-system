@@ -97,7 +97,7 @@ class TransactionController extends Controller
                 'status_badge' => $transaction->status_badge_class,
                 'created_at' => $transaction->created_at->format('d M Y, H:i'),
                 'notes' => $transaction->notes,
-                'items' => $transaction->items->map(fn($item) => [
+                'items' => $transaction->items->map(fn ($item) => [
                     'product_name' => $item->product_name,
                     'price' => $item->formatted_price,
                     'quantity' => $item->quantity,

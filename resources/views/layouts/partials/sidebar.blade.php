@@ -50,13 +50,6 @@
                 <div class="text-truncate">Membership</div>
             </a>
         </li>
-        @endhasanyrole
-
-        @hasanyrole('Admin/Manager|Kasir')
-        <!-- 3. MASTER DATA -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">MASTER DATA</span>
-        </li>
         <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
             <a href="{{ route('products.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-package"></i>
@@ -79,7 +72,7 @@
         @endhasrole
         @endhasanyrole
 
-        <!-- 4. KUNJUNGAN (Core Flow Algoritma Greedy) -->
+        <!-- 3. KUNJUNGAN (Core Flow Algoritma Greedy) -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">KUNJUNGAN</span>
         </li>
@@ -100,7 +93,9 @@
 
         <!-- Logout -->
         <li class="menu-item">
-            <a href="javascript:void(0);" onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();" class="menu-link text-danger">
+            <a href="javascript:void(0);"
+                onclick="event.preventDefault(); document.getElementById('sidebar-logout-form').submit();"
+                class="menu-link text-danger">
                 <i class="menu-icon tf-icons bx bx-log-out text-danger"></i>
                 <div class="text-truncate">Keluar (Logout)</div>
             </a>

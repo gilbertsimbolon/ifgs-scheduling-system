@@ -108,8 +108,7 @@
                                 <tr>
                                     <td><span class="fw-bold font-monospace text-primary">{{ $sch->schedule_code }}</span>
                                     </td>
-                                    <td>{{ $sch->scheduled_date->format('d M Y') }}
-                                        ({{ $sch->scheduled_date->translatedFormat('l') }})</td>
+                                    <td>{{ $sch->scheduled_date->format('d M Y') }} ({{ $sch->scheduled_date->translatedFormat('l') }})</td>
                                     <td>
                                         <span class="badge bg-label-primary">
                                             {{ $sch->timeSlot->name ?? '-' }} ({{ $sch->timeSlot->time_range ?? '-' }})
@@ -231,8 +230,7 @@
                                 <div class="content-left">
                                     <span class="text-muted fw-semibold">Pendapatan Bulan Ini</span>
                                     <div class="d-flex align-items-center my-1">
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
-                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
                                     <small class="text-muted">{{ $currentMonthLabel }}</small>
                                 </div>

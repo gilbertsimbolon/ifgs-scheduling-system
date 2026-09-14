@@ -99,10 +99,44 @@ class Membership extends Model
     }
 
     /**
+     * Get the status computed strictly by system based on end_date and cancellation.
+     */
+    public function getStatusAttribute($value): string
+    {
+        if ($value === self::STATUS_CANCELLED) {
+            return self::STATUS_CANCELLED;
+        }
+
+        if ($this->end_date && $this->end_date->isPast() && ! $this->end_date->isToday()) {
+            return self::STATUS_EXPIRED;
+        }
+
+        return self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Nama kasir / admin yang memproses transaksi, atau nama pelanggan jika melakukan sendiri.
+     */
+    public function getCashierNameAttribute(): string
+    {
+        if ($this->transaction && $this->transaction->user) {
+            return $this->transaction->user->name;
+        }
+
+        if ($this->member?->user) {
+            return $this->member->user->name;
+        }
+
+        return 'Sistem';
+    }
+
+    /**
      * Format price to Rupiah currency string.
      */
     public function getFormattedPriceAttribute(): string
     {
+        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
+
         return 'Rp '.number_format((float) $this->price, 0, ',', '.');
     }
 

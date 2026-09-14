@@ -173,28 +173,12 @@
                                             data-start="{{ $membership->start_date ? $membership->start_date->format('d M Y') : '-' }}"
                                             data-end="{{ $membership->end_date ? $membership->end_date->format('d M Y') : '-' }}"
                                             data-price="{{ $membership->formatted_price }}"
-                                            data-payment-method="{{ $membership->paymentMethod?->name ?? 'Tunai' }}"
+                                            data-payment-method="{{ $membership->paymentMethod ? ucwords(str_replace('_', ' ', $membership->paymentMethod->name)) : 'Tunai' }}"
                                             data-status="{{ $membership->status_label }}"
                                             data-status-class="{{ $membership->status_badge_class }}"
                                             data-created="{{ $membership->created_at->format('d M Y, H:i') }}"
-                                            data-invoice="{{ $membership->transaction?->invoice_number ?? '-' }}"
-                                            data-cashier="{{ $membership->transaction?->user?->name ?? 'Sistem' }}">
+                                            data-cashier="{{ $membership->cashier_name }}">
                                             <i class="bx bx-show"></i>
-                                        </button>
-
-                                        <!-- Edit Button -->
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
-                                            title="Edit Membership" data-bs-toggle="modal"
-                                            data-bs-target="#modalEditMembership"
-                                            data-action="{{ route('memberships.update', $membership) }}"
-                                            data-member-name="{{ $membership->member?->user?->name ?? '-' }}"
-                                            data-product-id="{{ $membership->product_id }}"
-                                            data-payment-method-id="{{ $membership->payment_method_id }}"
-                                            data-start-date="{{ $membership->start_date?->format('Y-m-d') }}"
-                                            data-end-date="{{ $membership->end_date?->format('Y-m-d') }}"
-                                            data-price="{{ (int) $membership->price }}"
-                                            data-status="{{ $membership->status }}">
-                                            <i class="bx bx-edit-alt"></i>
                                         </button>
 
                                         <!-- Cancel Button -->
@@ -267,7 +251,7 @@
     </div>
 
     <!-- Modals -->
-    @include('membership.modals.edit')
+    @include('membership.modals.tambah')
     @include('membership.modals.detail')
     @include('membership.modals.batal')
     @include('membership.modals.hapus')
@@ -368,7 +352,6 @@
                     const status = btn.getAttribute('data-status') || '-';
                     const statusClass = btn.getAttribute('data-status-class') || 'bg-label-secondary';
                     const created = btn.getAttribute('data-created') || '-';
-                    const invoice = btn.getAttribute('data-invoice') || '-';
                     const cashier = btn.getAttribute('data-cashier') || '-';
 
                     document.getElementById('detailMembershipMemberName').textContent = name;
@@ -379,9 +362,6 @@
                     document.getElementById('detailMembershipEndDate').textContent = end;
                     document.getElementById('detailMembershipPrice').textContent = price;
                     document.getElementById('detailMembershipCreatedAt').textContent = created;
-
-                    const invoiceEl = document.getElementById('detailMembershipInvoice');
-                    if (invoiceEl) invoiceEl.textContent = invoice;
 
                     const cashierEl = document.getElementById('detailMembershipCashier');
                     if (cashierEl) cashierEl.textContent = cashier;
@@ -401,43 +381,6 @@
                         badgeEl.textContent = status;
                         badgeEl.className = 'badge ' + statusClass;
                     }
-                });
-            }
-
-            // Modal Edit Populate
-            const modalEdit = document.getElementById('modalEditMembership');
-            if (modalEdit) {
-                modalEdit.addEventListener('show.bs.modal', function(event) {
-                    const btn = event.relatedTarget;
-                    if (!btn) return;
-
-                    const action = btn.getAttribute('data-action') || '';
-                    const memberName = btn.getAttribute('data-member-name') || '';
-                    const productId = btn.getAttribute('data-product-id') || '';
-                    const paymentMethodId = btn.getAttribute('data-payment-method-id') || '';
-                    const startDate = btn.getAttribute('data-start-date') || '';
-                    const endDate = btn.getAttribute('data-end-date') || '';
-                    const price = btn.getAttribute('data-price') || '';
-                    const status = btn.getAttribute('data-status') || 'active';
-
-                    const form = document.getElementById('formEditMembership');
-                    if (form) form.action = action;
-
-                    const actionInput = document.getElementById('editMembershipActionInput');
-                    if (actionInput) actionInput.value = action;
-
-                    document.getElementById('editMemberDisplayName').value = memberName;
-                    document.getElementById('editProductId').value = productId;
-
-                    const pmSelect = document.getElementById('editPaymentMethodId');
-                    if (pmSelect && paymentMethodId) {
-                        pmSelect.value = paymentMethodId;
-                    }
-
-                    document.getElementById('editStartDate').value = startDate;
-                    document.getElementById('editEndDate').value = endDate;
-                    document.getElementById('editPrice').value = price;
-                    document.getElementById('editStatus').value = status;
                 });
             }
 
@@ -478,15 +421,10 @@
             }
 
             // Auto reopen modal on validation failure
-            @if ($errors->any() && old('_modal') === 'edit_membership')
-                const prevAction = '{{ old('_action') }}';
-                const formEdit = document.getElementById('formEditMembership');
-                if (formEdit && prevAction) {
-                    formEdit.action = prevAction;
-                }
-                const modalEditEl = document.getElementById('modalEditMembership');
-                if (modalEditEl && typeof bootstrap !== 'undefined') {
-                    new bootstrap.Modal(modalEditEl).show();
+            @if ($errors->any() && old('_modal') === 'create_membership')
+                const modalTambahEl = document.getElementById('modalTambahMembership');
+                if (modalTambahEl && typeof bootstrap !== 'undefined') {
+                    new bootstrap.Modal(modalTambahEl).show();
                 }
             @endif
         });

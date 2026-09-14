@@ -23,12 +23,6 @@
                         <tbody>
                             <tr>
                                 <th class="ps-0" style="width: 38%;">
-                                    <i class="bx bx-receipt me-1 text-primary"></i> No. Invoice POS
-                                </th>
-                                <td>: <strong class="text-primary font-monospace" id="detailMembershipInvoice">-</strong></td>
-                            </tr>
-                            <tr>
-                                <th class="ps-0">
                                     <i class="bx bx-package me-1 text-primary"></i> Paket Layanan
                                 </th>
                                 <td>: <strong id="detailMembershipProductName"></strong></td>
@@ -62,6 +56,8 @@
                                     <i class="bx bx-credit-card-front me-1 text-primary"></i> Metode Pembayaran
                                 </th>
                                 <td>: <span id="detailMembershipPaymentMethod" class="badge bg-label-info font-monospace"></span></td>
+                                <td>: <span id="detailMembershipPaymentMethod"
+                                        class="badge bg-label-info font-monospace"></span></td>
                             </tr>
                             <tr>
                                 <th class="ps-0">
