@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500" width="400" height="500">
+  <rect width="400" height="500" fill="#ffffff" rx="16"/>
+  <!-- Header QRIS -->
+  <rect x="0" y="0" width="400" height="70" fill="#dc2626" rx="16 16 0 0"/>
+  <text x="200" y="44" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="bold" text-anchor="middle" letter-spacing="4">QRIS</text>
+  
+  <text x="200" y="105" fill="#1f2937" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="bold" text-anchor="middle">INDO FITNESS GYM SPORT</text>
+  <text x="200" y="125" fill="#6b7280" font-family="Arial, Helvetica, sans-serif" font-size="12" text-anchor="middle">NMID: ID1024300928172</text>
+  
+  <!-- QR Matrix Frame -->
+  <rect x="50" y="145" width="300" height="300" fill="#f9fafb" stroke="#e5e7eb" stroke-width="2" rx="8"/>
+  
+  <!-- Corner 1 -->
+  <rect x="75" y="170" width="60" height="60" fill="#111827" rx="4"/>
+  <rect x="85" y="180" width="40" height="40" fill="#ffffff" rx="2"/>
+  <rect x="93" y="188" width="24" height="24" fill="#111827" rx="2"/>
+
+  <!-- Corner 2 -->
+  <rect x="265" y="170" width="60" height="60" fill="#111827" rx="4"/>
+  <rect x="275" y="180" width="40" height="40" fill="#ffffff" rx="2"/>
+  <rect x="283" y="188" width="24" height="24" fill="#111827" rx="2"/>
+
+  <!-- Corner 3 -->
+  <rect x="75" y="360" width="60" height="60" fill="#111827" rx="4"/>
+  <rect x="85" y="370" width="40" height="40" fill="#ffffff" rx="2"/>
+  <rect x="93" y="378" width="24" height="24" fill="#111827" rx="2"/>
+
+  <!-- QR Pattern Blocks -->
+  <rect x="155" y="175" width="16" height="16" fill="#111827"/>
+  <rect x="185" y="175" width="16" height="32" fill="#111827"/>
+  <rect x="220" y="175" width="24" height="16" fill="#111827"/>
+
+  <rect x="155" y="210" width="24" height="16" fill="#111827"/>
+  <rect x="195" y="225" width="16" height="16" fill="#111827"/>
+  <rect x="230" y="210" width="16" height="32" fill="#111827"/>
+
+  <rect x="80" y="250" width="32" height="16" fill="#111827"/>
+  <rect x="130" y="250" width="16" height="32" fill="#111827"/>
+  <rect x="165" y="255" width="70" height="70" fill="#111827" rx="6"/>
+  <circle cx="200" cy="290" r="22" fill="#ffffff"/>
+  <text x="200" y="295" fill="#dc2626" font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="bold" text-anchor="middle">IFGS</text>
+
+  <rect x="255" y="250" width="32" height="16" fill="#111827"/>
+  <rect x="300" y="250" width="16" height="32" fill="#111827"/>
+
+  <rect x="80" y="285" width="16" height="32" fill="#111827"/>
+  <rect x="115" y="300" width="32" height="16" fill="#111827"/>
+
+  <rect x="255" y="285" width="24" height="32" fill="#111827"/>
+  <rect x="295" y="300" width="24" height="16" fill="#111827"/>
+
+  <rect x="155" y="345" width="32" height="16" fill="#111827"/>
+  <rect x="205" y="345" width="16" height="32" fill="#111827"/>
+  <rect x="240" y="345" width="40" height="16" fill="#111827"/>
+
+  <rect x="155" y="380" width="16" height="32" fill="#111827"/>
+  <rect x="190" y="395" width="32" height="16" fill="#111827"/>
+  <rect x="240" y="380" width="24" height="32" fill="#111827"/>
+  <rect x="280" y="380" width="36" height="16" fill="#111827"/>
+
+  <!-- Footer -->
+  <text x="200" y="475" fill="#4b5563" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="bold" text-anchor="middle">Scan dengan Aplikasi Pembayaran Apapun</text>
+</svg>
+

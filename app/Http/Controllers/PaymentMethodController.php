@@ -6,6 +6,7 @@ use App\Models\PaymentMethod;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -24,26 +25,22 @@ class PaymentMethodController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Pencarian (Nama atau kode)
+        // Pencarian (Nama, kode, nomor rekening, atau atas nama)
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('account_number', 'like', "%{$search}%")
+                    ->orWhere('account_name', 'like', "%{$search}%");
             });
         }
 
         $paymentMethods = $query->paginate(10)->withQueryString();
-
-        $metrics = [
-            'total' => PaymentMethod::count(),
-            'active' => PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->count(),
-            'inactive' => PaymentMethod::where('status', PaymentMethod::STATUS_INACTIVE)->count(),
-        ];
-
         $statuses = PaymentMethod::STATUSES;
+        $types = PaymentMethod::TYPES;
 
-        return view('payment_method.index', compact('paymentMethods', 'metrics', 'statuses'));
+        return view('payment_method.index', compact('paymentMethods', 'statuses', 'types'));
     }
 
     /**
@@ -51,25 +48,40 @@ class PaymentMethodController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // Auto-generate code from name if code is empty
-        if (! $request->filled('code') && $request->filled('name')) {
-            $generatedCode = Str::slug($request->name, '_');
-            $request->merge(['code' => $generatedCode]);
+        // Kode unik dibuat otomatis dari nama metode (misal: "Tunai" -> "tunai")
+        $name = trim((string) $request->input('name'));
+        $baseCode = Str::slug($name, '_') ?: 'metode';
+        $code = $baseCode;
+        $counter = 1;
+        while (PaymentMethod::where('code', $code)->exists()) {
+            $code = "{$baseCode}_{$counter}";
+            $counter++;
         }
+        $request->merge(['code' => $code]);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9_-]+$/', 'unique:payment_methods,code'],
+            'type' => ['required', 'string', Rule::in(PaymentMethod::TYPES)],
+            'code' => ['required', 'string', 'max:100', 'unique:payment_methods,code'],
+            'account_number' => ['nullable', 'string', 'max:255'],
+            'account_name' => ['nullable', 'string', 'max:255'],
+            'qr_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
             'status' => ['required', 'string', Rule::in(PaymentMethod::STATUSES)],
         ], [
             'name.required' => 'Nama metode pembayaran wajib diisi.',
             'name.max' => 'Nama metode pembayaran maksimal 255 karakter.',
-            'code.required' => 'Kode metode pembayaran wajib diisi.',
-            'code.regex' => 'Kode hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
-            'code.unique' => 'Kode metode pembayaran sudah digunakan.',
+            'type.required' => 'Tipe metode pembayaran wajib dipilih.',
+            'type.in' => 'Tipe metode pembayaran tidak valid.',
+            'qr_image.image' => 'File QRIS harus berupa gambar.',
+            'qr_image.mimes' => 'Format gambar QRIS harus jpeg, png, jpg, webp, atau svg.',
+            'qr_image.max' => 'Ukuran gambar QRIS maksimal 2MB.',
             'status.required' => 'Status wajib dipilih.',
             'status.in' => 'Status yang dipilih tidak valid.',
         ]);
+
+        if ($request->hasFile('qr_image')) {
+            $validated['qr_image'] = $request->file('qr_image')->store('payment_methods', 'public');
+        }
 
         PaymentMethod::create($validated);
 
@@ -82,25 +94,49 @@ class PaymentMethodController extends Controller
      */
     public function update(Request $request, PaymentMethod $paymentMethod): RedirectResponse
     {
+        // Kode unik diperbarui otomatis dari nama metode
+        $name = trim((string) $request->input('name'));
+        $baseCode = Str::slug($name, '_') ?: 'metode';
+        $code = $baseCode;
+        $counter = 1;
+        while (PaymentMethod::where('code', $code)->where('id', '!=', $paymentMethod->id)->exists()) {
+            $code = "{$baseCode}_{$counter}";
+            $counter++;
+        }
+        $request->merge(['code' => $code]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'type' => ['required', 'string', Rule::in(PaymentMethod::TYPES)],
             'code' => [
                 'required',
                 'string',
                 'max:100',
-                'regex:/^[a-zA-Z0-9_-]+$/',
                 Rule::unique('payment_methods', 'code')->ignore($paymentMethod->id),
             ],
+            'account_number' => ['nullable', 'string', 'max:255'],
+            'account_name' => ['nullable', 'string', 'max:255'],
+            'qr_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,svg', 'max:2048'],
             'status' => ['required', 'string', Rule::in(PaymentMethod::STATUSES)],
         ], [
             'name.required' => 'Nama metode pembayaran wajib diisi.',
             'name.max' => 'Nama metode pembayaran maksimal 255 karakter.',
-            'code.required' => 'Kode metode pembayaran wajib diisi.',
-            'code.regex' => 'Kode hanya boleh berisi huruf, angka, tanda hubung (-), dan garis bawah (_).',
-            'code.unique' => 'Kode metode pembayaran sudah digunakan.',
+            'type.required' => 'Tipe metode pembayaran wajib dipilih.',
+            'type.in' => 'Tipe metode pembayaran tidak valid.',
+            'qr_image.image' => 'File QRIS harus berupa gambar.',
+            'qr_image.mimes' => 'Format gambar QRIS harus jpeg, png, jpg, webp, atau svg.',
+            'qr_image.max' => 'Ukuran gambar QRIS maksimal 2MB.',
             'status.required' => 'Status wajib dipilih.',
             'status.in' => 'Status yang dipilih tidak valid.',
         ]);
+
+        if ($request->hasFile('qr_image')) {
+            // Hapus gambar lama jika tersimpan di disk public
+            if ($paymentMethod->qr_image && Storage::disk('public')->exists($paymentMethod->qr_image)) {
+                Storage::disk('public')->delete($paymentMethod->qr_image);
+            }
+            $validated['qr_image'] = $request->file('qr_image')->store('payment_methods', 'public');
+        }
 
         $paymentMethod->update($validated);
 

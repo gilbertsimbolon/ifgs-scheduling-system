@@ -7,10 +7,9 @@
         <!-- Header -->
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 mt-2 gap-2">
             <div>
-                <h5 class="fw-bold py-3 mb-0">
-                    <span class="text-muted fw-light">Master Data /</span> Metode Pembayaran
+                <h5 class="fw-bold py-1 mb-0">
+                    <span class="text-muted fw-light">Manajemen /</span> Metode Pembayaran
                 </h5>
-                <p class="text-muted mb-0">Kelola master data metode pembayaran untuk transaksi Membership & POS.</p>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPaymentMethod">
@@ -47,70 +46,6 @@
             </div>
         @endif
 
-        <!-- Summary Metric Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Total Metode</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2">{{ number_format($metrics['total']) }}</h4>
-                                </div>
-                                <small class="text-muted">Semua metode pembayaran</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-primary">
-                                    <i class="bx bx-credit-card-front bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Metode Aktif</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2 text-success">{{ number_format($metrics['active']) }}</h4>
-                                </div>
-                                <small class="text-success">Dapat digunakan transaksi</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-success">
-                                    <i class="bx bx-check-shield bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Non-Aktif</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2 text-secondary">{{ number_format($metrics['inactive']) }}</h4>
-                                </div>
-                                <small class="text-muted">Disembunyikan</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-secondary">
-                                    <i class="bx bx-hide bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Filter & Table Card -->
         <div class="card">
             <!-- Search and Filter Form -->
@@ -121,7 +56,7 @@
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-search"></i></span>
                             <input type="text" id="search" name="search" class="form-control"
-                                placeholder="Ketik nama atau kode metode..."
+                                placeholder="Ketik nama, kode, atau no rekening..."
                                 value="{{ request('search') }}" />
                         </div>
                     </div>
@@ -156,8 +91,8 @@
                             <th style="width: 50px;">No</th>
                             <th>Nama Metode</th>
                             <th>Kode Unik</th>
+                            <th>Informasi Pembayaran</th>
                             <th>Status</th>
-                            <th>Penggunaan</th>
                             <th class="text-center" style="width: 120px;">Aksi</th>
                         </tr>
                     </thead>
@@ -168,17 +103,55 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar avatar-sm me-3">
-                                            <span class="avatar-initial rounded bg-label-info">
-                                                <i class="bx bx-credit-card"></i>
+                                            <span class="avatar-initial rounded {{ $pm->type === 'qris' ? 'bg-label-danger' : ($pm->type === 'bank_transfer' ? 'bg-label-primary' : ($pm->type === 'ewallet' ? 'bg-label-info' : 'bg-label-success')) }}">
+                                                @if ($pm->type === 'qris')
+                                                    <i class="bx bx-qr-scan"></i>
+                                                @elseif ($pm->type === 'bank_transfer')
+                                                    <i class="bx bx-building"></i>
+                                                @elseif ($pm->type === 'ewallet')
+                                                    <i class="bx bx-mobile-alt"></i>
+                                                @else
+                                                    <i class="bx bx-money"></i>
+                                                @endif
                                             </span>
                                         </div>
                                         <div>
-                                            <span class="fw-semibold text-heading">{{ $pm->name }}</span>
+                                            <span class="fw-semibold text-heading d-block">{{ $pm->name }}</span>
+                                            <small class="text-muted">{{ $pm->type_label }}</small>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span class="badge bg-label-secondary font-monospace">{{ $pm->code }}</span>
+                                </td>
+                                <td>
+                                    @if ($pm->type === \App\Models\PaymentMethod::TYPE_QRIS)
+                                        @if ($pm->qr_image_url)
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                data-bs-toggle="modal" data-bs-target="#modalPreviewQris"
+                                                data-name="{{ $pm->name }}"
+                                                data-merchant="{{ $pm->account_name ?: 'Indo Fitness Gym Sport' }}"
+                                                data-account="{{ $pm->account_number ?: 'NMID: ID1024300928172' }}"
+                                                data-img="{{ $pm->qr_image_url }}">
+                                                <i class="bx bx-qr-scan me-1"></i> Lihat QRIS
+                                            </button>
+                                        @else
+                                            <span class="text-muted small">
+                                                <i class="bx bx-image-alt me-1"></i> Belum ada QRIS
+                                            </span>
+                                        @endif
+                                    @elseif ($pm->type === \App\Models\PaymentMethod::TYPE_BANK_TRANSFER || $pm->type === \App\Models\PaymentMethod::TYPE_EWALLET)
+                                        <div>
+                                            <span class="fw-semibold font-monospace text-heading">{{ $pm->account_number ?? '-' }}</span>
+                                            @if ($pm->account_name)
+                                                <small class="text-muted d-block">a.n. {{ $pm->account_name }}</small>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="badge bg-label-secondary">
+                                            <i class="bx bx-wallet me-1"></i> Bayar di Kasir
+                                        </span>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -198,11 +171,6 @@
                                         </label>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="badge bg-label-primary font-monospace">
-                                        {{ $pm->memberships_count }} transaksi
-                                    </span>
-                                </td>
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1">
                                         <!-- Edit Button -->
@@ -210,7 +178,10 @@
                                             title="Edit Metode" data-bs-toggle="modal" data-bs-target="#modalEditPaymentMethod"
                                             data-action="{{ route('payment-methods.update', $pm) }}"
                                             data-name="{{ $pm->name }}"
-                                            data-code="{{ $pm->code }}"
+                                            data-type="{{ $pm->type }}"
+                                            data-account-no="{{ $pm->account_number }}"
+                                            data-account-name="{{ $pm->account_name }}"
+                                            data-qr-image="{{ $pm->qr_image_url }}"
                                             data-status="{{ $pm->status }}">
                                             <i class="bx bx-edit-alt"></i>
                                         </button>
@@ -275,11 +246,85 @@
     @include('payment_method.modals.tambah')
     @include('payment_method.modals.edit')
     @include('payment_method.modals.hapus')
+    @include('payment_method.modals.preview_qris')
 @endsection
 
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Helper function for Modal Tambah dynamic type switching
+            const selectTambahType = document.getElementById('tambahPaymentMethodType');
+            const containerTambahAccount = document.getElementById('tambahContainerAccount');
+            const containerTambahQris = document.getElementById('tambahContainerQris');
+            const containerTambahCash = document.getElementById('tambahContainerCash');
+            const labelTambahAccountNo = document.getElementById('tambahAccountNoLabel');
+
+            function syncTambahFields() {
+                if (!selectTambahType) return;
+                const val = selectTambahType.value;
+
+                if (val === 'bank_transfer') {
+                    if (containerTambahAccount) containerTambahAccount.classList.remove('d-none');
+                    if (containerTambahQris) containerTambahQris.classList.add('d-none');
+                    if (containerTambahCash) containerTambahCash.classList.add('d-none');
+                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML = 'Nomor Rekening Bank <span class="text-danger">*</span>';
+                } else if (val === 'ewallet') {
+                    if (containerTambahAccount) containerTambahAccount.classList.remove('d-none');
+                    if (containerTambahQris) containerTambahQris.classList.add('d-none');
+                    if (containerTambahCash) containerTambahCash.classList.add('d-none');
+                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML = 'Nomor HP / E-Wallet <span class="text-danger">*</span>';
+                } else if (val === 'qris') {
+                    if (containerTambahAccount) containerTambahAccount.classList.add('d-none');
+                    if (containerTambahQris) containerTambahQris.classList.remove('d-none');
+                    if (containerTambahCash) containerTambahCash.classList.add('d-none');
+                } else { // cash
+                    if (containerTambahAccount) containerTambahAccount.classList.add('d-none');
+                    if (containerTambahQris) containerTambahQris.classList.add('d-none');
+                    if (containerTambahCash) containerTambahCash.classList.remove('d-none');
+                }
+            }
+
+            if (selectTambahType) {
+                selectTambahType.addEventListener('change', syncTambahFields);
+                syncTambahFields();
+            }
+
+            // Helper function for Modal Edit dynamic type switching
+            const selectEditType = document.getElementById('editPaymentMethodType');
+            const containerEditAccount = document.getElementById('editContainerAccount');
+            const containerEditQris = document.getElementById('editContainerQris');
+            const containerEditCash = document.getElementById('editContainerCash');
+            const labelEditAccountNo = document.getElementById('editAccountNoLabel');
+
+            function syncEditFields() {
+                if (!selectEditType) return;
+                const val = selectEditType.value;
+
+                if (val === 'bank_transfer') {
+                    if (containerEditAccount) containerEditAccount.classList.remove('d-none');
+                    if (containerEditQris) containerEditQris.classList.add('d-none');
+                    if (containerEditCash) containerEditCash.classList.add('d-none');
+                    if (labelEditAccountNo) labelEditAccountNo.innerHTML = 'Nomor Rekening Bank <span class="text-danger">*</span>';
+                } else if (val === 'ewallet') {
+                    if (containerEditAccount) containerEditAccount.classList.remove('d-none');
+                    if (containerEditQris) containerEditQris.classList.add('d-none');
+                    if (containerEditCash) containerEditCash.classList.add('d-none');
+                    if (labelEditAccountNo) labelEditAccountNo.innerHTML = 'Nomor HP / E-Wallet <span class="text-danger">*</span>';
+                } else if (val === 'qris') {
+                    if (containerEditAccount) containerEditAccount.classList.add('d-none');
+                    if (containerEditQris) containerEditQris.classList.remove('d-none');
+                    if (containerEditCash) containerEditCash.classList.add('d-none');
+                } else { // cash
+                    if (containerEditAccount) containerEditAccount.classList.add('d-none');
+                    if (containerEditQris) containerEditQris.classList.add('d-none');
+                    if (containerEditCash) containerEditCash.classList.remove('d-none');
+                }
+            }
+
+            if (selectEditType) {
+                selectEditType.addEventListener('change', syncEditFields);
+            }
+
             // Modal Edit: populate on show
             const modalEdit = document.getElementById('modalEditPaymentMethod');
             if (modalEdit) {
@@ -289,7 +334,10 @@
 
                     const action = btn.getAttribute('data-action') || '';
                     const name = btn.getAttribute('data-name') || '';
-                    const code = btn.getAttribute('data-code') || '';
+                    const type = btn.getAttribute('data-type') || 'cash';
+                    const accountNo = btn.getAttribute('data-account-no') || '';
+                    const accountName = btn.getAttribute('data-account-name') || '';
+                    const qrImage = btn.getAttribute('data-qr-image') || '';
                     const status = btn.getAttribute('data-status') || 'active';
 
                     const form = document.getElementById('formEditPaymentMethod');
@@ -298,9 +346,62 @@
                     const actionInput = document.getElementById('editPaymentMethodActionInput');
                     if (actionInput) actionInput.value = action;
 
-                    document.getElementById('editPaymentMethodName').value = name;
-                    document.getElementById('editPaymentMethodCode').value = code;
-                    document.getElementById('editPaymentMethodStatus').value = status;
+                    const nameInput = document.getElementById('editPaymentMethodName');
+                    if (nameInput) nameInput.value = name;
+
+                    if (selectEditType) selectEditType.value = type;
+
+                    const accNoInput = document.getElementById('editPaymentMethodAccountNo');
+                    if (accNoInput) accNoInput.value = accountNo;
+
+                    const accNameInput = document.getElementById('editPaymentMethodAccountName');
+                    if (accNameInput) accNameInput.value = accountName;
+
+                    const statusInput = document.getElementById('editPaymentMethodStatus');
+                    if (statusInput) statusInput.value = status;
+
+                    const wrapperCurrentQr = document.getElementById('editCurrentQrWrapper');
+                    const imgCurrentQr = document.getElementById('editCurrentQrImage');
+                    if (wrapperCurrentQr && imgCurrentQr) {
+                        if (qrImage) {
+                            imgCurrentQr.src = qrImage;
+                            wrapperCurrentQr.classList.remove('d-none');
+                        } else {
+                            imgCurrentQr.src = '';
+                            wrapperCurrentQr.classList.add('d-none');
+                        }
+                    }
+
+                    syncEditFields();
+                });
+            }
+
+            // Modal Preview QRIS: populate on show
+            const modalPreviewQris = document.getElementById('modalPreviewQris');
+            if (modalPreviewQris) {
+                modalPreviewQris.addEventListener('show.bs.modal', function(event) {
+                    const btn = event.relatedTarget;
+                    if (!btn) return;
+
+                    const name = btn.getAttribute('data-name') || 'QRIS';
+                    const merchant = btn.getAttribute('data-merchant') || 'Indo Fitness Gym Sport';
+                    const account = btn.getAttribute('data-account') || '';
+                    const img = btn.getAttribute('data-img') || '';
+
+                    const titleEl = document.getElementById('previewQrisTitle');
+                    if (titleEl) titleEl.innerHTML = '<i class="bx bx-qr-scan me-1 text-primary"></i> Kode QRIS: ' + name;
+
+                    const merchantEl = document.getElementById('previewQrisMerchantName');
+                    if (merchantEl) merchantEl.textContent = merchant;
+
+                    const accountEl = document.getElementById('previewQrisAccount');
+                    if (accountEl) accountEl.textContent = account;
+
+                    const imgEl = document.getElementById('previewQrisImage');
+                    if (imgEl) imgEl.src = img;
+
+                    const dlBtn = document.getElementById('previewQrisDownloadBtn');
+                    if (dlBtn) dlBtn.href = img;
                 });
             }
 
@@ -318,20 +419,21 @@
                     const form = document.getElementById('formHapusPaymentMethod');
                     if (form) form.action = action;
 
-                    document.getElementById('hapusPaymentMethodName').textContent = name;
+                    const nameEl = document.getElementById('hapusPaymentMethodName');
+                    if (nameEl) nameEl.textContent = name;
 
                     const warningEl = document.getElementById('hapusPaymentMethodWarning');
                     const subtextEl = document.getElementById('hapusPaymentMethodSubtext');
                     const submitBtn = document.getElementById('btnConfirmHapusPaymentMethod');
 
                     if (count > 0) {
-                        warningEl.classList.remove('d-none');
-                        subtextEl.classList.add('d-none');
-                        submitBtn.disabled = true;
+                        if (warningEl) warningEl.classList.remove('d-none');
+                        if (subtextEl) subtextEl.classList.add('d-none');
+                        if (submitBtn) submitBtn.disabled = true;
                     } else {
-                        warningEl.classList.add('d-none');
-                        subtextEl.classList.remove('d-none');
-                        submitBtn.disabled = false;
+                        if (warningEl) warningEl.classList.add('d-none');
+                        if (subtextEl) subtextEl.classList.remove('d-none');
+                        if (submitBtn) submitBtn.disabled = false;
                     }
                 });
             }
@@ -400,4 +502,3 @@
         });
     </script>
 @endpush
-
