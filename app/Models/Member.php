@@ -94,19 +94,19 @@ class Member extends Model
      */
     public static function generateUniqueMemberCode(): string
     {
-        $prefix = 'IFGS-' . now()->format('Ym') . '-';
+        $prefix = 'IFGS-'.now()->format('Ym').'-';
 
         $lastMember = static::where('member_code', 'like', "{$prefix}%")
             ->orderByDesc('member_code')
             ->first();
 
         $nextSequence = 1;
-        if ($lastMember && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $lastMember->member_code, $matches)) {
+        if ($lastMember && preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $lastMember->member_code, $matches)) {
             $nextSequence = ((int) $matches[1]) + 1;
         }
 
         do {
-            $code = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $code = $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (static::where('member_code', $code)->exists());
 

@@ -106,10 +106,10 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width: 60px;">NO</th>
+                            <th>ID Member</th>
                             <th>Pengguna</th>
                             <th>No. HP</th>
                             <th>Peran</th>
-                            <th class="text-center">Status Member</th>
                             <th>Status Akun</th>
                             <th class="text-center" style="width: 160px;">Aksi</th>
                         </tr>
@@ -118,6 +118,15 @@
                         @forelse ($users as $user)
                             <tr>
                                 <td>{{ $users->firstItem() + $loop->index }}</td>
+                                <td>
+                                    @if ($user->member && $user->member->member_code)
+                                        <span class="badge bg-label-primary font-monospace">
+                                            {{ $user->member->member_code }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar avatar-sm me-3">
@@ -131,17 +140,13 @@
                                             </span>
                                             <small class="text-muted text-truncate"
                                                 style="max-width: 200px;">{{ $user->email }}</small>
-                                            @if ($user->member && $user->member->member_code)
-                                                <small class="text-primary fw-medium"><i
-                                                        class="bx bx-id-card me-1"></i>{{ $user->member->member_code }}</small>
-                                            @endif
                                         </div>
                                     </div>
                                 </td>
                                 <td>
                                     @if ($user->member && $user->member->phone)
                                         <span class="text-nowrap">
-                                            <i class="bx bx-phone me-1 text-muted"></i>{{ $user->member->phone }}
+                                            {{ $user->member->phone }}
                                         </span>
                                     @else
                                         <span class="text-muted">-</span>
@@ -161,31 +166,6 @@
                                     @empty
                                         <span class="badge bg-label-secondary">Tanpa Peran</span>
                                     @endforelse
-                                </td>
-                                <td class="text-center">
-                                    @if ($user->hasRole('Member'))
-                                        @php
-                                            $activeMem = $user->member?->activeMembership();
-                                        @endphp
-                                        @if ($activeMem)
-                                            <span class="badge bg-label-success"
-                                                title="Paket: {{ $activeMem->product->name ?? 'Paket Gym' }} (s/d {{ $activeMem->end_date->format('d/m/Y') }})">
-                                                <i class="bx bx-check-circle me-1"></i> Berlangganan Aktif
-                                            </span>
-                                            <div class="text-muted" style="font-size: 0.75rem;">
-                                                s/d {{ $activeMem->end_date->format('d M Y') }}
-                                            </div>
-                                        @else
-                                            <span class="badge bg-label-warning"
-                                                title="Akun terdaftar di sistem, belum berlangganan paket gym">
-                                                <i class="bx bx-time-five me-1"></i> Belum Berlangganan
-                                            </span>
-                                        @endif
-                                    @else
-                                        <span class="badge bg-label-secondary">
-                                            Staf Gym
-                                        </span>
-                                    @endif
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -215,7 +195,6 @@
                                             data-slug="{{ $user->slug }}" data-email="{{ $user->email }}"
                                             data-phone="{{ $user->member?->phone ?? '-' }}"
                                             data-member-code="{{ $user->member?->member_code ?? '-' }}"
-                                            data-membership="{{ $user->hasRole('Member') ? ($user->member?->activeMembership() ? 'Berlangganan Aktif (' . ($user->member->activeMembership()->product->name ?? 'Paket Gym') . ' s/d ' . $user->member->activeMembership()->end_date->format('d M Y') . ')' : 'Belum Berlangganan') : 'Staf Gym' }}"
                                             data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'Tanpa Peran' }}"
                                             data-status="{{ $user->status }}"
                                             data-created="{{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }}"
@@ -315,22 +294,12 @@
                     const created = button.getAttribute('data-created') || '-';
                     const updated = button.getAttribute('data-updated') || '-';
 
-                    const membership = button.getAttribute('data-membership') || '-';
-
                     document.getElementById('detailNama').textContent = name;
                     document.getElementById('detailSlug').textContent = slug;
                     document.getElementById('detailEmail').textContent = email;
                     document.getElementById('detailPhone').textContent = phone;
                     document.getElementById('detailMemberCode').textContent = memberCode;
                     document.getElementById('detailRole').textContent = role;
-
-                    const memEl = document.getElementById('detailMembership');
-                    if (memEl) {
-                        memEl.textContent = membership;
-                        memEl.className = 'badge ' + (membership.includes('Berlangganan Aktif') ?
-                            'bg-label-success' : (membership.includes('Belum') ? 'bg-label-warning' :
-                                'bg-label-secondary'));
-                    }
 
                     const avatarInitial = document.getElementById('detailAvatarInitial');
                     if (avatarInitial) {

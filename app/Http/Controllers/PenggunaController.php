@@ -21,7 +21,6 @@ class PenggunaController extends Controller
     public function index(Request $request): View
     {
         $query = User::with(['roles', 'member']);
-        $query = User::with(['roles', 'member.memberships.product']);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {

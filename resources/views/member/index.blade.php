@@ -233,8 +233,6 @@
                     @if ($members->total() > 0)
                         Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
                         member
-                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
-                        member
                     @else
                         Tidak ada data member
                     @endif
