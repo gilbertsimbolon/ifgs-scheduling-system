@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,13 +15,39 @@
             padding: 15px;
             width: 320px;
         }
-        .text-center { text-align: center; }
-        .text-end { text-align: right; }
-        .fw-bold { font-weight: bold; }
-        .border-top { border-top: 1px dashed #000; padding-top: 5px; }
-        .border-bottom { border-bottom: 1px dashed #000; padding-bottom: 5px; }
-        .my-2 { margin-top: 8px; margin-bottom: 8px; }
-        .d-flex { display: flex; justify-content: space-between; }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .fw-bold {
+            font-weight: bold;
+        }
+
+        .border-top {
+            border-top: 1px dashed #000;
+            padding-top: 5px;
+        }
+
+        .border-bottom {
+            border-bottom: 1px dashed #000;
+            padding-bottom: 5px;
+        }
+
+        .my-2 {
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        .d-flex {
+            display: flex;
+            justify-content: space-between;
+        }
+
         .btn-print {
             background-color: #007bff;
             color: #fff;
@@ -32,12 +59,20 @@
             margin-bottom: 15px;
             width: 100%;
         }
+
         @media print {
-            .no-print { display: none !important; }
-            body { padding: 0; width: 100%; }
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                padding: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="no-print">
         <button class="btn-print" onclick="window.print()">Cetak Struk (Print)</button>
@@ -110,7 +145,8 @@
             </div>
             <div class="d-flex">
                 <span>Masa Berlaku:</span>
-                <span>{{ $transaction->membership->start_date->format('d/m/y') }} - {{ $transaction->membership->end_date->format('d/m/y') }}</span>
+                <span>{{ $transaction->membership->start_date->format('d/m/y') }} -
+                    {{ $transaction->membership->end_date->format('d/m/y') }}</span>
             </div>
             <div class="d-flex">
                 <span>Status:</span>
@@ -124,5 +160,5 @@
         <div>Stay Fit, Stay Strong with IFGS Gym</div>
     </div>
 </body>
-</html>
 
+</html>

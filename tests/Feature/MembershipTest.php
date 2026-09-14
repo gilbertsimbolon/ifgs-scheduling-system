@@ -73,13 +73,13 @@ test('relationships between User, Member, Membership, and Product work correctly
     expect($product->memberships)->toHaveCount(1);
 });
 
-test('direct post to /memberships redirects to pos.index to enforce POS transaction flow', function () {
+test('direct post to /memberships redirects to memberships.index with info message', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
     $response = $this->actingAs($admin)->post(route('memberships.store'));
 
-    $response->assertRedirect(route('pos.index'));
+    $response->assertRedirect(route('memberships.index'));
     $response->assertSessionHas('info');
 });
 
@@ -318,4 +318,38 @@ test('can update membership and change payment method', function () {
 
     expect($membership->payment_method_id)->toBe($pm2->id);
     expect((float) $membership->price)->toBe(120000.00);
+});
+
+test('memberships index displays split columns for mulai, akhir, biaya, and metode without pos buttons', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $paymentMethod = PaymentMethod::factory()->create(['name' => 'transfer_bank']);
+    $user = User::factory()->create(['name' => 'Budi Santoso']);
+    $member = Member::factory()->create(['user_id' => $user->id]);
+    $product = Product::factory()->create(['name' => 'Paket Platinum 1 Bulan', 'price' => 200000]);
+
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'payment_method_id' => $paymentMethod->id,
+        'price' => 200000,
+        'start_date' => '2026-09-01',
+        'end_date' => '2026-10-01',
+        'status' => Membership::STATUS_ACTIVE,
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('memberships.index'));
+
+    $response->assertOk()
+        ->assertSee('Mulai')
+        ->assertSee('Akhir')
+        ->assertSee('Biaya')
+        ->assertSee('Metode')
+        ->assertSee('01 Sep 2026')
+        ->assertSee('01 Oct 2026')
+        ->assertSee('Rp 200.000')
+        ->assertSee('Transfer Bank')
+        ->assertDontSee('Transaksi Baru (POS)')
+        ->assertDontSee('POS Kasir');
 });

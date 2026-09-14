@@ -6,7 +6,6 @@ use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PenggunaController;
-use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ScheduleController;
@@ -114,17 +113,11 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{membership}', [MembershipController::class, 'destroy'])->name('destroy');
         });
 
-        // POS Kasir & Transaksi
-        Route::prefix('pos')->name('pos.')->group(function () {
-            Route::get('/', [PosController::class, 'index'])->name('index');
-            Route::post('/', [PosController::class, 'store'])->name('store');
-            Route::get('/calculate', [PosController::class, 'calculate'])->name('calculate');
-            Route::get('/receipt/{transaction}', [PosController::class, 'receipt'])->name('receipt');
-        });
-
+        // Riwayat Transaksi & Struk
         Route::prefix('transactions')->name('transactions.')->group(function () {
             Route::get('/', [TransactionController::class, 'index'])->name('index');
             Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
+            Route::get('/{transaction}/receipt', [TransactionController::class, 'receipt'])->name('receipt');
         });
     });
 });

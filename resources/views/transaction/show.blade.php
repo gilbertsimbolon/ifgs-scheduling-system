@@ -15,7 +15,7 @@
                 <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary">
                     <i class="bx bx-arrow-back me-1"></i> Kembali
                 </a>
-                <a href="{{ route('pos.receipt', $transaction) }}" target="_blank" class="btn btn-primary">
+                <a href="{{ route('transactions.receipt', $transaction) }}" target="_blank" class="btn btn-primary">
                     <i class="bx bx-printer me-1"></i> Cetak Struk
                 </a>
             </div>
@@ -34,7 +34,8 @@
                     </div>
                     <div class="col-sm-6 col-md-3">
                         <span class="text-muted small d-block">Member:</span>
-                        <span class="fw-bold">{{ $transaction->member?->user?->name }}</span> ({{ $transaction->member?->member_code }})
+                        <span class="fw-bold">{{ $transaction->member?->user?->name }}</span>
+                        ({{ $transaction->member?->member_code }})
                     </div>
                     <div class="col-sm-6 col-md-3">
                         <span class="text-muted small d-block">Kasir:</span>
@@ -89,11 +90,13 @@
                     <div class="alert alert-light border p-3">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <strong><i class="bx bx-id-card me-1 text-primary"></i> Data Membership Diterbitkan:</strong>
-                            <span class="badge {{ $transaction->membership->status_badge_class }}">{{ $transaction->membership->status_label }}</span>
+                            <span
+                                class="badge {{ $transaction->membership->status_badge_class }}">{{ $transaction->membership->status_label }}</span>
                         </div>
                         <div class="small text-muted">
-                            Paket: <strong>{{ $transaction->membership->product?->name }}</strong> | 
-                            Masa Berlaku: <strong>{{ $transaction->membership->start_date->format('d M Y') }}</strong> s/d <strong>{{ $transaction->membership->end_date->format('d M Y') }}</strong>
+                            Paket: <strong>{{ $transaction->membership->product?->name }}</strong> |
+                            Masa Berlaku: <strong>{{ $transaction->membership->start_date->format('d M Y') }}</strong> s/d
+                            <strong>{{ $transaction->membership->end_date->format('d M Y') }}</strong>
                         </div>
                     </div>
                 @endif
@@ -101,4 +104,3 @@
         </div>
     </div>
 @endsection
-

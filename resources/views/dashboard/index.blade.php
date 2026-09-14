@@ -12,7 +12,8 @@
                     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <h4 class="text-white fw-bold mb-1">Halo, {{ auth()->user()->name }}! 👋</h4>
-                            <p class="mb-0 text-white-50">Selamat datang di portal reservasi Indo Fitness Gym Sport Tondano.</p>
+                            <p class="mb-0 text-white-50">Selamat datang di portal reservasi Indo Fitness Gym Sport Tondano.
+                            </p>
                         </div>
                         <div>
                             @if ($activeMembership)
@@ -34,15 +35,19 @@
                         <div class="card-body">
                             <span class="badge bg-label-primary mb-2">Paket Membership Anda</span>
                             @if ($activeMembership)
-                                <h4 class="card-title fw-bold text-primary mb-1">{{ $activeMembership->product->name ?? 'Membership Reguler' }}</h4>
-                                <p class="text-muted small mb-3">Kode Member: <strong class="text-dark">{{ $member->member_code ?? '-' }}</strong></p>
+                                <h4 class="card-title fw-bold text-primary mb-1">
+                                    {{ $activeMembership->product->name ?? 'Membership Reguler' }}</h4>
+                                <p class="text-muted small mb-3">Kode Member: <strong
+                                        class="text-dark">{{ $member->member_code ?? '-' }}</strong></p>
                                 <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                     <small class="text-muted">Masa Berlaku:</small>
-                                    <span class="badge bg-label-success">s/d {{ $activeMembership->end_date->format('d M Y') }}</span>
+                                    <span class="badge bg-label-success">s/d
+                                        {{ $activeMembership->end_date->format('d M Y') }}</span>
                                 </div>
                             @else
                                 <h5 class="text-muted mb-2">Belum Memiliki Paket Aktif</h5>
-                                <p class="text-muted small">Silakan hubungi kasir/pengelola gym untuk mengaktifkan paket membership Anda.</p>
+                                <p class="text-muted small">Silakan hubungi kasir/pengelola gym untuk mengaktifkan paket
+                                    membership Anda.</p>
                             @endif
                         </div>
                     </div>
@@ -66,7 +71,8 @@
                 <div class="col-md-12 col-lg-4">
                     <div class="card h-100 shadow-sm bg-lighter">
                         <div class="card-body">
-                            <h6 class="fw-bold mb-2 text-primary"><i class="bx bx-info-circle me-1"></i> Alur Kunjungan Gym</h6>
+                            <h6 class="fw-bold mb-2 text-primary"><i class="bx bx-info-circle me-1"></i> Alur Kunjungan Gym
+                            </h6>
                             <ol class="ps-3 mb-0 small text-muted">
                                 <li class="mb-1">Pastikan membership aktif.</li>
                                 <li class="mb-1">Pilih tanggal rencana olahraga.</li>
@@ -100,20 +106,25 @@
                         <tbody>
                             @forelse ($myUpcomingSchedules as $sch)
                                 <tr>
-                                    <td><span class="fw-bold font-monospace text-primary">{{ $sch->schedule_code }}</span></td>
-                                    <td>{{ $sch->scheduled_date->format('d M Y') }} ({{ $sch->scheduled_date->translatedFormat('l') }})</td>
+                                    <td><span class="fw-bold font-monospace text-primary">{{ $sch->schedule_code }}</span>
+                                    </td>
+                                    <td>{{ $sch->scheduled_date->format('d M Y') }}
+                                        ({{ $sch->scheduled_date->translatedFormat('l') }})</td>
                                     <td>
                                         <span class="badge bg-label-primary">
                                             {{ $sch->timeSlot->name ?? '-' }} ({{ $sch->timeSlot->time_range ?? '-' }})
                                         </span>
                                     </td>
                                     <td><span class="badge bg-label-success">Terjadwal</span></td>
-                                    <td><small class="text-muted">{{ $sch->notes ?? 'Dialokasikan optimal oleh Algoritma Greedy' }}</small></td>
+                                    <td><small
+                                            class="text-muted">{{ $sch->notes ?? 'Dialokasikan optimal oleh Algoritma Greedy' }}</small>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="5" class="text-center py-4 text-muted">
-                                        Anda belum memiliki jadwal kunjungan mendatang. Silakan lakukan reservasi terlebih dahulu.
+                                        Anda belum memiliki jadwal kunjungan mendatang. Silakan lakukan reservasi terlebih
+                                        dahulu.
                                     </td>
                                 </tr>
                             @endforelse
@@ -130,7 +141,8 @@
                         Dashboard Penjadwalan Gym IFGS
                     </h4>
                     <p class="text-muted mb-0">
-                        Sistem Informasi Optimasi Penjadwalan Kunjungan Member Berbasis Algoritma Greedy &bull; {{ \Carbon\Carbon::parse($today)->translatedFormat('l, d F Y') }}
+                        Sistem Informasi Optimasi Penjadwalan Kunjungan Member Berbasis Algoritma Greedy &bull;
+                        {{ \Carbon\Carbon::parse($today)->translatedFormat('l, d F Y') }}
                     </p>
                 </div>
                 <div class="d-flex gap-2">
@@ -140,6 +152,98 @@
                     <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary">
                         <i class="bx bx-calendar-check me-1"></i> Monitoring Jadwal
                     </a>
+                </div>
+            </div>
+
+            <!-- Ringkasan Membership & Pendapatan Bulanan (Dipindahkan dari Membership) -->
+            <div class="row g-3 mb-4">
+                <!-- Total Transaksi -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card h-100 shadow-sm border-start border-primary border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="content-left">
+                                    <span class="text-muted fw-semibold">Total Transaksi</span>
+                                    <div class="d-flex align-items-center my-1">
+                                        <h4 class="mb-0 me-2">{{ number_format($totalMembershipTransactions) }}</h4>
+                                    </div>
+                                    <small class="text-muted">Semua riwayat paket</small>
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-primary">
+                                        <i class="bx bx-credit-card bx-sm"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Membership Aktif -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card h-100 shadow-sm border-start border-success border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="content-left">
+                                    <span class="text-muted fw-semibold">Membership Aktif</span>
+                                    <div class="d-flex align-items-center my-1">
+                                        <h4 class="mb-0 me-2 text-success">{{ number_format($activeMemberships) }}</h4>
+                                    </div>
+                                    <small class="text-success">Dapat beraktivitas</small>
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-success">
+                                        <i class="bx bx-check-shield bx-sm"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kadaluarsa -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card h-100 shadow-sm border-start border-warning border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="content-left">
+                                    <span class="text-muted fw-semibold">Kadaluarsa</span>
+                                    <div class="d-flex align-items-center my-1">
+                                        <h4 class="mb-0 me-2 text-warning">{{ number_format($expiredMemberships) }}</h4>
+                                    </div>
+                                    <small class="text-warning">Perlu perpanjangan</small>
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-warning">
+                                        <i class="bx bx-time-five bx-sm"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Pendapatan Bulan Ini -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card h-100 shadow-sm border-start border-info border-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="content-left">
+                                    <span class="text-muted fw-semibold">Pendapatan Bulan Ini</span>
+                                    <div class="d-flex align-items-center my-1">
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
+                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                    </div>
+                                    <small class="text-muted">{{ $currentMonthLabel }}</small>
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-info">
+                                        <i class="bx bx-wallet bx-sm"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -291,16 +395,20 @@
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <div>
                                             <span class="fw-semibold text-heading small">{{ $occ['slot']->name }}</span>
-                                            <span class="badge bg-label-dark font-monospace ms-1" style="font-size: 0.72rem;">{{ $occ['slot']->time_range }}</span>
+                                            <span class="badge bg-label-dark font-monospace ms-1"
+                                                style="font-size: 0.72rem;">{{ $occ['slot']->time_range }}</span>
                                         </div>
                                         <div class="text-end">
-                                            <span class="fw-bold small">{{ $occ['occupied'] }} / {{ $occ['slot']->capacity }} org</span>
-                                            <span class="badge {{ $barColor }} ms-1" style="font-size: 0.7rem;">{{ $pct }}%</span>
+                                            <span class="fw-bold small">{{ $occ['occupied'] }} /
+                                                {{ $occ['slot']->capacity }} org</span>
+                                            <span class="badge {{ $barColor }} ms-1"
+                                                style="font-size: 0.7rem;">{{ $pct }}%</span>
                                         </div>
                                     </div>
                                     <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar {{ $barColor }}" role="progressbar" style="width: {{ min(100, $pct) }}%;"
-                                            aria-valuenow="{{ $pct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        <div class="progress-bar {{ $barColor }}" role="progressbar"
+                                            style="width: {{ min(100, $pct) }}%;" aria-valuenow="{{ $pct }}"
+                                            aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </div>
                             @empty
@@ -309,9 +417,12 @@
                                 </div>
                             @endforelse
                         </div>
-                        <div class="card-footer border-top bg-lighter py-2 d-flex justify-content-between align-items-center small">
-                            <span class="text-muted">Total Kapasitas Kuota Gym Hari Ini: <strong>{{ $totalGymCapacity }} Orang</strong></span>
-                            <a href="{{ route('schedules.index') }}" class="fw-semibold text-primary">Lihat Matriks Jadwal Lengkap &rarr;</a>
+                        <div
+                            class="card-footer border-top bg-lighter py-2 d-flex justify-content-between align-items-center small">
+                            <span class="text-muted">Total Kapasitas Kuota Gym Hari Ini: <strong>{{ $totalGymCapacity }}
+                                    Orang</strong></span>
+                            <a href="{{ route('schedules.index') }}" class="fw-semibold text-primary">Lihat Matriks
+                                Jadwal Lengkap &rarr;</a>
                         </div>
                     </div>
                 </div>
@@ -339,22 +450,29 @@
                                         @forelse ($recentSchedules as $s)
                                             <tr>
                                                 <td>
-                                                    <div class="fw-semibold small text-heading">{{ $s->member->user->name ?? '-' }}</div>
-                                                    <small class="text-muted font-monospace" style="font-size: 0.7rem;">{{ $s->member->member_code ?? '-' }}</small>
+                                                    <div class="fw-semibold small text-heading">
+                                                        {{ $s->member->user->name ?? '-' }}</div>
+                                                    <small class="text-muted font-monospace"
+                                                        style="font-size: 0.7rem;">{{ $s->member->member_code ?? '-' }}</small>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-label-primary font-monospace" style="font-size: 0.7rem;">
+                                                    <span class="badge bg-label-primary font-monospace"
+                                                        style="font-size: 0.7rem;">
                                                         {{ $s->timeSlot->name ?? '-' }}
                                                     </span>
-                                                    <small class="d-block text-muted" style="font-size: 0.68rem;">{{ $s->timeSlot->time_range ?? '-' }}</small>
+                                                    <small class="d-block text-muted"
+                                                        style="font-size: 0.68rem;">{{ $s->timeSlot->time_range ?? '-' }}</small>
                                                 </td>
                                                 <td>
                                                     @if ($s->status === 'attended')
-                                                        <span class="badge bg-label-success" style="font-size: 0.7rem;">Hadir</span>
+                                                        <span class="badge bg-label-success"
+                                                            style="font-size: 0.7rem;">Hadir</span>
                                                     @elseif ($s->status === 'scheduled')
-                                                        <span class="badge bg-label-primary" style="font-size: 0.7rem;">Terjadwal</span>
+                                                        <span class="badge bg-label-primary"
+                                                            style="font-size: 0.7rem;">Terjadwal</span>
                                                     @else
-                                                        <span class="badge bg-label-secondary" style="font-size: 0.7rem;">{{ ucfirst($s->status) }}</span>
+                                                        <span class="badge bg-label-secondary"
+                                                            style="font-size: 0.7rem;">{{ ucfirst($s->status) }}</span>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -375,4 +493,3 @@
         @endif
     </div>
 @endsection
-

@@ -82,7 +82,7 @@ class MembershipController extends Controller
                 $q->where('status', User::STATUS_ACTIVE);
             })
             ->get()
-            ->sortBy(fn ($m) => strtolower($m->user?->name ?? ''));
+            ->sortBy(fn($m) => strtolower($m->user?->name ?? ''));
 
         // Daftar produk aktif untuk pilihan dropdown Tambah Membership
         $activeProducts = Product::where('status', Product::STATUS_ACTIVE)
@@ -114,12 +114,11 @@ class MembershipController extends Controller
 
     /**
      * Menyimpan data transaksi membership baru.
-     * Alur transaksi baru membership dialihkan melalui POS Kasir.
      */
     public function store(Request $request): RedirectResponse
     {
-        return redirect()->route('pos.index')
-            ->with('info', 'Transaksi membership baru sekarang dilakukan melalui menu POS / Kasir.');
+        return redirect()->route('memberships.index')
+            ->with('info', 'Fitur penambahan transaksi member sedang dalam penyesuaian logika baru.');
     }
 
     /**

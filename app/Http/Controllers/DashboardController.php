@@ -64,6 +64,19 @@ class DashboardController extends Controller
             ->whereDate('end_date', '>=', $today)
             ->count();
 
+        // Metrik Ringkasan Membership & Pendapatan Bulanan (Dipindahkan dari Halaman Membership)
+        $totalMembershipTransactions = Membership::count();
+        $expiredMemberships = Membership::where('status', Membership::STATUS_EXPIRED)
+            ->orWhere(function ($q) use ($today) {
+                $q->where('status', Membership::STATUS_ACTIVE)
+                    ->whereDate('end_date', '<', $today);
+            })->count();
+        $monthlyRevenue = Membership::where('status', '!=', Membership::STATUS_CANCELLED)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->sum('price');
+        $currentMonthLabel = Carbon::now()->translatedFormat('F Y');
+
         // Reservasi Hari Ini
         $todayReservationsCount = Reservation::whereDate('visit_date', $today)->count();
         $todayPendingReservations = Reservation::whereDate('visit_date', $today)
@@ -110,6 +123,10 @@ class DashboardController extends Controller
             'totalMembers' => $totalMembers,
             'activeMembers' => $activeMembers,
             'activeMemberships' => $activeMemberships,
+            'totalMembershipTransactions' => $totalMembershipTransactions,
+            'expiredMemberships' => $expiredMemberships,
+            'monthlyRevenue' => $monthlyRevenue,
+            'currentMonthLabel' => $currentMonthLabel,
             'todayReservationsCount' => $todayReservationsCount,
             'todayPendingReservations' => $todayPendingReservations,
             'todayScheduledReservations' => $todayScheduledReservations,

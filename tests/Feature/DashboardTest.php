@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Member;
+use App\Models\Membership;
+use App\Models\Product;
 use App\Models\TimeSlot;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,4 +54,31 @@ test('authenticated user accessing root url sees welcome page with link to dashb
         ->get('/')
         ->assertOk()
         ->assertSee('Dashboard');
+});
+
+test('admin dashboard displays membership metrics and monthly revenue', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $memberUser = User::factory()->create();
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
+    $product = Product::factory()->create(['price' => 150000]);
+
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'price' => 150000,
+        'status' => Membership::STATUS_ACTIVE,
+        'created_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Ringkasan Membership')
+        ->assertSee('Total Transaksi')
+        ->assertSee('Membership Aktif')
+        ->assertSee('Kadaluarsa')
+        ->assertSee('Pendapatan Bulan Ini')
+        ->assertSee('Rp 150.000');
 });

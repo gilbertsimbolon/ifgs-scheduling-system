@@ -15,9 +15,6 @@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahMembership">
                     <i class="bx bx-plus me-1"></i> Tambah Membership
                 </button>
-                <a href="{{ route('pos.index') }}" class="btn btn-primary">
-                    <i class="bx bx-cart me-1"></i> Transaksi Baru (POS)
-                </a>
             </div>
         </div>
 
@@ -48,91 +45,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-
-        <!-- Summary Metric Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Total Transaksi</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2">{{ number_format($metrics['total']) }}</h4>
-                                </div>
-                                <small class="text-muted">Semua riwayat</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-primary">
-                                    <i class="bx bx-credit-card bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Membership Aktif</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2 text-success">{{ number_format($metrics['active']) }}</h4>
-                                </div>
-                                <small class="text-success">Dapat beraktivitas</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-success">
-                                    <i class="bx bx-check-shield bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Kadaluarsa</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h4 class="mb-0 me-2 text-warning">{{ number_format($metrics['expired']) }}</h4>
-                                </div>
-                                <small class="text-warning">Perlu perpanjangan</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-warning">
-                                    <i class="bx bx-time-five bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="content-left">
-                                <span class="text-muted fw-semibold">Total Pendapatan</span>
-                                <div class="d-flex align-items-center my-1">
-                                    <h5 class="mb-0 me-2 text-heading">Rp
-                                        {{ number_format($metrics['revenue'], 0, ',', '.') }}</h5>
-                                </div>
-                                <small class="text-muted">Transaksi sah</small>
-                            </div>
-                            <div class="avatar">
-                                <span class="avatar-initial rounded bg-label-info">
-                                    <i class="bx bx-wallet bx-sm"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Filter & Table Card -->
         <div class="card">
@@ -195,8 +107,10 @@
                             <th style="width: 50px;">No</th>
                             <th>Member</th>
                             <th>Paket Layanan</th>
-                            <th>Periode</th>
-                            <th>Biaya & Metode</th>
+                            <th>Mulai</th>
+                            <th>Akhir</th>
+                            <th>Biaya</th>
+                            <th>Metode</th>
                             <th>Status</th>
                             <th class="text-center" style="width: 150px;">Aksi</th>
                         </tr>
@@ -213,8 +127,7 @@
                                             </span>
                                         </div>
                                         <div class="d-flex flex-column">
-                                            <span class="fw-semibold text-heading text-truncate"
-                                                style="max-width: 200px;">
+                                            <span class="fw-semibold text-heading text-truncate" style="max-width: 200px;">
                                                 {{ $membership->member?->user?->name ?? '-' }}
                                             </span>
                                             <small class="text-muted font-monospace">
@@ -231,33 +144,16 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="d-flex flex-column">
-                                        <span>
-                                            <i class="bx bx-calendar text-muted me-1 small"></i>
-                                            {{ $membership->start_date ? $membership->start_date->format('d M Y') : '-' }}
-                                        </span>
-                                        <small class="text-muted">
-                                            s.d. {{ $membership->end_date ? $membership->end_date->format('d M Y') : '-' }}
-                                        </small>
-                                    </div>
+                                    {{ $membership->start_date ? $membership->start_date->format('d M Y') : '-' }}
                                 </td>
                                 <td>
-                                    <div class="d-flex flex-column">
-                                        <strong class="text-success">{{ $membership->formatted_price }}</strong>
-                                        <span class="badge bg-label-secondary font-monospace mt-1"
-                                            style="width: fit-content;">
-                                            <i
-                                                class="bx bx-credit-card-front me-1"></i>{{ $membership->paymentMethod?->name ?? 'Tunai' }}
-                                        </span>
-                                        @if ($membership->transaction)
-                                            <a href="{{ route('transactions.index', ['search' => $membership->transaction->invoice_number]) }}"
-                                                class="badge bg-label-primary font-monospace mt-1"
-                                                style="width: fit-content;" title="Lihat Invoice Transaksi">
-                                                <i
-                                                    class="bx bx-receipt me-1"></i>{{ $membership->transaction->invoice_number }}
-                                            </a>
-                                        @endif
-                                    </div>
+                                    {{ $membership->end_date ? $membership->end_date->format('d M Y') : '-' }}
+                                </td>
+                                <td>
+                                    {{ $membership->formatted_price }}
+                                </td>
+                                <td>
+                                    {{ $membership->paymentMethod ? ucwords(str_replace('_', ' ', $membership->paymentMethod->name)) : 'Tunai' }}
                                 </td>
                                 <td>
                                     <span class="badge {{ $membership->status_badge_class }}">
@@ -268,8 +164,8 @@
                                     <div class="d-inline-flex gap-1">
                                         <!-- Detail Button -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-info"
-                                            title="Detail Transaksi" data-bs-toggle="modal" title="Detail Membership"
-                                            data-bs-toggle="modal" data-bs-target="#modalDetailMembership"
+                                            title="Detail Membership" data-bs-toggle="modal"
+                                            data-bs-target="#modalDetailMembership"
                                             data-name="{{ $membership->member?->user?->name ?? '-' }}"
                                             data-code="{{ $membership->member?->member_code ?? '-' }}"
                                             data-product="{{ $membership->product?->name ?? '-' }}"
@@ -280,7 +176,6 @@
                                             data-payment-method="{{ $membership->paymentMethod?->name ?? 'Tunai' }}"
                                             data-status="{{ $membership->status_label }}"
                                             data-status-class="{{ $membership->status_badge_class }}"
-                                            data-created="{{ $membership->created_at->format('d M Y, H:i') }}">
                                             data-created="{{ $membership->created_at->format('d M Y, H:i') }}"
                                             data-invoice="{{ $membership->transaction?->invoice_number ?? '-' }}"
                                             data-cashier="{{ $membership->transaction?->user?->name ?? 'Sistem' }}">
@@ -327,7 +222,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="9" class="text-center py-5">
                                     <div class="d-flex flex-column align-items-center justify-content-center w-100 py-3">
                                         <div class="mb-2">
                                             <i class="bx bx-credit-card fs-1 text-secondary"></i>
@@ -343,16 +238,9 @@
                                             @if (request()->hasAny(['search', 'product_id', 'status']))
                                                 Coba ubah kata kunci pencarian atau bersihkan filter.
                                             @else
-                                                Klik tombol "Tambah Membership" untuk mendaftarkan transaksi pertama.
-                                                Belum ada transaksi membership. Transaksi baru diproses melalui menu POS
-                                                Kasir.
+                                                Data transaksi dan langganan membership akan ditampilkan di sini.
                                             @endif
                                         </span>
-                                        @if (!request()->hasAny(['search', 'product_id', 'status']))
-                                            <a href="{{ route('pos.index') }}" class="btn btn-sm btn-primary mt-3">
-                                                <i class="bx bx-cart me-1"></i> Buka Menu POS Kasir
-                                            </a>
-                                        @endif
                                     </div>
                                 </td>
                             </tr>

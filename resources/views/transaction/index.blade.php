@@ -12,11 +12,6 @@
                 </h5>
                 <p class="text-muted mb-0">Daftar seluruh riwayat transaksi POS dan pembayaran paket gym.</p>
             </div>
-            <div class="d-flex gap-2">
-                <a href="{{ route('pos.index') }}" class="btn btn-primary">
-                    <i class="bx bx-cart me-1"></i> Transaksi Baru (POS)
-                </a>
-            </div>
         </div>
 
         <!-- Metric Summary Cards -->
@@ -44,7 +39,8 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
-                                <h4 class="mb-0 fw-bold text-success">Rp {{ number_format($metrics['total_revenue'], 0, ',', '.') }}</h4>
+                                <h4 class="mb-0 fw-bold text-success">Rp
+                                    {{ number_format($metrics['total_revenue'], 0, ',', '.') }}</h4>
                             </div>
                             <div class="avatar">
                                 <span class="avatar-initial rounded bg-label-success">
@@ -78,7 +74,8 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted fw-semibold d-block mb-1">Omset Hari Ini</span>
-                                <h4 class="mb-0 fw-bold text-primary">Rp {{ number_format($metrics['today_revenue'], 0, ',', '.') }}</h4>
+                                <h4 class="mb-0 fw-bold text-primary">Rp
+                                    {{ number_format($metrics['today_revenue'], 0, ',', '.') }}</h4>
                             </div>
                             <div class="avatar">
                                 <span class="avatar-initial rounded bg-label-warning">
@@ -100,9 +97,8 @@
                             <label class="form-label small fw-semibold">Pencarian</label>
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text"><i class="bx bx-search"></i></span>
-                                <input type="text" name="search" class="form-control" 
-                                    placeholder="No. Invoice / Nama Member..." 
-                                    value="{{ request('search') }}">
+                                <input type="text" name="search" class="form-control"
+                                    placeholder="No. Invoice / Nama Member..." value="{{ request('search') }}">
                             </div>
                         </div>
                         <div class="col-md-2">
@@ -110,7 +106,8 @@
                             <select name="payment_method_id" class="form-select">
                                 <option value="">Semua Metode</option>
                                 @foreach ($paymentMethods as $pm)
-                                    <option value="{{ $pm->id }}" {{ request('payment_method_id') == $pm->id ? 'selected' : '' }}>
+                                    <option value="{{ $pm->id }}"
+                                        {{ request('payment_method_id') == $pm->id ? 'selected' : '' }}>
                                         {{ $pm->name }}
                                     </option>
                                 @endforeach
@@ -129,7 +126,8 @@
                                 <i class="bx bx-filter-alt me-1"></i> Filter
                             </button>
                             @if (request()->hasAny(['search', 'payment_method_id', 'date_from', 'date_to', 'status']))
-                                <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                                <a href="{{ route('transactions.index') }}" class="btn btn-outline-secondary"
+                                    title="Reset Filter">
                                     <i class="bx bx-reset"></i>
                                 </a>
                             @endif
@@ -173,7 +171,8 @@
                                 <td>
                                     <span class="fw-medium">{{ $trx->items->first()?->product_name ?? '-' }}</span>
                                     @if ($trx->items->count() > 1)
-                                        <small class="badge bg-label-secondary">+{{ $trx->items->count() - 1 }} lainnya</small>
+                                        <small class="badge bg-label-secondary">+{{ $trx->items->count() - 1 }}
+                                            lainnya</small>
                                     @endif
                                 </td>
                                 <td class="fw-bold text-dark">{{ $trx->formatted_total_amount }}</td>
@@ -205,14 +204,14 @@
                                             data-status-badge="{{ $trx->status_badge_class }}"
                                             data-service-name="{{ $trx->items->first()?->product_name ?? '-' }}"
                                             data-service-price="{{ $trx->items->first()?->formatted_price ?? '-' }}"
-                                            data-membership-valid="{{ $trx->membership ? ($trx->membership->start_date->format('d M Y') . ' s/d ' . $trx->membership->end_date->format('d M Y')) : '-' }}"
+                                            data-membership-valid="{{ $trx->membership ? $trx->membership->start_date->format('d M Y') . ' s/d ' . $trx->membership->end_date->format('d M Y') : '-' }}"
                                             data-notes="{{ $trx->notes ?? '-' }}"
-                                            data-receipt-url="{{ route('pos.receipt', $trx) }}">
+                                            data-receipt-url="{{ route('transactions.receipt', $trx) }}">
                                             <i class="bx bx-show"></i>
                                         </button>
 
                                         <!-- Print Struk -->
-                                        <a href="{{ route('pos.receipt', $trx) }}" target="_blank" 
+                                        <a href="{{ route('transactions.receipt', $trx) }}" target="_blank"
                                             class="btn btn-sm btn-icon btn-outline-primary" title="Cetak Struk">
                                             <i class="bx bx-printer"></i>
                                         </a>
@@ -233,10 +232,8 @@
                                                 Belum ada riwayat transaksi
                                             @endif
                                         </h6>
-                                        <p class="text-muted small mb-3">Buat transaksi pertama melalui menu POS Kasir.</p>
-                                        <a href="{{ route('pos.index') }}" class="btn btn-sm btn-primary">
-                                            <i class="bx bx-cart me-1"></i> Buka POS Kasir
-                                        </a>
+                                        <p class="text-muted small mb-0">Daftar riwayat seluruh transaksi akan dicatat di
+                                            sini.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -249,7 +246,8 @@
             <div class="card-footer d-flex flex-wrap justify-content-between align-items-center py-3 border-top gap-2">
                 <small class="text-muted">
                     @if ($transactions->total() > 0)
-                        Menampilkan {{ $transactions->firstItem() }}–{{ $transactions->lastItem() }} dari {{ $transactions->total() }} data transaksi
+                        Menampilkan {{ $transactions->firstItem() }}–{{ $transactions->lastItem() }} dari
+                        {{ $transactions->total() }} data transaksi
                     @else
                         Tidak ada data
                     @endif
@@ -262,14 +260,16 @@
     </div>
 
     <!-- Modal Detail Transaksi -->
-    <div class="modal fade" id="modalDetailTransaksi" tabindex="-1" aria-labelledby="modalDetailTransaksiLabel" aria-hidden="true">
+    <div class="modal fade" id="modalDetailTransaksi" tabindex="-1" aria-labelledby="modalDetailTransaksiLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white py-3">
                     <h6 class="modal-title text-white fw-bold" id="modalDetailTransaksiLabel">
                         <i class="bx bx-receipt me-1"></i> Detail Invoice: <span id="modalTrxInvoice">-</span>
                     </h6>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
                     <!-- Top Info Summary -->
@@ -347,7 +347,7 @@
                     <div class="alert alert-light border small p-3 mb-2">
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
-                                <i class="bx bx-id-card me-1 text-primary"></i> 
+                                <i class="bx bx-id-card me-1 text-primary"></i>
                                 <strong class="text-dark">Penerbitan Hak Akses Membership:</strong>
                             </div>
                             <span class="badge bg-label-success">Aktif</span>
@@ -414,7 +414,8 @@
                     document.getElementById('modalTrxTotalAmount').textContent = total;
                     document.getElementById('modalTrxPaidAmount').textContent = paid;
                     document.getElementById('modalTrxChangeAmount').textContent = change;
-                    document.getElementById('modalTrxMembershipValid').textContent = membershipValid;
+                    document.getElementById('modalTrxMembershipValid').textContent =
+                    membershipValid;
                     document.getElementById('modalTrxNotes').textContent = notes;
 
                     const receiptBtn = document.getElementById('modalTrxReceiptBtn');
@@ -426,4 +427,3 @@
         });
     </script>
 @endpush
-

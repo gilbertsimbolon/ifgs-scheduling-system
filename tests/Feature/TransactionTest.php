@@ -76,3 +76,16 @@ test('can view transaction show details via JSON ajax request', function () {
             'invoice_number' => $trx->invoice_number,
         ]);
 });
+
+test('can render transaction receipt print view', function () {
+    $kasir = User::factory()->create();
+    $kasir->assignRole('Kasir');
+
+    $trx = Transaction::factory()->create();
+
+    $response = $this->actingAs($kasir)->get(route('transactions.receipt', $trx));
+
+    $response->assertOk()
+        ->assertSee('INDO FITNESS GYM SPORT')
+        ->assertSee($trx->invoice_number);
+});
