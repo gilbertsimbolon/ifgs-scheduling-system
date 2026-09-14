@@ -286,7 +286,8 @@
                     if (!isNaN(start.getTime())) {
                         const calculatedEnd = new Date(start);
                         if (durationUnit === 'day') {
-                            calculatedEnd.setDate(calculatedEnd.getDate() + durationValue);
+                            const daysToAdd = Math.max(0, durationValue - 1);
+                            calculatedEnd.setDate(calculatedEnd.getDate() + daysToAdd);
                         } else if (durationUnit === 'week') {
                             calculatedEnd.setDate(calculatedEnd.getDate() + (durationValue * 7));
                         } else if (durationUnit === 'month') {

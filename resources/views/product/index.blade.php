@@ -57,7 +57,7 @@
                             <th>Durasi</th>
                             <th>Harga</th>
                             <th>Status</th>
-                            <th>Digunakan</th>
+                            <th class="text-center">Total Member</th>
                             <th class="text-center" style="width: 120px;">Aksi</th>
                         </tr>
                     </thead>
@@ -92,7 +92,8 @@
                                                 title="Klik untuk ubah status paket"
                                                 {{ $product->status === \App\Models\Product::STATUS_ACTIVE ? 'checked' : '' }}>
                                         </div>
-                                        <label class="form-check-label cursor-pointer mb-0" for="switchProduct{{ $product->id }}">
+                                        <label class="form-check-label cursor-pointer mb-0"
+                                            for="switchProduct{{ $product->id }}">
                                             @if ($product->status === \App\Models\Product::STATUS_ACTIVE)
                                                 <span class="badge bg-label-success status-badge">Aktif</span>
                                             @else
@@ -101,10 +102,12 @@
                                         </label>
                                     </div>
                                 </td>
-                                <td>
-                                    <span class="badge bg-label-primary font-monospace">
-                                        {{ $product->memberships_count }} transaksi
-                                    </span>
+                                <td class="text-center">
+                                    <a href="{{ route('memberships.index', ['product_id' => $product->id]) }}"
+                                        class="text-warning fw-semibold text-decoration-none"
+                                        title="Lihat daftar member untuk {{ $product->name }}">
+                                        {{ $product->memberships_count }}
+                                    </a>
                                 </td>
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1">
@@ -139,7 +142,8 @@
                                             <i class="bx bx-package fs-1 text-secondary"></i>
                                         </div>
                                         <h6 class="fw-semibold mb-1">Belum ada paket layanan</h6>
-                                        <span class="text-muted">Klik tombol "Tambah Paket" untuk membuat paket membership gym baru.</span>
+                                        <span class="text-muted">Klik tombol "Tambah Paket" untuk membuat paket membership
+                                            gym baru.</span>
                                     </div>
                                 </td>
                             </tr>
@@ -151,7 +155,8 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($products->total() > 0)
-                        Menampilkan {{ $products->firstItem() }}–{{ $products->lastItem() }} dari {{ $products->total() }} paket
+                        Menampilkan {{ $products->firstItem() }}–{{ $products->lastItem() }} dari
+                        {{ $products->total() }} paket
                     @else
                         Tidak ada data
                     @endif
@@ -231,33 +236,35 @@
                     currentSwitch.disabled = true;
 
                     fetch(action, {
-                        method: 'PATCH',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Gagal mengubah status');
-                        return response.json();
-                    })
-                    .then(data => {
-                        currentSwitch.disabled = false;
-                        if (data.success) {
-                            if (badgeEl) {
-                                badgeEl.textContent = data.label;
-                                badgeEl.className = 'badge status-badge ' + (data.status === 'active' ? 'bg-label-success' : 'bg-label-secondary');
+                            method: 'PATCH',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Gagal mengubah status');
+                            return response.json();
+                        })
+                        .then(data => {
+                            currentSwitch.disabled = false;
+                            if (data.success) {
+                                if (badgeEl) {
+                                    badgeEl.textContent = data.label;
+                                    badgeEl.className = 'badge status-badge ' + (data.status ===
+                                        'active' ? 'bg-label-success' : 'bg-label-secondary'
+                                    );
+                                }
+                            } else {
+                                currentSwitch.checked = !isChecked;
                             }
-                        } else {
+                        })
+                        .catch(error => {
+                            currentSwitch.disabled = false;
                             currentSwitch.checked = !isChecked;
-                        }
-                    })
-                    .catch(error => {
-                        currentSwitch.disabled = false;
-                        currentSwitch.checked = !isChecked;
-                        alert('Terjadi kesalahan saat mengubah status paket.');
-                    });
+                            alert('Terjadi kesalahan saat mengubah status paket.');
+                        });
                 });
             });
 

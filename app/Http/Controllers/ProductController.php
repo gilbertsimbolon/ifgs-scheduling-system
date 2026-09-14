@@ -16,7 +16,7 @@ class ProductController extends Controller
      */
     public function index(): View
     {
-        $products = Product::withCount('memberships')->latest()->paginate(10);
+        $products = Product::withCount('memberships')->orderBy('id')->paginate(10);
         $durationUnits = Product::DURATION_UNITS;
         $statuses = Product::STATUSES;
 

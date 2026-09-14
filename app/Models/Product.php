@@ -84,10 +84,14 @@ class Product extends Model
     }
 
     /**
-     * Format duration label (e.g. "1 Bulan", "3 Hari").
+     * Format duration label (e.g. "1 Bulan", "1 Hari (Visit)").
      */
     public function getDurationFormattedAttribute(): string
     {
+        if ($this->duration_unit === 'day' && $this->duration_value === 1) {
+            return '1 Hari (Visit)';
+        }
+
         return "{$this->duration_value} {$this->duration_unit_label}";
     }
 
@@ -101,13 +105,16 @@ class Product extends Model
 
     /**
      * Calculate end date given a start date and product duration.
+     * Untuk paket visit (1 hari), durasi berlaku sampai jam tutup gym pada hari yang sama (end_date = start_date).
      */
     public function calculateEndDate(string|CarbonInterface $startDate): Carbon
     {
         $start = Carbon::parse($startDate);
 
         return match ($this->duration_unit) {
-            'day' => $start->copy()->addDays($this->duration_value),
+            'day' => $this->duration_value <= 1
+                ? $start->copy()
+                : $start->copy()->addDays($this->duration_value - 1),
             'week' => $start->copy()->addWeeks($this->duration_value),
             'month' => $start->copy()->addMonths($this->duration_value),
             'year' => $start->copy()->addYears($this->duration_value),
