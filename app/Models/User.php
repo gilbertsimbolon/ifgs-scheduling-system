@@ -61,7 +61,7 @@ class User extends Authenticatable
         $count = 2;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -78,7 +78,7 @@ class User extends Authenticatable
     public static function generateUniqueQrCode(): string
     {
         do {
-            $code = 'IFGS-QR-' . strtoupper(Str::random(10));
+            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
         } while (static::where('qr_code', $code)->exists());
 
         return $code;
@@ -98,7 +98,7 @@ class User extends Authenticatable
     public static function findByQrCode(string $code): ?User
     {
         return static::where('qr_code', $code)
-            ->orWhereHas('member', fn($q) => $q->where('member_code', $code))
+            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
             ->first();
     }
 

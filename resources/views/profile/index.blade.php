@@ -4,23 +4,6 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
-        <!-- Breadcrumb & Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-            <div>
-                <h4 class="fw-bold mb-1 text-heading">
-                    <i class="bx bx-user-circle me-1 text-primary"></i> Profil Saya
-                </h4>
-                <p class="text-muted mb-0 small">
-                    Kelola informasi data diri, QR code identitas/absensi gym, serta keamanan kata sandi akun Anda.
-                </p>
-            </div>
-            <div>
-                <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bx bx-arrow-back me-1"></i> Kembali ke Dashboard
-                </a>
-            </div>
-        </div>
-
         <!-- Alert Notifikasi -->
         @if (session('profile_success'))
             <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
