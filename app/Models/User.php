@@ -12,11 +12,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'slug', 'status', 'qr_code'])]
+#[Fillable(['name', 'email', 'password', 'slug', 'status', 'qr_code', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -62,6 +63,8 @@ class User extends Authenticatable
 
         while (static::where('slug', $slug)
             ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -78,6 +81,8 @@ class User extends Authenticatable
     public static function generateUniqueQrCode(): string
     {
         do {
+            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
+            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
             $code = 'IFGS-QR-'.strtoupper(Str::random(10));
         } while (static::where('qr_code', $code)->exists());
 
@@ -98,6 +103,8 @@ class User extends Authenticatable
     public static function findByQrCode(string $code): ?User
     {
         return static::where('qr_code', $code)
+            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
+            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
             ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
             ->first();
     }
@@ -145,6 +152,18 @@ class User extends Authenticatable
     public function getPhoneAttribute(): ?string
     {
         return $this->member?->phone ?? $this->trainer?->phone;
+    }
+
+    /**
+     * Get avatar image public URL if exists.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        if ($this->avatar && Storage::disk('public')->exists($this->avatar)) {
+            return Storage::url($this->avatar);
+        }
+
+        return null;
     }
 
     /**

@@ -4,7 +4,9 @@ use App\Models\Member;
 use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -44,6 +46,10 @@ test('authenticated member can access profile page and see QR Code, personal dat
     $response->assertSee($user->qr_code);
     $response->assertSee('MBR-998877');
     $response->assertSee('modalQrCodeProfile');
+    $response->assertSee('Aktivitas Kunjungan (Check-In dan Check-Out)');
+    $response->assertSee('Check-In Kunjungan Gym');
+    $response->assertSee('Check-Out Kunjungan Gym');
+    $response->assertSee('Berhasil melakukan check-in pada hari ini');
     $response->assertSee('Perbarui Password');
     $response->assertSee('Simpan Data Diri');
 });
@@ -59,7 +65,7 @@ test('authenticated admin can access profile page and see role badge and QR Code
 
     $response->assertStatus(200);
     $response->assertSee('Super Administrator');
-    $response->assertSee('Peran: Admin/Manager');
+    $response->assertSee('Admin/Manager');
     $response->assertSee($admin->qr_code);
 });
 
@@ -193,4 +199,55 @@ test('password update fails when new password is too short', function () {
     ]);
 
     $response->assertSessionHasErrors(['password']);
+});
+
+test('user can upload avatar and view it on profile', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+
+    $file = UploadedFile::fake()->image('profile-photo.jpg', 200, 200);
+
+    $response = $this->actingAs($user)->put(route('profile.update'), [
+        'name' => $user->name,
+        'email' => $user->email,
+        'avatar' => $file,
+    ]);
+
+    $response->assertRedirect(route('profile.show'));
+    $response->assertSessionHas('profile_success');
+
+    $user->refresh();
+    expect($user->avatar)->not->toBeNull();
+    Storage::disk('public')->assertExists($user->avatar);
+    expect($user->avatar_url)->not->toBeNull();
+
+    // Verify avatar renders on profile page
+    $profileRes = $this->actingAs($user)->get(route('profile.show'));
+    $profileRes->assertStatus(200);
+    $profileRes->assertSee($user->avatar_url);
+});
+
+test('user can remove avatar', function () {
+    Storage::fake('public');
+
+    $fakePath = 'avatars/fake-avatar.jpg';
+    Storage::disk('public')->put($fakePath, 'fake content');
+
+    $user = User::factory()->create([
+        'avatar' => $fakePath,
+    ]);
+    $user->assignRole('Member');
+
+    $response = $this->actingAs($user)->put(route('profile.update'), [
+        'name' => $user->name,
+        'email' => $user->email,
+        'remove_avatar' => 1,
+    ]);
+
+    $response->assertRedirect(route('profile.show'));
+    $user->refresh();
+    expect($user->avatar)->toBeNull();
+    Storage::disk('public')->assertMissing($fakePath);
 });

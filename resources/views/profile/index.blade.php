@@ -48,63 +48,43 @@
 
         <!-- Card Header Ringkasan Profil Pengguna -->
         <div class="card shadow-sm mb-4 border-0">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                    <div class="d-flex align-items-center">
-                        <div class="avatar avatar-xl me-3 bg-label-primary rounded-circle d-flex align-items-center justify-content-center fw-bold fs-3 text-primary shadow-sm"
-                            style="width: 64px; height: 64px;">
+            <div class="card-body py-3 px-4 text-center d-flex flex-column align-items-center justify-content-center">
+                <!-- Foto Profil -->
+                <div class="position-relative mb-1">
+                    @if ($user->avatar_url)
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
+                            class="rounded-circle shadow-sm object-fit-cover border border-3 border-light"
+                            style="width: 110px; height: 110px;" id="profileAvatarPreview" />
+                    @else
+                        <div class="avatar avatar-xl rounded-circle bg-label-primary d-flex align-items-center justify-content-center fw-bold fs-2 text-primary shadow-sm border border-3 border-light"
+                            style="width: 110px; height: 110px;" id="profileAvatarPreview">
                             {{ strtoupper(substr($user->name, 0, 2)) }}
                         </div>
-                        <div>
-                            <h4 class="fw-bold mb-1 text-heading">{{ $user->name }}</h4>
-                            <p class="text-muted mb-2 small d-flex align-items-center gap-2">
-                                <i class="bx bx-envelope"></i> {{ $user->email }}
-                                @if ($user->phone)
-                                    <span>&bull;</span>
-                                    <i class="bx bx-phone"></i> {{ $user->phone }}
-                                @endif
-                            </p>
-                            <div class="d-flex align-items-center flex-wrap gap-2">
-                                @php
-                                    $roleBadgeClass = match ($roleName) {
-                                        'Admin/Manager' => 'bg-label-primary',
-                                        'Kasir' => 'bg-label-success',
-                                        'Trainer' => 'bg-label-warning',
-                                        default => 'bg-label-info',
-                                    };
-                                @endphp
-                                <span class="badge {{ $roleBadgeClass }} fw-semibold px-2 py-1">
-                                    <i class="bx bx-shield-quarter me-1"></i> Peran: {{ $roleName }}
-                                </span>
-                                <span class="badge bg-label-success px-2 py-1">
-                                    <i class="bx bx-check-circle me-1"></i> Akun {{ $user->status ?? 'Active' }}
-                                </span>
-                                @if ($user->member)
-                                    <span class="badge bg-label-secondary font-monospace px-2 py-1">
-                                        ID Member: {{ $user->member->member_code }}
-                                    </span>
-                                @endif
-                                @if ($user->trainer)
-                                    <span class="badge bg-label-warning font-monospace px-2 py-1">
-                                        ID Trainer: {{ $user->trainer->trainer_code }}
-                                    </span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    @if ($isMember && $activeMembership)
-                        <div class="text-md-end bg-lighter p-3 rounded-3 border">
-                            <span class="text-muted small d-block mb-1">Paket Membership Aktif:</span>
-                            <span
-                                class="badge bg-primary fs-6 mb-1">{{ $activeMembership->product->name ?? 'Reguler' }}</span>
-                            <div class="small text-muted">
-                                Berlaku s/d <strong
-                                    class="text-dark">{{ $activeMembership->end_date->format('d M Y') }}</strong>
-                            </div>
-                        </div>
                     @endif
+
+                    <label for="avatarInput"
+                        class="btn btn-icon btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0 shadow cursor-pointer"
+                        title="Klik untuk memilih foto baru" style="cursor: pointer;">
+                        <i class="bx bx-camera"></i>
+                    </label>
                 </div>
+
+                <small class="text-secondary small mb-0">{{ $roleName }}</small>
+
+                <!-- Nama -->
+                <h4 class="fw-bold text-heading mt-1 mb-0">{{ $user->name }}</h4>
+
+                <!-- Email -->
+                <p class="text-muted small mb-0">{{ $user->email }}</p>
+
+                @if ($isMember && $activeMembership)
+                    <div class="mt-2 bg-lighter px-3 py-1.5 rounded-3 border small text-muted">
+                        Paket Aktif: <strong
+                            class="text-primary">{{ $activeMembership->product->name ?? 'Reguler' }}</strong>
+                        &bull; Berlaku s/d <strong
+                            class="text-dark">{{ $activeMembership->end_date->format('d M Y') }}</strong>
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -167,21 +147,48 @@
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Data Diri & Ganti Password -->
+            <!-- Kolom Kanan: Data Diri, Aktivitas Kunjungan, & Ganti Password -->
             <div class="col-12 col-lg-7 col-xl-8">
-                <!-- Card 1: Form Data Diri -->
+                <!-- Form Data Diri & Upload Foto -->
                 <div class="card shadow-sm mb-4 border-0">
                     <div class="card-header border-bottom py-3">
                         <h5 class="card-title fw-bold mb-0 text-heading">
-                            <i class="bx bx-user me-1 text-primary"></i> Data Diri Pengguna
+                            <i class="bx bx-user me-1 text-primary"></i> Data Diri & Foto Profil
                         </h5>
                     </div>
                     <div class="card-body p-4">
-                        <form action="{{ route('profile.update') }}" method="POST">
+                        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
 
                             <div class="row g-3">
+                                <!-- Upload Foto Profil -->
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold" for="avatarInput">
+                                        Foto Profil (Avatar)
+                                    </label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <input type="file" id="avatarInput" name="avatar"
+                                            class="form-control @error('avatar') is-invalid @enderror"
+                                            accept="image/png, image/jpeg, image/jpg, image/webp"
+                                            onchange="previewAvatar(this)" />
+                                        @if ($user->avatar)
+                                            <div class="form-check text-nowrap">
+                                                <input class="form-check-input" type="checkbox" name="remove_avatar"
+                                                    value="1" id="removeAvatarCheck">
+                                                <label class="form-check-label text-danger small" for="removeAvatarCheck">
+                                                    Hapus Foto
+                                                </label>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <small class="text-muted d-block mt-1">Format: JPG, JPEG, PNG, atau WEBP. Maksimal
+                                        2MB.</small>
+                                    @error('avatar')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
                                 <!-- Nama Lengkap -->
                                 <div class="col-12 col-md-6">
                                     <label class="form-label fw-semibold" for="name">
@@ -266,7 +273,47 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Form Ganti Password -->
+                <!-- Aktivitas Check-In & Check-Out Kunjungan -->
+                <div class="card shadow-sm mb-4 border-0">
+                    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between">
+                        <h5 class="card-title fw-bold mb-0 text-heading">
+                            <i class="bx bx-history me-1 text-primary"></i> Aktivitas Kunjungan (Check-In dan Check-Out)
+                        </h5>
+                        <span class="badge bg-label-info">Log Kehadiran</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="timeline-activity">
+                            @forelse ($visitActivities as $act)
+                                <div class="d-flex align-items-start pb-3 mb-3 border-bottom">
+                                    <div class="avatar avatar-sm me-3 flex-shrink-0">
+                                        <span class="avatar-initial rounded-circle bg-label-{{ $act['color'] }}">
+                                            <i class="{{ $act['icon'] }}"></i>
+                                        </span>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div
+                                            class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                                            <span class="badge {{ $act['badge_class'] }} fw-semibold">
+                                                {{ $act['title'] }}
+                                            </span>
+                                            <small class="text-muted font-monospace">{{ $act['time'] }}</small>
+                                        </div>
+                                        <p class="mb-0 text-body small">
+                                            {{ $act['description'] }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-3 text-muted small">
+                                    <i class="bx bx-calendar-x fs-2 d-block mb-1"></i>
+                                    Belum ada catatan aktivitas kunjungan.
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Ganti Password -->
                 <div class="card shadow-sm border-0">
                     <div class="card-header border-bottom py-3">
                         <h5 class="card-title fw-bold mb-0 text-heading">
@@ -409,3 +456,31 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewEl = document.getElementById('profileAvatarPreview');
+                    if (previewEl) {
+                        if (previewEl.tagName === 'IMG') {
+                            previewEl.src = e.target.result;
+                        } else {
+                            const img = document.createElement('img');
+                            img.id = 'profileAvatarPreview';
+                            img.src = e.target.result;
+                            img.alt = 'Preview Foto Profil';
+                            img.className = 'rounded-circle shadow-sm object-fit-cover border border-3 border-light';
+                            img.style.width = '110px';
+                            img.style.height = '110px';
+                            previewEl.replaceWith(img);
+                        }
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+@endpush
