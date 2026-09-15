@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'start_time', 'end_time', 'capacity', 'status'])]
+#[Fillable(['name', 'category', 'days', 'start_time', 'end_time', 'capacity', 'status'])]
 class TimeSlot extends Model
 {
     /** @use HasFactory<TimeSlotFactory> */
@@ -22,6 +22,26 @@ class TimeSlot extends Model
         self::STATUS_ACTIVE,
         self::STATUS_INACTIVE,
     ];
+
+    public const CATEGORY_FITNESS = 'fitness';
+
+    public const CATEGORY_AEROBIC_ZUMBA = 'aerobic_zumba';
+
+    public const CATEGORIES = [
+        self::CATEGORY_FITNESS,
+        self::CATEGORY_AEROBIC_ZUMBA,
+    ];
+
+    /**
+     * Label representasi kategori layanan.
+     */
+    public function getCategoryLabelAttribute(): string
+    {
+        return match ($this->category) {
+            self::CATEGORY_AEROBIC_ZUMBA => 'Aerobic / Zumba',
+            default => 'Fitness',
+        };
+    }
 
     /**
      * Get the attributes that should be cast.

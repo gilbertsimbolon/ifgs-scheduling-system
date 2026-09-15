@@ -32,6 +32,7 @@ class ProductSeeder extends Seeder
             [
                 'name' => 'Fitness Visit',
                 'description' => 'Akses fitness 1 hari (berlaku sampai jam tutup gym pada hari yang sama)',
+                'description' => 'Akses fitness 1 hari (bebas jam masuk, berlaku sampai jam tutup gym pukul 20.00 pada hari yang sama, bukan 24 jam)',
                 'price' => 25000,
                 'duration_value' => 1,
                 'duration_unit' => Product::DURATION_DAY,
@@ -56,6 +57,7 @@ class ProductSeeder extends Seeder
             [
                 'name' => 'Aerobic / Zumba Visit',
                 'description' => 'Akses kelas Aerobic / Zumba 1 sesi kunjungan pada hari yang sama',
+                'description' => 'Akses kelas Aerobic / Zumba 1 sesi kunjungan pada hari yang sama (pukul 19.00 - 21.00)',
                 'price' => 25000,
                 'duration_value' => 1,
                 'duration_unit' => Product::DURATION_DAY,

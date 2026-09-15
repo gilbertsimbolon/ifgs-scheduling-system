@@ -82,3 +82,67 @@ test('admin dashboard displays membership metrics and monthly revenue', function
         ->assertSee('Pendapatan Bulan Ini')
         ->assertSee('Rp 150.000');
 });
+
+test('dashboard displays dynamic operational schedule cards', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    TimeSlot::factory()->create([
+        'name' => 'Fitness (08:00 - 20:00)',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'days' => 'Senin - Sabtu',
+        'start_time' => '08:00',
+        'end_time' => '20:00',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('Jam Operasional Gym Resmi')
+        ->assertSee('FITNESS')
+        ->assertSee('08.00 - 20.00')
+        ->assertSee('HARI LIBUR')
+        ->assertSee('Minggu & Tanggal Merah', false);
+});
+
+test('adding a new operational service dynamically increases the cards on dashboard', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    TimeSlot::factory()->create([
+        'name' => 'Fitness',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'days' => 'Senin - Sabtu',
+        'start_time' => '08:00',
+        'end_time' => '20:00',
+    ]);
+
+    TimeSlot::factory()->create([
+        'name' => 'Aerobic & Zumba',
+        'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+        'days' => 'Senin & Kamis',
+        'start_time' => '19:00',
+        'end_time' => '21:00',
+    ]);
+
+    // Admin menambahkan 1 lagi layanan
+    TimeSlot::factory()->create([
+        'name' => 'Yoga & Pilates',
+        'category' => 'yoga',
+        'days' => 'Selasa & Jumat',
+        'start_time' => '16:00',
+        'end_time' => '18:00',
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertSee('FITNESS')
+        ->assertSee('08.00 - 20.00')
+        ->assertSee('AEROBIC & ZUMBA')
+        ->assertSee('19.00 - 21.00')
+        ->assertSee('YOGA & PILATES')
+        ->assertSee('Selasa & Jumat')
+        ->assertSee('16.00 - 18.00')
+        ->assertSee('HARI LIBUR');
+});

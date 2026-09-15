@@ -6,27 +6,33 @@ use App\Models\TimeSlot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TimeSlotController extends Controller
 {
     /**
-     * Tampilkan daftar master data Time Slot.
+     * Tampilkan daftar master data Jadwal Operasional / Time Slot.
      */
     public function index(Request $request): View
     {
         $query = TimeSlot::query();
 
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('days', 'LIKE', "%{$search}%")
                     ->orWhere('start_time', 'LIKE', "%{$search}%")
                     ->orWhere('end_time', 'LIKE', "%{$search}%");
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('category') && in_array($request->category, TimeSlot::CATEGORIES)) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->filled('status') && in_array($request->status, TimeSlot::STATUSES)) {
             $query->where('status', $request->status);
         }
 
@@ -39,7 +45,9 @@ class TimeSlotController extends Controller
             'total_capacity' => TimeSlot::where('status', TimeSlot::STATUS_ACTIVE)->sum('capacity'),
         ];
 
-        return view('time_slot.index', compact('timeSlots', 'metrics'));
+        $categories = TimeSlot::CATEGORIES;
+
+        return view('time_slot.index', compact('timeSlots', 'metrics', 'categories'));
     }
 
     /**
@@ -49,12 +57,17 @@ class TimeSlotController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'category' => ['required', 'string', Rule::in(TimeSlot::CATEGORIES)],
+            'days' => ['required', 'string', 'max:100'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'capacity' => ['required', 'integer', 'min:1', 'max:200'],
             'status' => ['nullable', 'string', 'in:active,inactive'],
         ], [
             'name.required' => 'Nama sesi / slot wajib diisi.',
+            'category.required' => 'Kategori layanan wajib dipilih.',
+            'category.in' => 'Kategori layanan tidak valid.',
+            'days.required' => 'Hari operasional wajib diisi.',
             'start_time.required' => 'Jam mulai wajib diisi.',
             'start_time.date_format' => 'Format jam mulai harus HH:mm (contoh: 08:00).',
             'end_time.required' => 'Jam selesai wajib diisi.',
@@ -80,12 +93,17 @@ class TimeSlotController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
+            'category' => ['required', 'string', Rule::in(TimeSlot::CATEGORIES)],
+            'days' => ['required', 'string', 'max:100'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'capacity' => ['required', 'integer', 'min:1', 'max:200'],
             'status' => ['required', 'string', 'in:active,inactive'],
         ], [
             'name.required' => 'Nama sesi / slot wajib diisi.',
+            'category.required' => 'Kategori layanan wajib dipilih.',
+            'category.in' => 'Kategori layanan tidak valid.',
+            'days.required' => 'Hari operasional wajib diisi.',
             'start_time.required' => 'Jam mulai wajib diisi.',
             'start_time.date_format' => 'Format jam mulai harus HH:mm (contoh: 08:00).',
             'end_time.required' => 'Jam selesai wajib diisi.',

@@ -51,6 +51,7 @@ class DashboardController extends Controller
                 'myReservationsCount' => $myReservationsCount,
                 'myUpcomingSchedules' => $myUpcomingSchedules,
                 'myRecentVisits' => $myRecentVisits,
+                'operationalSlots' => TimeSlot::active()->orderBy('start_time')->get(),
             ]);
         }
 
@@ -136,6 +137,7 @@ class DashboardController extends Controller
             'totalGymCapacity' => $totalGymCapacity,
             'slotOccupancies' => $slotOccupancies,
             'recentSchedules' => $recentSchedules,
+            'operationalSlots' => $activeSlots,
         ]);
     }
 }

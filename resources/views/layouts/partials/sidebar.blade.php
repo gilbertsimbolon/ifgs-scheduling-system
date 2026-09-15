@@ -66,7 +66,7 @@
         <li class="menu-item {{ request()->routeIs('time-slots.*') ? 'active' : '' }}">
             <a href="{{ route('time-slots.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-time-five"></i>
-                <div class="text-truncate">Time Slot</div>
+                <div class="text-truncate">Jadwal Operasional</div>
             </a>
         </li>
         @endhasrole

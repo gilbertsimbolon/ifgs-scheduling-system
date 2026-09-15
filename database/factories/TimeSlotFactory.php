@@ -25,6 +25,8 @@ class TimeSlotFactory extends Factory
 
         return [
             'name' => "Sesi {$start} - {$end}",
+            'category' => TimeSlot::CATEGORY_FITNESS,
+            'days' => 'Senin - Sabtu',
             'start_time' => $start,
             'end_time' => $end,
             'capacity' => 10,

@@ -171,3 +171,28 @@ test('available slots endpoint returns capacity data for given date', function (
             ],
         ]);
 });
+
+test('member cannot make reservation on Sunday because gym is closed', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $product = Product::factory()->create();
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'start_date' => Carbon::now()->subDays(5),
+        'end_date' => Carbon::now()->addDays(30),
+        'status' => Membership::STATUS_ACTIVE,
+    ]);
+
+    $nextSunday = Carbon::now()->next(Carbon::SUNDAY)->format('Y-m-d');
+
+    $response = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => $nextSunday,
+        ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('error', 'Indo Fitness Gym Sport tutup pada hari Minggu sesuai ketentuan jadwal operasional.');
+});

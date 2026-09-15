@@ -143,6 +143,15 @@ class ReservationController extends Controller
 
         $member = Member::findOrFail($memberId);
         $visitDate = Carbon::parse($validated['visit_date'])->format('Y-m-d');
+        $dateObj = Carbon::parse($validated['visit_date']);
+        $visitDate = $dateObj->format('Y-m-d');
+
+        // Validasi operasional: Hari Minggu tutup
+        if ($dateObj->isSunday()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Indo Fitness Gym Sport tutup pada hari Minggu sesuai ketentuan jadwal operasional.');
+        }
 
         // 1. Validasi membership aktif pada tanggal kunjungan
         $validMembership = $member->memberships()

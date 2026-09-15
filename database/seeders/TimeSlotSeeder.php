@@ -9,66 +9,79 @@ class TimeSlotSeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * Sesuai Ketentuan & Poster Resmi Indo Fitness Gym Sport:
+     * 1. Fitness: Senin s/d Sabtu, Pukul 08.00 - 20.00
+     *    - Akses Masuk Bebas (Tanpa batasan per jam, bukan 24 jam).
+     *    - Tiket Visit berlaku sampai jam tutup gym pukul 20.00 pada hari yang sama.
+     * 2. Aerobic / Zumba: Senin & Kamis, Pukul 19.00 - 21.00
+     * 3. Hari Minggu & Tanggal Merah TUTUP.
      */
     public function run(): void
     {
-        $slots = [
-            [
-                'name' => 'Sesi Pagi 1',
-                'start_time' => '07:00',
-                'end_time' => '08:30',
-                'capacity' => 15,
+        // 1. Jadwal Operasional Fitness (08:00 - 20:00)
+        // Periksa apakah slot ID 1 sudah ada (misal direferensikan relasi jadwal/reservasi)
+        $fitnessSlot = TimeSlot::find(1);
+        if ($fitnessSlot) {
+            $fitnessSlot->update([
+                'name' => 'Fitness (08:00 - 20:00)',
+                'category' => TimeSlot::CATEGORY_FITNESS,
+                'days' => 'Senin - Sabtu',
+                'start_time' => '08:00',
+                'end_time' => '20:00',
+                'capacity' => 100,
                 'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Pagi 2',
-                'start_time' => '08:30',
-                'end_time' => '10:00',
-                'capacity' => 15,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Siang',
-                'start_time' => '10:00',
-                'end_time' => '11:30',
-                'capacity' => 15,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Sore 1',
-                'start_time' => '15:00',
-                'end_time' => '16:30',
-                'capacity' => 20,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Sore 2',
-                'start_time' => '16:30',
-                'end_time' => '18:00',
-                'capacity' => 20,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Malam 1',
-                'start_time' => '18:00',
-                'end_time' => '19:30',
-                'capacity' => 20,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Sesi Malam 2',
-                'start_time' => '19:30',
-                'end_time' => '21:00',
-                'capacity' => 15,
-                'status' => TimeSlot::STATUS_ACTIVE,
-            ],
-        ];
-
-        foreach ($slots as $slot) {
-            TimeSlot::firstOrCreate(
-                ['name' => $slot['name']],
-                $slot
+            ]);
+        } else {
+            TimeSlot::updateOrCreate(
+                ['name' => 'Fitness (08:00 - 20:00)'],
+                [
+                    'category' => TimeSlot::CATEGORY_FITNESS,
+                    'days' => 'Senin - Sabtu',
+                    'start_time' => '08:00',
+                    'end_time' => '20:00',
+                    'capacity' => 100,
+                    'status' => TimeSlot::STATUS_ACTIVE,
+                ]
             );
         }
+
+        // 2. Jadwal Operasional Aerobic & Zumba (19:00 - 21:00)
+        $zumbaSlot = TimeSlot::where('name', 'Sesi Aerobic & Zumba')
+            ->orWhere('name', 'Aerobic & Zumba (19:00 - 21:00)')
+            ->first();
+
+        if ($zumbaSlot) {
+            $zumbaSlot->update([
+                'name' => 'Aerobic & Zumba (19:00 - 21:00)',
+                'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+                'days' => 'Senin & Kamis',
+                'start_time' => '19:00',
+                'end_time' => '21:00',
+                'capacity' => 30,
+                'status' => TimeSlot::STATUS_ACTIVE,
+            ]);
+        } else {
+            TimeSlot::updateOrCreate(
+                ['name' => 'Aerobic & Zumba (19:00 - 21:00)'],
+                [
+                    'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+                    'days' => 'Senin & Kamis',
+                    'start_time' => '19:00',
+                    'end_time' => '21:00',
+                    'capacity' => 30,
+                    'status' => TimeSlot::STATUS_ACTIVE,
+                ]
+            );
+        }
+
+        // 3. Bersihkan slot-slot sesi per jam lama yang tidak memiliki riwayat reservasi atau jadwal
+        TimeSlot::whereNotIn('name', [
+            'Fitness (08:00 - 20:00)',
+            'Aerobic & Zumba (19:00 - 21:00)',
+        ])
+            ->whereDoesntHave('schedules')
+            ->whereDoesntHave('reservations')
+            ->delete();
     }
 }
+

@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Master Data Time Slot (Admin Only)
+    Route::redirect('/time_slots', '/time-slots');
     Route::middleware('role:Admin/Manager')->prefix('time-slots')->name('time-slots.')->group(function () {
         Route::get('/', [TimeSlotController::class, 'index'])->name('index');
         Route::post('/', [TimeSlotController::class, 'store'])->name('store');
