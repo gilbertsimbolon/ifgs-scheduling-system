@@ -58,12 +58,8 @@
                                 required />
                             <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                         </div>
-                        @if (old('_modal') === 'create')
-                            @error('password')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @else
-                                <div class="form-text">Minimal 8 karakter.</div>
-                            @enderror
+                        @if (old('_modal') === 'create' && $errors->has('password'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
                         @else
                             <div class="form-text">Minimal 8 karakter.</div>
                         @endif
@@ -118,7 +114,7 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         const tambahRole = document.getElementById('tambahRole');
         const tambahPhoneWrapper = document.getElementById('tambahPhoneWrapper');
 

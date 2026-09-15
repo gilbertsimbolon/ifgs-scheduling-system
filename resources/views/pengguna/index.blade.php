@@ -144,9 +144,9 @@
                                     </div>
                                 </td>
                                 <td>
-                                    @if ($user->member && $user->member->phone)
+                                    @if (($user->member && $user->member->phone) || ($user->trainer && $user->trainer->phone))
                                         <span class="text-nowrap">
-                                            {{ $user->member->phone }}
+                                            {{ $user->member?->phone ?? $user->trainer?->phone }}
                                         </span>
                                     @else
                                         <span class="text-muted">-</span>
@@ -158,6 +158,8 @@
                                             <span class="badge bg-label-primary">{{ $role->name }}</span>
                                         @elseif ($role->name === 'Kasir')
                                             <span class="badge bg-label-info">{{ $role->name }}</span>
+                                        @elseif ($role->name === 'Trainer')
+                                            <span class="badge bg-label-warning">{{ $role->name }}</span>
                                         @elseif ($role->name === 'Member')
                                             <span class="badge bg-label-dark">{{ $role->name }}</span>
                                         @else
@@ -193,7 +195,7 @@
                                             title="Detail Pengguna" data-bs-toggle="modal"
                                             data-bs-target="#modalDetailPengguna" data-name="{{ $user->name }}"
                                             data-slug="{{ $user->slug }}" data-email="{{ $user->email }}"
-                                            data-phone="{{ $user->member?->phone ?? '-' }}"
+                                            data-phone="{{ $user->member?->phone ?? ($user->trainer?->phone ?? '-') }}"
                                             data-member-code="{{ $user->member?->member_code ?? '-' }}"
                                             data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'Tanpa Peran' }}"
                                             data-status="{{ $user->status }}"
@@ -210,7 +212,7 @@
                                                 data-action="{{ route('pengguna.update', $user) }}"
                                                 data-name="{{ $user->name }}" data-slug="{{ $user->slug }}"
                                                 data-email="{{ $user->email }}"
-                                                data-phone="{{ $user->member?->phone ?? '' }}"
+                                                data-phone="{{ $user->member?->phone ?? ($user->trainer?->phone ?? '') }}"
                                                 data-role="{{ $user->roles->first()?->name ?? '' }}"
                                                 data-status="{{ $user->status }}">
                                                 <i class="bx bx-edit-alt"></i>

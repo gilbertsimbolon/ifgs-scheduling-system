@@ -13,6 +13,7 @@ beforeEach(function () {
     // Seed standard roles
     Role::firstOrCreate(['name' => 'Admin/Manager', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'Kasir', 'guard_name' => 'web']);
+    Role::firstOrCreate(['name' => 'Trainer', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
 });
 
@@ -357,4 +358,28 @@ test('can assign Member role via pengguna store and auto-creates Member profile'
     ]);
     $this->assertNotNull($user->member);
     $this->assertStringStartsWith('IFGS-', $user->member->member_code);
+});
+
+test('can assign Trainer role via pengguna store and auto-creates Trainer profile', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $response = $this->actingAs($admin)->post(route('pengguna.store'), [
+        'name' => 'Coach Budi',
+        'email' => 'coach.budi@ifgs.test',
+        'password' => 'password123',
+        'role' => 'Trainer',
+        'phone' => '081298765432',
+    ]);
+
+    $response->assertRedirect(route('pengguna.index'));
+    $this->assertDatabaseHas('users', ['email' => 'coach.budi@ifgs.test']);
+
+    $user = User::where('email', 'coach.budi@ifgs.test')->first();
+    $this->assertDatabaseHas('trainers', [
+        'user_id' => $user->id,
+        'phone' => '081298765432',
+    ]);
+    $this->assertNotNull($user->trainer);
+    $this->assertStringStartsWith('TRN-', $user->trainer->trainer_code);
 });

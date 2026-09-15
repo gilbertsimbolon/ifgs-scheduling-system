@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TimeSlotController;
+use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -93,6 +94,15 @@ Route::middleware('auth')->group(function () {
             Route::put('/{product}', [ProductController::class, 'update'])->name('update');
             Route::patch('/{product}/status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
             Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+        });
+
+        // Manajemen Trainer
+        Route::prefix('trainers')->name('trainers.')->group(function () {
+            Route::get('/', [TrainerController::class, 'index'])->name('index');
+            Route::post('/', [TrainerController::class, 'store'])->name('store')->middleware('role:Admin/Manager');
+            Route::put('/{trainer}', [TrainerController::class, 'update'])->name('update')->middleware('role:Admin/Manager');
+            Route::patch('/{trainer}/status', [TrainerController::class, 'toggleStatus'])->name('toggle-status')->middleware('role:Admin/Manager');
+            Route::delete('/{trainer}', [TrainerController::class, 'destroy'])->name('destroy')->middleware('role:Admin/Manager');
         });
 
         // Master Data Metode Pembayaran

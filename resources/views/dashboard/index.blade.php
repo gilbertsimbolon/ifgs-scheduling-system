@@ -112,7 +112,8 @@
                                     <td><span class="fw-bold font-monospace text-primary">{{ $sch->schedule_code }}</span>
                                     </td>
                                     <td>{{ $sch->scheduled_date->format('d M Y') }}
-                                        ({{ $sch->scheduled_date->translatedFormat('l') }})</td>
+                                        ({{ $sch->scheduled_date->translatedFormat('l') }})
+                                    </td>
                                     <td>
                                         <span class="badge bg-label-primary">
                                             {{ $sch->timeSlot->name ?? '-' }} ({{ $sch->timeSlot->time_range ?? '-' }})

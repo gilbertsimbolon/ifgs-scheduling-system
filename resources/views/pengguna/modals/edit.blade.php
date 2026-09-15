@@ -57,13 +57,8 @@
                                 placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" />
                             <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                         </div>
-                        @if (old('_modal') === 'edit')
-                            @error('password')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @else
-                                <div class="form-text">Kosongkan jika tidak ingin mengubah kata sandi. Minimal 8 karakter
-                                    jika diisi.</div>
-                            @enderror
+                        @if (old('_modal') === 'edit' && $errors->has('password'))
+                            <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
                         @else
                             <div class="form-text">Kosongkan jika tidak ingin mengubah kata sandi. Minimal 8 karakter
                                 jika diisi.</div>

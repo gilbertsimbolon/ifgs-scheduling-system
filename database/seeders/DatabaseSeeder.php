@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             PaymentMethodSeeder::class,
             TimeSlotSeeder::class,
+            TrainerSeeder::class,
         ]);
     }
 }

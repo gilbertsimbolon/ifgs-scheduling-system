@@ -57,7 +57,9 @@ class User extends Authenticatable
         $count = 2;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -86,6 +88,14 @@ class User extends Authenticatable
     public function member(): HasOne
     {
         return $this->hasOne(Member::class);
+    }
+
+    /**
+     * Get the trainer profile associated with the user.
+     */
+    public function trainer(): HasOne
+    {
+        return $this->hasOne(Trainer::class);
     }
 
     /**
