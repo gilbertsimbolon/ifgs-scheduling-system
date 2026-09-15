@@ -74,6 +74,7 @@
                                 @foreach ($roles as $role)
                                     <option value="{{ $role }}"
                                         {{ old('_modal') === 'create' && old('role') === $role ? 'selected' : '' }}>
+                                        {{ (old('_modal') === 'create' ? old('role') === $role : $role === 'Member') ? 'selected' : '' }}>
                                         {{ $role }}
                                     </option>
                                 @endforeach

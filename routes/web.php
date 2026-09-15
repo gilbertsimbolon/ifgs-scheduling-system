@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PaymentMethodController;
@@ -34,12 +35,17 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    // Pengguna (Admin/Manager bisa semua; Kasir hanya lihat)
+    // Kasir / Front Desk Tablet (Khusus Kasir & Admin/Manager)
+    Route::middleware('role:Kasir|Admin/Manager')->prefix('kasir')->name('kasir.')->group(function () {
+        Route::get('/', [KasirController::class, 'index'])->name('index');
+    });
+
+    // Pengguna (Admin/Manager bisa kelola penuh; Kasir bisa lihat dan tambah pengguna)
     Route::middleware('role:Admin/Manager|Kasir')->prefix('pengguna')->name('pengguna.')->group(function () {
         Route::get('/', [PenggunaController::class, 'index'])->name('index');
+        Route::post('/', [PenggunaController::class, 'store'])->name('store');
     });
     Route::middleware('role:Admin/Manager')->prefix('pengguna')->name('pengguna.')->group(function () {
-        Route::post('/', [PenggunaController::class, 'store'])->name('store');
         Route::put('/{user:slug}', [PenggunaController::class, 'update'])->name('update');
         Route::patch('/{user:slug}/status', [PenggunaController::class, 'toggleStatus'])->name('toggle-status');
         Route::delete('/{user:slug}', [PenggunaController::class, 'destroy'])->name('destroy');

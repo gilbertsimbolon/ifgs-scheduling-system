@@ -9,6 +9,7 @@ use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -17,10 +18,15 @@ class DashboardController extends Controller
     /**
      * Tampilkan Dashboard utama IFGS Scheduling System.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $today = Carbon::today()->format('Y-m-d');
         $user = auth()->user();
+
+        if ($user->hasRole('Kasir')) {
+            return redirect()->route('kasir.index');
+        }
+
         $isMember = $user->hasRole('Member');
 
         // Jika user adalah Member, tampilkan ringkasan pribadi

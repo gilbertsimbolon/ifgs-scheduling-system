@@ -99,6 +99,11 @@ class PenggunaController extends Controller
             }
         });
 
+        if ($request->user() && $request->user()->hasRole('Kasir')) {
+            return redirect()->route('kasir.index')
+                ->with('success', 'Pengguna berhasil ditambahkan.');
+        }
+
         return redirect()->route('pengguna.index')
             ->with('success', 'Pengguna berhasil ditambahkan.');
     }

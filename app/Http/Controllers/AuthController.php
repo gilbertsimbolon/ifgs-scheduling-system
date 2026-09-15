@@ -57,6 +57,10 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
+        if ($user->hasRole('Kasir')) {
+            return redirect()->route('kasir.index');
+        }
+
         $defaultDestination = $user->hasRole('Member')
             ? url('/')
             : route('pengguna.index');
