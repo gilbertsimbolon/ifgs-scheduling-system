@@ -149,6 +149,21 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-inline-flex gap-1">
+                                        <!-- QR Code Modal Trigger -->
+                                        @if ($member->user)
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-primary"
+                                                title="Lihat QR Code & Kartu Member" data-bs-toggle="modal"
+                                                data-bs-target="#modalQrCodeAdmin"
+                                                data-name="{{ $member->user->name }}"
+                                                data-code="{{ $member->member_code }}"
+                                                data-qr="{{ $member->user->qr_code }}"
+                                                data-svg-url="{{ route('user.qr-code.svg', $member->user) }}"
+                                                data-download-url="{{ route('user.qr-code.download.user', $member->user) }}"
+                                                data-card-url="{{ route('user.card', $member->user) }}">
+                                                <i class="bx bx-qr-scan"></i>
+                                            </button>
+                                        @endif
+
                                         <!-- Detail Modal Trigger -->
                                         @php
                                             $activeMem = $member->activeMembership();
@@ -259,6 +274,9 @@
 
     <!-- Modal Hapus Member -->
     @include('member.modals.hapus')
+
+    <!-- Modal QR Code Member -->
+    @include('member.modals.qr-code')
 @endsection
 
 @push('scripts')
@@ -364,6 +382,40 @@
                     if (codeEl) {
                         codeEl.textContent = code;
                     }
+                });
+            }
+
+            // Modal QR Code Admin: populate on show
+            const modalQr = document.getElementById('modalQrCodeAdmin');
+            if (modalQr) {
+                modalQr.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    if (!button) return;
+
+                    const name = button.getAttribute('data-name') || '-';
+                    const code = button.getAttribute('data-code') || '-';
+                    const qr = button.getAttribute('data-qr') || '-';
+                    const svgUrl = button.getAttribute('data-svg-url') || '';
+                    const downloadUrl = button.getAttribute('data-download-url') || '#';
+                    const cardUrl = button.getAttribute('data-card-url') || '#';
+
+                    const nameEl = document.getElementById('qrModalMemberName');
+                    if (nameEl) nameEl.textContent = name;
+
+                    const codeEl = document.getElementById('qrModalMemberCode');
+                    if (codeEl) codeEl.textContent = code;
+
+                    const qrEl = document.getElementById('qrModalQrCode');
+                    if (qrEl) qrEl.textContent = qr;
+
+                    const imgEl = document.getElementById('qrModalImage');
+                    if (imgEl) imgEl.src = svgUrl;
+
+                    const dlBtn = document.getElementById('qrModalDownloadBtn');
+                    if (dlBtn) dlBtn.href = downloadUrl;
+
+                    const cardBtn = document.getElementById('qrModalCardBtn');
+                    if (cardBtn) cardBtn.href = cardUrl;
                 });
             }
 

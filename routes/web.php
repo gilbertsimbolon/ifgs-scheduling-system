@@ -7,11 +7,13 @@ use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TimeSlotController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserQrCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -45,6 +47,21 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Profil Pengguna (QR Code, Data Diri, Ganti Password)
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [ProfileController::class, 'show'])->name('show');
+        Route::put('/', [ProfileController::class, 'update'])->name('update');
+        Route::put('/password', [ProfileController::class, 'updatePassword'])->name('password.update');
+    });
+
+    // QR Code & Kartu Member Digital (Absensi Kunjungan)
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('/qr-code/download', [UserQrCodeController::class, 'download'])->name('qr-code.download');
+        Route::get('/{user:slug}/qr-code/download', [UserQrCodeController::class, 'download'])->name('qr-code.download.user');
+        Route::get('/{user:slug}/qr-code/svg', [UserQrCodeController::class, 'svg'])->name('qr-code.svg');
+        Route::get('/{user:slug}/card', [UserQrCodeController::class, 'printCard'])->name('card');
+    });
 
     // Reservasi Kunjungan (Member & Admin)
     Route::prefix('reservations')->name('reservations.')->group(function () {

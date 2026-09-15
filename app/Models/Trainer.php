@@ -45,7 +45,7 @@ class Trainer extends Model
         $nextNumber = $last ? ($last->id + 1) : 1;
 
         do {
-            $code = 'TRN-' . str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $code = 'TRN-'.str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
             $nextNumber++;
         } while (static::where('trainer_code', $code)->exists());
 

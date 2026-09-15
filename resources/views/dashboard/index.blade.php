@@ -31,6 +31,48 @@
             <!-- Jadwal Operasional Gym Resmi IFGS -->
             @include('dashboard.partials.operational-schedule')
 
+            <!-- Kartu Member Digital & QR Absensi Kunjungan -->
+            <div class="card mb-4 border-0 shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #2b2c49 0%, #1e1e38 100%);">
+                <div class="card-body p-4 text-white">
+                    <div class="row align-items-center g-3">
+                        <div class="col-12 col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <span class="badge bg-label-primary text-uppercase me-2 font-monospace">Kartu Member Digital</span>
+                                @if ($activeMembership)
+                                    <span class="badge bg-success">Membership Aktif</span>
+                                @else
+                                    <span class="badge bg-warning text-dark">Belum Aktif</span>
+                                @endif
+                            </div>
+                            <h3 class="text-white fw-bold mb-1">{{ auth()->user()->name }}</h3>
+                            <p class="text-white-50 mb-3">
+                                ID Member: <strong class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull; 
+                                Kode QR: <span class="text-white-50 font-monospace">{{ auth()->user()->qr_code }}</span>
+                            </p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalQrCodeMember">
+                                    <i class="bx bx-fullscreen me-1"></i> Perbesar QR Absensi
+                                </button>
+                                <a href="{{ route('user.qr-code.download') }}" class="btn btn-light text-primary fw-semibold">
+                                    <i class="bx bx-download me-1"></i> Unduh File QR
+                                </a>
+                                <a href="{{ route('user.card', auth()->user()) }}" target="_blank" class="btn btn-outline-light">
+                                    <i class="bx bx-printer me-1"></i> Cetak Kartu Member
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 text-center text-md-end">
+                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm cursor-pointer" data-bs-toggle="modal" data-bs-target="#modalQrCodeMember" title="Klik untuk memperbesar QR Code">
+                                {!! auth()->user()->getQrCodeSvg(130) !!}
+                                <div class="text-dark small font-monospace fw-bold mt-1 text-center" style="font-size: 10px;">
+                                    SCAN ABSENSI
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4 mb-4">
                 <!-- Status Membership Card -->
                 <div class="col-md-6 col-lg-4">
@@ -136,6 +178,9 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Modal Perbesar QR Code Absensi -->
+            @include('dashboard.partials.qr-modal')
         @else
             <!-- Admin / Manager Dashboard View -->
             <!-- Welcome Header -->
@@ -240,6 +285,7 @@
                                     <div class="d-flex align-items-center my-1">
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
                                     <small class="text-muted">{{ $currentMonthLabel }}</small>
                                 </div>

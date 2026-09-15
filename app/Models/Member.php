@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 #[Fillable(['user_id', 'member_code', 'phone'])]
 class Member extends Model
@@ -111,5 +112,21 @@ class Member extends Model
         } while (static::where('member_code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Get the member's unique QR code string (from associated user or member code).
+     */
+    public function getQrCodeAttribute(): string
+    {
+        return $this->user?->qr_code ?? $this->member_code;
+    }
+
+    /**
+     * Get SVG vector markup for the member's QR code.
+     */
+    public function getQrCodeSvg(int $size = 200): string
+    {
+        return QrCode::size($size)->generate($this->qr_code);
     }
 }

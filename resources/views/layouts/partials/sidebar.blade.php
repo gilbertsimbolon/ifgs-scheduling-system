@@ -166,6 +166,15 @@
                 <div class="text-truncate">Jadwal Kunjungan</div>
             </a>
         </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">PENGATURAN</span>
+        </li>
+        <li class="menu-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+            <a href="{{ route('profile.show') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                <div class="text-truncate">Profil Saya</div>
+            </a>
+        </li>
 
         <li class="menu-divider my-2"></li>
 

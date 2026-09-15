@@ -13,9 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'slug', 'status'])]
+#[Fillable(['name', 'email', 'password', 'slug', 'status', 'qr_code'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -40,6 +41,9 @@ class User extends Authenticatable
             if (empty($user->slug)) {
                 $user->slug = static::generateUniqueSlug($user->name);
             }
+            if (empty($user->qr_code)) {
+                $user->qr_code = static::generateUniqueQrCode();
+            }
         });
     }
 
@@ -58,8 +62,6 @@ class User extends Authenticatable
 
         while (static::where('slug', $slug)
             ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
-            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
-            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -67,6 +69,37 @@ class User extends Authenticatable
         }
 
         return $slug;
+    }
+
+    /**
+     * Generate a unique QR code string for gym attendance.
+     * Format: IFGS-QR-XXXXXXXXXX
+     */
+    public static function generateUniqueQrCode(): string
+    {
+        do {
+            $code = 'IFGS-QR-' . strtoupper(Str::random(10));
+        } while (static::where('qr_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Get SVG vector markup for the user's QR code.
+     */
+    public function getQrCodeSvg(int $size = 200): string
+    {
+        return QrCode::size($size)->generate($this->qr_code ?? $this->id);
+    }
+
+    /**
+     * Find a user by their unique QR code or member code.
+     */
+    public static function findByQrCode(string $code): ?User
+    {
+        return static::where('qr_code', $code)
+            ->orWhereHas('member', fn($q) => $q->where('member_code', $code))
+            ->first();
     }
 
     /**
@@ -104,6 +137,14 @@ class User extends Authenticatable
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get phone number from related member or trainer profile.
+     */
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->member?->phone ?? $this->trainer?->phone;
     }
 
     /**

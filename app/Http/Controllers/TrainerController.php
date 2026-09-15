@@ -90,7 +90,7 @@ class TrainerController extends Controller
         });
 
         return redirect()->route('trainers.index')
-            ->with('success', 'Data Trainer "' . $validated['name'] . '" berhasil ditambahkan beserta akun login.');
+            ->with('success', 'Data Trainer "'.$validated['name'].'" berhasil ditambahkan beserta akun login.');
     }
 
     /**
@@ -139,7 +139,7 @@ class TrainerController extends Controller
         });
 
         return redirect()->route('trainers.index')
-            ->with('success', 'Data Trainer "' . $validated['name'] . '" berhasil diperbarui.');
+            ->with('success', 'Data Trainer "'.$validated['name'].'" berhasil diperbarui.');
     }
 
     /**

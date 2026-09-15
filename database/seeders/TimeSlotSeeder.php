@@ -84,4 +84,3 @@ class TimeSlotSeeder extends Seeder
             ->delete();
     }
 }
-
