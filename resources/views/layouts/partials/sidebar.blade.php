@@ -56,78 +56,6 @@
                     <div class="text-truncate">Paket Layanan</div>
                 </a>
             </li>
-            <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
-                <a href="{{ route('payment-methods.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
-                    <div class="text-truncate">Metode Pembayaran</div>
-                </a>
-            </li>
-            @hasrole('Admin/Manager')
-                <li class="menu-item {{ request()->routeIs('time-slots.*') ? 'active' : '' }}">
-                    <a href="{{ route('time-slots.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-time-five"></i>
-                        <div class="text-truncate">Jadwal Operasional</div>
-                    </a>
-                </li>
-            @endhasrole
-            <!-- 2. MANAJEMEN -->
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">MANAJEMEN</span>
-            </li>
-            <li class="menu-item {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
-                <a href="{{ route('pengguna.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-user"></i>
-                    <div class="text-truncate">Pengguna</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('memberships.*') ? 'active' : '' }}">
-                <a href="{{ route('memberships.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-id-card"></i>
-                    <div class="text-truncate">Membership</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                <a href="{{ route('products.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-package"></i>
-                    <div class="text-truncate">Paket Layanan</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
-                <a href="{{ route('payment-methods.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
-                    <div class="text-truncate">Metode Pembayaran</div>
-                </a>
-            </li>
-            @hasrole('Admin/Manager')
-                <li class="menu-item {{ request()->routeIs('time-slots.*') ? 'active' : '' }}">
-                    <a href="{{ route('time-slots.index') }}" class="menu-link">
-                        <i class="menu-icon tf-icons bx bx-time-five"></i>
-                        <div class="text-truncate">Jadwal Operasional</div>
-                    </a>
-                </li>
-            @endhasrole
-            <!-- 2. MANAJEMEN -->
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">MANAJEMEN</span>
-            </li>
-            <li class="menu-item {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
-                <a href="{{ route('pengguna.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-user"></i>
-                    <div class="text-truncate">Pengguna</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('memberships.*') ? 'active' : '' }}">
-                <a href="{{ route('memberships.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-id-card"></i>
-                    <div class="text-truncate">Membership</div>
-                </a>
-            </li>
-            <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                <a href="{{ route('products.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-package"></i>
-                    <div class="text-truncate">Paket Layanan</div>
-                </a>
-            </li>
             <li class="menu-item {{ request()->routeIs('trainers.*') ? 'active' : '' }}">
                 <a href="{{ route('trainers.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-run"></i>
@@ -164,15 +92,6 @@
             <a href="{{ route('schedules.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-calendar-check"></i>
                 <div class="text-truncate">Jadwal Kunjungan</div>
-            </a>
-        </li>
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">PENGATURAN</span>
-        </li>
-        <li class="menu-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-            <a href="{{ route('profile.show') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user-circle"></i>
-                <div class="text-truncate">Profil Saya</div>
             </a>
         </li>
 
