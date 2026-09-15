@@ -39,6 +39,292 @@
 
     <!-- Page CSS -->
     @stack('page-css')
+    <!-- Penyelarasan Global Ikon & Teks -->
+    <style>
+        /* Standar Alignment Ikon Vektor Boxicons */
+        i.bx,
+        i.icon-base {
+            vertical-align: -0.125em;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        /* Tombol: Penyelarasan Ikon & Teks Rata Tengah Sempurna */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+
+        .btn i.bx,
+        .btn i.icon-base {
+            vertical-align: middle;
+            line-height: 1;
+            margin-top: -1px;
+        }
+
+        /* Tombol Khusus Icon-Only */
+        .btn-icon {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+        }
+
+        .btn-icon i.bx,
+        .btn-icon i.icon-base {
+            margin: 0 !important;
+            line-height: 1 !important;
+        }
+
+        /* Badge: Teks & Ikon Sejajar Rata Tengah */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+
+        .badge i.bx,
+        .badge i.icon-base {
+            vertical-align: middle;
+            line-height: 1;
+        }
+
+        /* Header Kartu & Judul Modal */
+        .card-title,
+        .modal-title {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1.3;
+        }
+
+        .card-title i.bx,
+        .modal-title i.bx,
+        .card-title i.icon-base,
+        .modal-title i.icon-base {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        /* Menu Dropdown */
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .dropdown-item i.bx,
+        .dropdown-item i.icon-base {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+        }
+
+        /* Menu Sidebar */
+        .menu-link {
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-link i.menu-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Input Group Addon Icon */
+        .input-group-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-group-text i.bx,
+        .input-group-text i.icon-base {
+            line-height: 1;
+        }
+
+        /* Alert Icon */
+        .alert i.bx,
+        .alert i.icon-base {
+            line-height: 1;
+        }
+
+        /* ==========================================================================
+           Pengecilan Tipografi & Elemen UI pada Layar Ponsel (Mobile Responsive)
+           Dikecilkan secara proporsional agar pas, rapi, dan tidak memakan layar HP.
+           Penyelarasan Tipografi & Elemen UI pada Layar Ponsel (Mobile Responsive)
+           Skala ideal (14px root): ringkas, proporsional, dan nyaman dibaca di HP.
+           ========================================================================== */
+        @media (max-width: 767.98px) {
+            html {
+                font-size: 11.5px !important;
+                font-size: 14px !important;
+            }
+
+            body {
+                font-size: 0.82rem !important;
+                line-height: 1.35 !important;
+                font-size: 0.9375rem !important; /* ~13.1px */
+                line-height: 1.4 !important;
+            }
+
+            /* Judul & Headings */
+            h1,
+            .h1 {
+                font-size: 1.35rem !important;
+            }
+            h1, .h1 { font-size: 1.75rem !important; }
+            h2, .h2 { font-size: 1.5rem !important; }
+            h3, .h3 { font-size: 1.35rem !important; }
+            h4, .h4 { font-size: 1.2rem !important; }
+            h5, .h5 { font-size: 1.05rem !important; }
+            h6, .h6 { font-size: 0.95rem !important; }
+
+            h2,
+            .h2 {
+                font-size: 1.2rem !important;
+            }
+
+            h3,
+            .h3 {
+                font-size: 1.1rem !important;
+            }
+
+            h4,
+            .h4 {
+                font-size: 1rem !important;
+            }
+
+            h5,
+            .h5 {
+                font-size: 0.9rem !important;
+            }
+
+            h6,
+            .h6 {
+                font-size: 0.8rem !important;
+            }
+
+            /* Utility Font Classes */
+            .fs-1 {
+                font-size: 1.35rem !important;
+            }
+            .fs-1 { font-size: 1.75rem !important; }
+            .fs-2 { font-size: 1.5rem !important; }
+            .fs-3 { font-size: 1.35rem !important; }
+            .fs-4 { font-size: 1.2rem !important; }
+            .fs-5 { font-size: 1.05rem !important; }
+            .fs-6 { font-size: 0.95rem !important; }
+
+            .fs-2 {
+                font-size: 1.2rem !important;
+            }
+
+            .fs-3 {
+                font-size: 1.1rem !important;
+            }
+
+            .fs-4 {
+                font-size: 1rem !important;
+            }
+
+            .fs-5 {
+                font-size: 0.9rem !important;
+            }
+
+            .fs-6 {
+                font-size: 0.8rem !important;
+            }
+
+            /* Form Elements */
+            .form-control,
+            .form-select {
+                font-size: 0.82rem !important;
+                padding: 0.35rem 0.65rem !important;
+            .form-control, .form-select {
+                font-size: 0.875rem !important;
+                padding: 0.4375rem 0.75rem !important;
+            }
+
+            .form-label {
+                font-size: 0.76rem !important;
+                margin-bottom: 0.2rem !important;
+                font-size: 0.82rem !important;
+                margin-bottom: 0.25rem !important;
+            }
+
+            /* Tombol */
+            .btn {
+                font-size: 0.78rem !important;
+                padding: 0.35rem 0.65rem !important;
+                font-size: 0.875rem !important;
+                padding: 0.4375rem 0.875rem !important;
+            }
+
+            .btn-sm {
+                font-size: 0.72rem !important;
+                padding: 0.22rem 0.45rem !important;
+                font-size: 0.78rem !important;
+                padding: 0.28rem 0.55rem !important;
+            }
+
+            /* Badges */
+            .badge {
+                font-size: 0.7rem !important;
+                padding: 0.25em 0.5em !important;
+                font-size: 0.78rem !important;
+                padding: 0.35em 0.6em !important;
+            }
+
+            /* Tabel */
+            .table th,
+            .table td {
+                font-size: 0.76rem !important;
+                padding: 0.4rem 0.5rem !important;
+            .table th, .table td {
+                font-size: 0.82rem !important;
+                padding: 0.5rem 0.65rem !important;
+            }
+
+            /* Kartu & Container */
+            .card-header {
+                padding: 0.75rem 1rem !important;
+                padding: 0.85rem 1.15rem !important;
+            }
+
+            .card-body {
+                padding: 0.85rem !important;
+                padding: 1rem !important;
+            }
+
+            /* Dropdown & Alert */
+            .dropdown-item {
+                font-size: 0.8rem !important;
+                padding: 0.35rem 0.75rem !important;
+                font-size: 0.875rem !important;
+                padding: 0.45rem 0.85rem !important;
+            }
+
+            .alert {
+                font-size: 0.8rem !important;
+                padding: 0.5rem 0.75rem !important;
+                font-size: 0.875rem !important;
+                padding: 0.65rem 0.85rem !important;
+            }
+
+            /* Drawer Menu Sidebar */
+            .layout-menu {
+                width: 260px !important;
+            }
+
+            .layout-menu .menu-link {
+                font-size: 0.85rem !important;
+                font-size: 0.9rem !important;
+            }
+        }
+    </style>
     @stack('styles')
 
     <!-- Helpers -->

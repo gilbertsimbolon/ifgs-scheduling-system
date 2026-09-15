@@ -67,8 +67,8 @@ class ProfileController extends Controller
         }
 
         if ($visitActivities->isEmpty()) {
-            $todayFormatted = now()->translatedFormat('l, d F Y');
-            $yesterdayFormatted = now()->subDay()->translatedFormat('l, d F Y');
+            $todayFormatted = now()->locale('id')->isoFormat('dddd, D MMMM Y');
+            $yesterdayFormatted = now()->subDay()->locale('id')->isoFormat('dddd, D MMMM Y');
 
             $visitActivities = collect([
                 [

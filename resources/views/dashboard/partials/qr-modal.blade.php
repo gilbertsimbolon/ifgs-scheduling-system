@@ -4,8 +4,8 @@
         <div class="modal-content text-center shadow-lg border-0">
             <div class="modal-header bg-primary text-white border-0 pb-3">
                 <div class="w-100 text-center">
-                    <h5 class="modal-title text-white fw-bold" id="modalQrCodeMemberLabel">
-                        <i class="bx bx-qr-scan me-1"></i> QR Code Absensi Kunjungan
+                    <h5 class="modal-title text-white fw-bold d-inline-flex align-items-center justify-content-center" id="modalQrCodeMemberLabel">
+                        <i class="bx bx-qr-scan me-2 fs-4"></i> QR Code Absensi Kunjungan
                     </h5>
                     <small class="text-white-50">Indo Fitness Gym Sport Tondano</small>
                 </div>

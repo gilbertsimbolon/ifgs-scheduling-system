@@ -58,7 +58,7 @@
                         <div class="dropdown-divider my-1"></div>
                     </li>
                     <li>
-                        <a class="dropdown-item" href="{{ route('profile.show') }}">
+                        <a class="dropdown-item d-flex align-items-center" href="{{ route('profile.show') }}">
                             <i class="icon-base bx bx-user icon-md me-3 text-primary"></i><span>Profil Saya</span>
                         </a>
                     </li>
@@ -69,7 +69,7 @@
                         <form method="POST" action="{{ route('logout') }}" id="navbar-logout-form">
                             @csrf
                             <button type="submit"
-                                class="dropdown-item cursor-pointer border-0 bg-transparent w-100 text-start text-danger">
+                                class="dropdown-item cursor-pointer border-0 bg-transparent w-100 text-start text-danger d-flex align-items-center">
                                 <i class="icon-base bx bx-power-off icon-md me-3 text-danger"></i><span>Keluar</span>
                             </button>
                         </form>

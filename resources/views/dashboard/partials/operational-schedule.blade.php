@@ -2,17 +2,17 @@
 <div class="card mb-4 border-0 shadow-sm bg-label-primary">
     <div class="card-body py-3">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h6 class="mb-0 fw-bold text-primary">
-                <i class="bx bx-time-five me-1"></i> Jam Operasional Gym Resmi
+            <h6 class="mb-0 fw-bold text-primary d-flex align-items-center">
+                <i class="bx bx-time-five me-2 fs-5"></i> Jam Operasional Gym Resmi
             </h6>
             @if (auth()->user()->hasRole('Admin/Manager'))
                 <a href="{{ route('time-slots.index') }}"
-                    class="badge bg-primary text-white text-decoration-none py-2 px-3" title="Kelola Jadwal Operasional">
+                    class="badge bg-primary text-white text-decoration-none py-2 px-3 d-inline-flex align-items-center" title="Kelola Jadwal Operasional">
                     <i class="bx bx-cog me-1"></i> Kelola Jadwal Operasional
                 </a>
             @else
                 <a href="{{ route('reservations.index') }}"
-                    class="badge bg-primary text-white text-decoration-none py-2 px-3" title="Reservasi Kunjungan">
+                    class="badge bg-primary text-white text-decoration-none py-2 px-3 d-inline-flex align-items-center" title="Reservasi Kunjungan">
                     <i class="bx bx-calendar-plus me-1"></i> Reservasi Kunjungan
                 </a>
             @endif

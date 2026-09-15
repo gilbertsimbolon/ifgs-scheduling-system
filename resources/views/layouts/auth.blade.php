@@ -39,6 +39,76 @@
 
     <!-- Page CSS -->
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/css/pages/page-auth.css') }}" />
+    <!-- Penyelarasan Global Ikon & Teks -->
+    <style>
+        i.bx,
+        i.icon-base {
+            vertical-align: -0.125em;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+        }
+
+        .btn i.bx,
+        .btn i.icon-base {
+            vertical-align: middle;
+            line-height: 1;
+            margin-top: -1px;
+        }
+
+        .input-group-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 767.98px) {
+            html {
+                font-size: 11.5px !important;
+                font-size: 14px !important;
+            }
+
+            body {
+                font-size: 0.82rem !important;
+                font-size: 0.9375rem !important;
+            }
+
+            h1,
+            .h1,
+            h2,
+            .h2,
+            h3,
+            .h3,
+            h4,
+            .h4,
+            h5,
+            .h5 {
+                font-size: 1.15rem !important;
+            h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5 {
+                font-size: 1.35rem !important;
+            }
+
+            .form-control {
+                font-size: 0.82rem !important;
+                padding: 0.35rem 0.65rem !important;
+                font-size: 0.875rem !important;
+                padding: 0.4375rem 0.75rem !important;
+            }
+
+            .btn {
+                font-size: 0.82rem !important;
+                padding: 0.35rem 0.65rem !important;
+                font-size: 0.875rem !important;
+                padding: 0.4375rem 0.875rem !important;
+            }
+        }
+    </style>
     @stack('styles')
 
     <!-- Helpers -->

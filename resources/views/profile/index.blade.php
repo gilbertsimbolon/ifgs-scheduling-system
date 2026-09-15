@@ -92,10 +92,11 @@
             <!-- Kolom Kiri: QR Code & Identitas Absensi -->
             <div class="col-12 col-lg-5 col-xl-4">
                 <div class="card h-100 shadow-sm border-0">
-                    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between">
-                        <h5 class="card-title fw-bold mb-0 text-heading">
-                            <i class="bx bx-qr-scan text-primary me-1"></i> QR Code Absensi
-                        </h5>
+                    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-qr-scan text-primary fs-4 me-2"></i>
+                            <h5 class="card-title fw-bold mb-0 text-heading">QR Code Absensi</h5>
+                        </div>
                         <span class="badge bg-label-primary">ID Resmi</span>
                     </div>
                     <div class="card-body p-4 text-center">
@@ -152,9 +153,10 @@
                 <!-- Form Data Diri & Upload Foto -->
                 <div class="card shadow-sm mb-4 border-0">
                     <div class="card-header border-bottom py-3">
-                        <h5 class="card-title fw-bold mb-0 text-heading">
-                            <i class="bx bx-user me-1 text-primary"></i> Data Diri & Foto Profil
-                        </h5>
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-user text-primary fs-4 me-2"></i>
+                            <h5 class="card-title fw-bold mb-0 text-heading">Data Diri & Foto Profil</h5>
+                        </div>
                     </div>
                     <div class="card-body p-4">
                         <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
@@ -273,21 +275,22 @@
                     </div>
                 </div>
 
-                <!-- Aktivitas Check-In & Check-Out Kunjungan -->
+                <!-- Log Aktivitas -->
                 <div class="card shadow-sm mb-4 border-0">
-                    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between">
-                        <h5 class="card-title fw-bold mb-0 text-heading">
-                            <i class="bx bx-history me-1 text-primary"></i> Aktivitas Kunjungan (Check-In dan Check-Out)
-                        </h5>
+                    <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-history me-2 text-primary fs-4"></i>
+                            <h5 class="card-title fw-bold mb-0 text-heading">Log Aktivitas</h5>
+                        </div>
                         <span class="badge bg-label-info">Log Kehadiran</span>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-3 p-md-4">
                         <div class="timeline-activity">
                             @forelse ($visitActivities as $act)
-                                <div class="d-flex align-items-start pb-3 mb-3 border-bottom">
-                                    <div class="avatar avatar-sm me-3 flex-shrink-0">
-                                        <span class="avatar-initial rounded-circle bg-label-{{ $act['color'] }}">
-                                            <i class="{{ $act['icon'] }}"></i>
+                                <div class="d-flex align-items-start {{ !$loop->last ? 'pb-3 mb-3 border-bottom' : '' }}">
+                                    <div class="avatar avatar-sm me-3 flex-shrink-0 mt-1">
+                                        <span class="avatar-initial rounded-circle bg-label-{{ $act['color'] }} d-flex align-items-center justify-content-center">
+                                            <i class="{{ $act['icon'] }} fs-5"></i>
                                         </span>
                                     </div>
                                     <div class="flex-grow-1">
@@ -316,9 +319,10 @@
                 <!-- Form Ganti Password -->
                 <div class="card shadow-sm border-0">
                     <div class="card-header border-bottom py-3">
-                        <h5 class="card-title fw-bold mb-0 text-heading">
-                            <i class="bx bx-lock-alt me-1 text-warning"></i> Ganti Password Akun
-                        </h5>
+                        <div class="d-flex align-items-center">
+                            <i class="bx bx-lock-alt text-warning fs-4 me-2"></i>
+                            <h5 class="card-title fw-bold mb-0 text-heading">Ganti Password Akun</h5>
+                        </div>
                     </div>
                     <div class="card-body p-4">
                         <form action="{{ route('profile.password.update') }}" method="POST">
@@ -401,8 +405,8 @@
             <div class="modal-content text-center shadow-lg border-0">
                 <div class="modal-header bg-primary text-white border-0 pb-3">
                     <div class="w-100 text-center">
-                        <h5 class="modal-title text-white fw-bold" id="modalQrCodeProfileLabel">
-                            <i class="bx bx-qr-scan me-1"></i> QR Code Identitas & Absensi
+                        <h5 class="modal-title text-white fw-bold d-inline-flex align-items-center justify-content-center" id="modalQrCodeProfileLabel">
+                            <i class="bx bx-qr-scan me-2 fs-4"></i> QR Code Identitas & Absensi
                         </h5>
                         <small class="text-white-50">Indo Fitness Gym Sport Tondano</small>
                     </div>
@@ -435,10 +439,9 @@
                         <span class="badge bg-label-secondary font-monospace">{{ $user->qr_code }}</span>
                     </div>
 
-                    <div class="alert alert-info py-2 px-3 mt-3 mb-0 text-start small">
-                        <i class="bx bx-info-circle me-1"></i>
-                        Posisikan layar ke arah sensor barcode scanner di meja resepsionis gym saat check-in absensi
-                        kunjungan.
+                    <div class="alert alert-info py-2 px-3 mt-3 mb-0 text-start small d-flex align-items-center">
+                        <i class="bx bx-info-circle me-2 flex-shrink-0 fs-5"></i>
+                        <div>Posisikan layar ke arah sensor barcode scanner di meja resepsionis gym saat check-in absensi kunjungan.</div>
                     </div>
                 </div>
                 <div class="modal-footer justify-content-center border-0 pt-0 pb-4 bg-white">

@@ -46,7 +46,7 @@ test('authenticated member can access profile page and see QR Code, personal dat
     $response->assertSee($user->qr_code);
     $response->assertSee('MBR-998877');
     $response->assertSee('modalQrCodeProfile');
-    $response->assertSee('Aktivitas Kunjungan (Check-In dan Check-Out)');
+    $response->assertSee('Log Aktivitas');
     $response->assertSee('Check-In Kunjungan Gym');
     $response->assertSee('Check-Out Kunjungan Gym');
     $response->assertSee('Berhasil melakukan check-in pada hari ini');
