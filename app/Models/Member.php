@@ -23,7 +23,7 @@ class Member extends Model
     {
         static::creating(function (Member $member) {
             if (empty($member->member_code)) {
-                $member->member_code = static::generateUniqueMemberCode();
+                $member->member_code = $member->user?->user_code ?? static::generateUniqueMemberCode();
             }
         });
     }

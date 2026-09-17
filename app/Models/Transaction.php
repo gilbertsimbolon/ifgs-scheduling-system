@@ -20,12 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'change_amount',
     'status',
     'notes',
+    'payment_proof',
+    'rejection_reason',
+    'approved_at',
 ])]
 class Transaction extends Model
 {
-    /** @use HasFactory<TransactionFactory> */
-    /** @use HasFactory<TransactionFactory> */
-    /** @use HasFactory<TransactionFactory> */
     /** @use HasFactory<TransactionFactory> */
     use HasFactory;
 
@@ -35,10 +35,13 @@ class Transaction extends Model
 
     public const STATUS_PENDING = 'pending';
 
+    public const STATUS_REJECTED = 'rejected';
+
     public const STATUSES = [
         self::STATUS_COMPLETED,
         self::STATUS_CANCELLED,
         self::STATUS_PENDING,
+        self::STATUS_REJECTED,
     ];
 
     /**
@@ -52,6 +55,7 @@ class Transaction extends Model
             'total_amount' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'change_amount' => 'decimal:2',
+            'approved_at' => 'datetime',
         ];
     }
 
@@ -134,7 +138,7 @@ class Transaction extends Model
     {
         return match ($this->status) {
             self::STATUS_COMPLETED => 'bg-label-success',
-            self::STATUS_CANCELLED => 'bg-label-danger',
+            self::STATUS_CANCELLED, self::STATUS_REJECTED => 'bg-label-danger',
             self::STATUS_PENDING => 'bg-label-warning',
             default => 'bg-label-secondary',
         };
@@ -148,9 +152,22 @@ class Transaction extends Model
         return match ($this->status) {
             self::STATUS_COMPLETED => 'Selesai',
             self::STATUS_CANCELLED => 'Dibatalkan',
-            self::STATUS_PENDING => 'Menunggu',
+            self::STATUS_REJECTED => 'Ditolak',
+            self::STATUS_PENDING => 'Menunggu Validasi',
             default => ucfirst($this->status),
         };
+    }
+
+    /**
+     * Get the public URL for uploaded payment proof screenshot.
+     */
+    public function getPaymentProofUrlAttribute(): ?string
+    {
+        if ($this->payment_proof) {
+            return asset('storage/'.$this->payment_proof);
+        }
+
+        return null;
     }
 
     /**

@@ -20,24 +20,71 @@
                                 <a href="{{ route('reservations.index') }}" class="btn btn-light text-primary fw-semibold">
                                     <i class="bx bx-calendar-plus me-1"></i> Reservasi Kunjungan Baru
                                 </a>
+                            @elseif (!empty($pendingMembership))
+                                <span class="badge bg-warning text-dark p-2 fs-6">
+                                    <i class="bx bx-time-five me-1"></i> Pembayaran Sedang Divalidasi Kasir
+                                </span>
                             @else
-                                <span class="badge bg-warning text-dark p-2">Membership Anda Belum Aktif</span>
+                                <button type="button" class="btn btn-warning text-dark fw-semibold" data-bs-toggle="modal"
+                                    data-bs-target="#modalOrderMembership">
+                                    <i class="bx bx-cart-add me-1"></i> Pesan Membership
+                                </button>
                             @endif
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Notifikasi Pesanan Pending -->
+            @if (!empty($pendingMembership))
+                <div class="card border border-warning shadow-sm mb-4 bg-warning bg-opacity-10">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar bg-warning text-white rounded p-2">
+                                    <i class="bx bx-time-five fs-2"></i>
+                                </div>
+                                <div>
+                                    <span class="badge bg-warning text-dark mb-1 font-monospace">Menunggu Validasi
+                                        Kasir</span>
+                                    <h5 class="fw-bold text-dark mb-1">Pesanan Paket
+                                        {{ $pendingMembership->product?->name }} Sedang Diverifikasi</h5>
+                                    <p class="text-muted small mb-0">
+                                        No. Invoice: <strong
+                                            class="font-monospace text-dark">{{ $pendingMembership->transaction?->invoice_number }}</strong>
+                                        &bull;
+                                        Nominal: <strong
+                                            class="text-success">{{ $pendingMembership->formatted_price }}</strong> &bull;
+                                        Metode:
+                                        <strong>{{ $pendingMembership->paymentMethod ? ucwords(str_replace('_', ' ', $pendingMembership->paymentMethod->name)) : 'Transfer' }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                @if ($pendingMembership->payment_proof_url)
+                                    <a href="{{ $pendingMembership->payment_proof_url }}" target="_blank"
+                                        class="btn btn-outline-warning btn-sm">
+                                        <i class="bx bx-image me-1"></i> Lihat Bukti Transfer
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Jadwal Operasional Gym Resmi IFGS -->
             @include('dashboard.partials.operational-schedule')
 
             <!-- Kartu Member Digital & QR Absensi Kunjungan -->
-            <div class="card mb-4 border-0 shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #2b2c49 0%, #1e1e38 100%);">
+            <div class="card mb-4 border-0 shadow-sm overflow-hidden"
+                style="background: linear-gradient(135deg, #2b2c49 0%, #1e1e38 100%);">
                 <div class="card-body p-4 text-white">
                     <div class="row align-items-center g-3">
                         <div class="col-12 col-md-8">
                             <div class="d-flex align-items-center mb-2">
-                                <span class="badge bg-label-primary text-uppercase me-2 font-monospace">Kartu Member Digital</span>
+                                <span class="badge bg-label-primary text-uppercase me-2 font-monospace">Kartu Member
+                                    Digital</span>
                                 @if ($activeMembership)
                                     <span class="badge bg-success">Membership Aktif</span>
                                 @else
@@ -46,25 +93,32 @@
                             </div>
                             <h3 class="text-white fw-bold mb-1">{{ auth()->user()->name }}</h3>
                             <p class="text-white-50 mb-3">
-                                ID Member: <strong class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull; 
+                                ID Member: <strong
+                                    class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull;
                                 Kode QR: <span class="text-white-50 font-monospace">{{ auth()->user()->qr_code }}</span>
                             </p>
                             <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalQrCodeMember">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#modalQrCodeMember">
                                     <i class="bx bx-fullscreen me-1"></i> Perbesar QR Absensi
                                 </button>
-                                <a href="{{ route('user.qr-code.download') }}" class="btn btn-light text-primary fw-semibold">
+                                <a href="{{ route('user.qr-code.download') }}"
+                                    class="btn btn-light text-primary fw-semibold">
                                     <i class="bx bx-download me-1"></i> Unduh File QR
                                 </a>
-                                <a href="{{ route('user.card', auth()->user()) }}" target="_blank" class="btn btn-outline-light">
+                                <a href="{{ route('user.card', auth()->user()) }}" target="_blank"
+                                    class="btn btn-outline-light">
                                     <i class="bx bx-printer me-1"></i> Cetak Kartu Member
                                 </a>
                             </div>
                         </div>
                         <div class="col-12 col-md-4 text-center text-md-end">
-                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm cursor-pointer" data-bs-toggle="modal" data-bs-target="#modalQrCodeMember" title="Klik untuk memperbesar QR Code">
+                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm cursor-pointer"
+                                data-bs-toggle="modal" data-bs-target="#modalQrCodeMember"
+                                title="Klik untuk memperbesar QR Code">
                                 {!! auth()->user()->getQrCodeSvg(130) !!}
-                                <div class="text-dark small font-monospace fw-bold mt-1 text-center" style="font-size: 10px;">
+                                <div class="text-dark small font-monospace fw-bold mt-1 text-center"
+                                    style="font-size: 10px;">
                                     SCAN ABSENSI
                                 </div>
                             </div>
@@ -91,8 +145,17 @@
                                 </div>
                             @else
                                 <h5 class="text-muted mb-2">Belum Memiliki Paket Aktif</h5>
-                                <p class="text-muted small">Silakan hubungi kasir/pengelola gym untuk mengaktifkan paket
-                                    membership Anda.</p>
+                                @if (!empty($pendingMembership))
+                                    <p class="text-warning small mb-3">Pesanan membership Anda sedang menunggu validasi oleh
+                                        kasir.</p>
+                                @else
+                                    <p class="text-muted small mb-3">Daftarkan paket membership Anda secara mandiri dengan
+                                        mudah atau hubungi kasir/pengelola gym.</p>
+                                    <button type="button" class="btn btn-primary btn-sm w-100 shadow-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalOrderMembership">
+                                        <i class="bx bx-cart-add me-1"></i> Pesan Paket Sekarang
+                                    </button>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -135,7 +198,8 @@
                     <h5 class="card-title fw-bold mb-0 text-heading">
                         <i class="bx bx-calendar-star me-1 text-primary"></i> Jadwal Kunjungan Mendatang Anda
                     </h5>
-                    <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua Jadwal</a>
+                    <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-primary">Lihat Semua
+                        Jadwal</a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -181,6 +245,9 @@
 
             <!-- Modal Perbesar QR Code Absensi -->
             @include('dashboard.partials.qr-modal')
+
+            <!-- Modal Order Membership Mandiri -->
+            @include('dashboard.partials.modal-order-membership')
         @else
             <!-- Admin / Manager Dashboard View -->
             <!-- Welcome Header -->
@@ -283,6 +350,8 @@
                                 <div class="content-left">
                                     <span class="text-muted fw-semibold">Pendapatan Bulan Ini</span>
                                     <div class="d-flex align-items-center my-1">
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
+                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
@@ -546,3 +615,85 @@
         @endif
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const selectOrderProduct = document.getElementById('orderProductId');
+            const selectOrderPayment = document.getElementById('orderPaymentMethodId');
+            const instructionBox = document.getElementById('orderPaymentInstruction');
+            const priceSummary = document.getElementById('orderSummaryPrice');
+            const bankDetails = document.getElementById('orderBankDetails');
+            const accountNumberEl = document.getElementById('orderAccountNumber');
+            const accountNameEl = document.getElementById('orderAccountName');
+            const qrDetails = document.getElementById('orderQrDetails');
+            const qrImg = document.getElementById('orderQrImg');
+            const fileProofInput = document.getElementById('orderPaymentProof');
+            const proofPreviewBox = document.getElementById('orderProofPreviewContainer');
+            const proofPreviewImg = document.getElementById('orderProofPreviewImg');
+
+            function updatePaymentInstruction() {
+                if (!selectOrderProduct || !selectOrderPayment || !instructionBox) return;
+
+                const selectedProd = selectOrderProduct.options[selectOrderProduct.selectedIndex];
+                const selectedPm = selectOrderPayment.options[selectOrderPayment.selectedIndex];
+
+                if (!selectedProd || !selectedProd.value || !selectedPm || !selectedPm.value) {
+                    instructionBox.classList.add('d-none');
+                    return;
+                }
+
+                instructionBox.classList.remove('d-none');
+                if (priceSummary) priceSummary.textContent = selectedProd.getAttribute('data-formatted-price') ||
+                    'Rp 0';
+
+                const accNumber = selectedPm.getAttribute('data-account-number') || '';
+                const accName = selectedPm.getAttribute('data-account-name') || '';
+                const qrImage = selectedPm.getAttribute('data-qr-image') || '';
+
+                if (accNumber) {
+                    if (accountNumberEl) accountNumberEl.textContent = accNumber;
+                    if (accountNameEl) accountNameEl.textContent = accName;
+                    if (bankDetails) bankDetails.classList.remove('d-none');
+                } else {
+                    if (bankDetails) bankDetails.classList.add('d-none');
+                }
+
+                if (qrImage) {
+                    if (qrImg) qrImg.src = qrImage;
+                    if (qrDetails) qrDetails.classList.remove('d-none');
+                } else {
+                    if (qrDetails) qrDetails.classList.add('d-none');
+                }
+            }
+
+            if (selectOrderProduct) selectOrderProduct.addEventListener('change', updatePaymentInstruction);
+            if (selectOrderPayment) selectOrderPayment.addEventListener('change', updatePaymentInstruction);
+
+            if (fileProofInput) {
+                fileProofInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file && proofPreviewBox && proofPreviewImg) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            proofPreviewImg.src = e.target.result;
+                            proofPreviewBox.classList.remove('d-none');
+                        };
+                        reader.readAsDataURL(file);
+                    } else if (proofPreviewBox) {
+                        proofPreviewBox.classList.add('d-none');
+                    }
+                });
+            }
+
+            // Auto-reopen order modal on error
+            @if ($errors->any() && (old('product_id') || old('payment_method_id') || old('start_date')))
+                const modalOrderEl = document.getElementById('modalOrderMembership');
+                if (modalOrderEl && typeof bootstrap !== 'undefined') {
+                    new bootstrap.Modal(modalOrderEl).show();
+                    updatePaymentInstruction();
+                }
+            @endif
+        });
+    </script>
+@endpush

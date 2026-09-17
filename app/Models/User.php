@@ -17,7 +17,7 @@ use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'slug', 'status', 'qr_code', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'slug', 'user_code', 'status', 'qr_code', 'avatar'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -45,7 +45,35 @@ class User extends Authenticatable
             if (empty($user->qr_code)) {
                 $user->qr_code = static::generateUniqueQrCode();
             }
+            if (empty($user->user_code)) {
+                $user->user_code = static::generateUniqueUserCode();
+            }
         });
+    }
+
+    /**
+     * Generate a unique user code for official identification.
+     * Format: IFGS-YYYYMM-XXXX (e.g. IFGS-202609-0001)
+     */
+    public static function generateUniqueUserCode(): string
+    {
+        $prefix = 'IFGS-'.now()->format('Ym').'-';
+
+        $last = static::where('user_code', 'like', "{$prefix}%")
+            ->orderByDesc('user_code')
+            ->first();
+
+        $nextSequence = 1;
+        if ($last && preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $last->user_code, $matches)) {
+            $nextSequence = ((int) $matches[1]) + 1;
+        }
+
+        do {
+            $code = $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $nextSequence++;
+        } while (static::where('user_code', $code)->exists() || Member::where('member_code', $code)->exists());
+
+        return $code;
     }
 
     /**
@@ -103,8 +131,7 @@ class User extends Authenticatable
     public static function findByQrCode(string $code): ?User
     {
         return static::where('qr_code', $code)
-            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
-            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
+            ->orWhere('user_code', $code)
             ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
             ->first();
     }

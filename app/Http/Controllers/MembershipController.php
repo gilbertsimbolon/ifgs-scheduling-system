@@ -23,7 +23,6 @@ class MembershipController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Membership::with(['member.user', 'product', 'paymentMethod'])->latest();
         // Sinkronisasi otomatis status kadaluarsa oleh sistem
         Membership::where('status', Membership::STATUS_ACTIVE)
             ->whereDate('end_date', '<', now()->toDateString())
@@ -46,7 +45,6 @@ class MembershipController extends Controller
             $query->where('payment_method_id', $request->payment_method_id);
         }
 
-        // Pencarian (Nama member, kode member, atau nama produk)
         // Pencarian (Nama member, kode member, nama produk, atau nomor invoice)
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -72,6 +70,7 @@ class MembershipController extends Controller
         // Metrics untuk ringkasan di atas tabel
         $metrics = [
             'total' => Membership::count(),
+            'pending' => Membership::where('status', Membership::STATUS_PENDING)->count(),
             'active' => Membership::where('status', Membership::STATUS_ACTIVE)
                 ->whereDate('end_date', '>=', now())
                 ->count(),
@@ -80,8 +79,8 @@ class MembershipController extends Controller
                     $q->where('status', Membership::STATUS_ACTIVE)
                         ->whereDate('end_date', '<', now());
                 })->count(),
-            'cancelled' => Membership::where('status', Membership::STATUS_CANCELLED)->count(),
-            'revenue' => Membership::where('status', '!=', Membership::STATUS_CANCELLED)->sum('price'),
+            'cancelled' => Membership::whereIn('status', [Membership::STATUS_CANCELLED, Membership::STATUS_REJECTED])->count(),
+            'revenue' => Membership::where('status', Membership::STATUS_ACTIVE)->sum('price'),
         ];
 
         // Daftar member aktif untuk pilihan dropdown Tambah Membership
@@ -270,6 +269,162 @@ class MembershipController extends Controller
 
         return redirect()->route('memberships.index')
             ->with('success', 'Membership berhasil dibatalkan.');
+    }
+
+    /**
+     * Memproses pemesanan paket membership mandiri oleh member (dengan upload bukti transfer).
+     */
+    public function order(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'product_id' => ['required', 'exists:products,id'],
+            'payment_method_id' => ['required', 'exists:payment_methods,id'],
+            'start_date' => ['required', 'date'],
+            'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'product_id.required' => 'Paket layanan wajib dipilih.',
+            'product_id.exists' => 'Paket layanan tidak valid.',
+            'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
+            'payment_method_id.exists' => 'Metode pembayaran tidak valid.',
+            'start_date.required' => 'Tanggal mulai wajib dipilih.',
+            'payment_proof.required' => 'Foto atau screenshot bukti transfer wajib diunggah.',
+            'payment_proof.image' => 'Bukti pembayaran harus berupa file gambar.',
+            'payment_proof.mimes' => 'Format gambar harus jpeg, png, jpg, atau webp.',
+            'payment_proof.max' => 'Ukuran file gambar maksimal 5MB.',
+        ]);
+
+        $user = $request->user();
+        $member = $user->member;
+        if (! $member) {
+            $member = Member::create([
+                'user_id' => $user->id,
+                'member_code' => $user->user_code ?? Member::generateUniqueMemberCode(),
+                'phone' => '',
+            ]);
+        }
+
+        $product = Product::findOrFail($validated['product_id']);
+        $endDate = $product->calculateEndDate($validated['start_date'])->format('Y-m-d');
+        $price = (float) $product->price;
+
+        $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
+
+        DB::transaction(function () use ($validated, $member, $product, $endDate, $price, $proofPath) {
+            $transaction = Transaction::create([
+                'invoice_number' => Transaction::generateInvoiceNumber(),
+                'member_id' => $member->id,
+                'user_id' => null,
+                'payment_method_id' => $validated['payment_method_id'],
+                'total_amount' => $price,
+                'paid_amount' => $price,
+                'change_amount' => 0.00,
+                'status' => Transaction::STATUS_PENDING,
+                'notes' => $validated['notes'] ?? 'Pemesanan Mandiri Paket '.$product->name,
+                'payment_proof' => $proofPath,
+            ]);
+
+            $transaction->items()->create([
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'price' => $price,
+                'quantity' => 1,
+                'subtotal' => $price,
+            ]);
+
+            Membership::create([
+                'transaction_id' => $transaction->id,
+                'member_id' => $member->id,
+                'product_id' => $product->id,
+                'payment_method_id' => $validated['payment_method_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $endDate,
+                'price' => $price,
+                'status' => Membership::STATUS_PENDING,
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('success', 'Pesanan membership berhasil dikirim! Bukti transfer Anda sedang menunggu validasi oleh kasir.');
+    }
+
+    /**
+     * Menyetujui (ACC) transaksi membership oleh kasir/admin.
+     */
+    public function approve(Request $request, Membership $membership): RedirectResponse|JsonResponse
+    {
+        $startDate = $membership->start_date ? $membership->start_date->format('Y-m-d') : now()->toDateString();
+        if (Carbon::parse($startDate)->isPast() && ! Carbon::parse($startDate)->isToday()) {
+            $startDate = now()->toDateString();
+        }
+        $endDate = $membership->product->calculateEndDate($startDate)->format('Y-m-d');
+
+        DB::transaction(function () use ($membership, $startDate, $endDate) {
+            if ($membership->transaction) {
+                $membership->transaction->update([
+                    'status' => Transaction::STATUS_COMPLETED,
+                    'user_id' => auth()->id(),
+                    'approved_at' => now(),
+                ]);
+            }
+
+            $membership->update([
+                'status' => Membership::STATUS_ACTIVE,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ]);
+        });
+
+        $memberName = $membership->member?->user?->name ?? 'Member';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Transaksi membership untuk {$memberName} berhasil disetujui (ACC) dan aktif.",
+            ]);
+        }
+
+        return redirect()->route('memberships.index')
+            ->with('success', "Transaksi membership untuk {$memberName} berhasil disetujui (ACC) dan aktif.");
+    }
+
+    /**
+     * Menolak transaksi membership oleh kasir/admin.
+     */
+    public function reject(Request $request, Membership $membership): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'reason.required' => 'Alasan penolakan wajib diisi.',
+            'reason.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
+
+        DB::transaction(function () use ($membership, $validated) {
+            if ($membership->transaction) {
+                $membership->transaction->update([
+                    'status' => Transaction::STATUS_REJECTED,
+                    'user_id' => auth()->id(),
+                    'rejection_reason' => $validated['reason'],
+                ]);
+            }
+
+            $membership->update([
+                'status' => Membership::STATUS_REJECTED,
+            ]);
+        });
+
+        $memberName = $membership->member?->user?->name ?? 'Member';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Transaksi membership untuk {$memberName} telah ditolak.",
+            ]);
+        }
+
+        return redirect()->route('memberships.index')
+            ->with('success', "Transaksi membership untuk {$memberName} telah ditolak.");
     }
 
     /**

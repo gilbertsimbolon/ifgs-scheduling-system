@@ -106,7 +106,7 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width: 60px;">NO</th>
-                            <th>ID Member</th>
+                            <th>ID Pengguna</th>
                             <th>Pengguna</th>
                             <th>No. HP</th>
                             <th>Peran</th>
@@ -119,9 +119,9 @@
                             <tr>
                                 <td>{{ $users->firstItem() + $loop->index }}</td>
                                 <td>
-                                    @if ($user->member && $user->member->member_code)
+                                    @if ($user->user_code || ($user->member && $user->member->member_code))
                                         <span class="badge bg-label-primary font-monospace">
-                                            {{ $user->member->member_code }}
+                                            {{ $user->user_code ?? $user->member->member_code }}
                                         </span>
                                     @else
                                         <span class="text-muted">-</span>
@@ -196,7 +196,7 @@
                                             data-bs-target="#modalDetailPengguna" data-name="{{ $user->name }}"
                                             data-slug="{{ $user->slug }}" data-email="{{ $user->email }}"
                                             data-phone="{{ $user->member?->phone ?? ($user->trainer?->phone ?? '-') }}"
-                                            data-member-code="{{ $user->member?->member_code ?? '-' }}"
+                                            data-member-code="{{ $user->user_code ?? ($user->member?->member_code ?? '-') }}"
                                             data-role="{{ $user->roles->pluck('name')->implode(', ') ?: 'Tanpa Peran' }}"
                                             data-status="{{ $user->status }}"
                                             data-created="{{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }}"

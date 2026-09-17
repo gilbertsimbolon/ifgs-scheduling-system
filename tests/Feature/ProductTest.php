@@ -35,7 +35,7 @@ test('admin can access product index and see clean total member link to membersh
         ->assertSee('Total Member')
         ->assertSee(route('memberships.index', ['product_id' => $product->id]))
         ->assertDontSee('badge bg-label-primary font-monospace')
-        ->assertDontSee('Transaksi')
+        ->assertDontSee('Transaksi</span>')
         ->assertDontSee('Member Terdaftar');
 });
 

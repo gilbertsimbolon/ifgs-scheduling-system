@@ -21,10 +21,16 @@ class Membership extends Model
 
     public const STATUS_CANCELLED = 'cancelled';
 
+    public const STATUS_PENDING = 'pending';
+
+    public const STATUS_REJECTED = 'rejected';
+
     public const STATUSES = [
         self::STATUS_ACTIVE,
         self::STATUS_EXPIRED,
         self::STATUS_CANCELLED,
+        self::STATUS_PENDING,
+        self::STATUS_REJECTED,
     ];
 
     /**
@@ -103,8 +109,8 @@ class Membership extends Model
      */
     public function getStatusAttribute($value): string
     {
-        if ($value === self::STATUS_CANCELLED) {
-            return self::STATUS_CANCELLED;
+        if (in_array($value, [self::STATUS_CANCELLED, self::STATUS_PENDING, self::STATUS_REJECTED])) {
+            return $value;
         }
 
         if ($this->end_date && $this->end_date->isPast() && ! $this->end_date->isToday()) {
@@ -145,8 +151,9 @@ class Membership extends Model
     {
         return match ($this->status) {
             self::STATUS_ACTIVE => 'bg-label-success',
-            self::STATUS_EXPIRED => 'bg-label-warning',
-            self::STATUS_CANCELLED => 'bg-label-danger',
+            self::STATUS_EXPIRED => 'bg-label-secondary',
+            self::STATUS_CANCELLED, self::STATUS_REJECTED => 'bg-label-danger',
+            self::STATUS_PENDING => 'bg-label-warning',
             default => 'bg-label-secondary',
         };
     }
@@ -182,7 +189,17 @@ class Membership extends Model
             self::STATUS_ACTIVE => 'Aktif',
             self::STATUS_EXPIRED => 'Kadaluarsa',
             self::STATUS_CANCELLED => 'Dibatalkan',
+            self::STATUS_REJECTED => 'Ditolak',
+            self::STATUS_PENDING => 'Menunggu Validasi',
             default => ucfirst($this->status),
         };
+    }
+
+    /**
+     * Get the public URL for uploaded payment proof screenshot (from transaction).
+     */
+    public function getPaymentProofUrlAttribute(): ?string
+    {
+        return $this->transaction?->payment_proof_url;
     }
 }

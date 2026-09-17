@@ -33,7 +33,7 @@
                             </tr>
                             <tr>
                                 <th class="ps-0">
-                                    <i class="bx bx-id-card me-1 text-primary"></i> Kode Member
+                                    <i class="bx bx-id-card me-1 text-primary"></i> ID Pengguna
                                 </th>
                                 <td>: <code id="detailMemberCode" class="text-primary"></code></td>
                             </tr>

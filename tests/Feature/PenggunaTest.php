@@ -382,4 +382,41 @@ test('can assign Trainer role via pengguna store and auto-creates Trainer profil
     ]);
     $this->assertNotNull($user->trainer);
     $this->assertStringStartsWith('TRN-', $user->trainer->trainer_code);
+    $this->assertStringStartsWith('IFGS-', $user->user_code);
+});
+
+test('every user with any role automatically receives unique IFGS ID', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    // Buat pengguna dengan peran Kasir
+    $this->actingAs($admin)->post(route('pengguna.store'), [
+        'name' => 'Staf Kasir Baru',
+        'email' => 'kasir.baru@ifgs.test',
+        'password' => 'password123',
+        'role' => 'Kasir',
+    ])->assertRedirect(route('pengguna.index'));
+
+    $kasir = User::where('email', 'kasir.baru@ifgs.test')->first();
+    expect($kasir->user_code)->not->toBeEmpty()
+        ->and($kasir->user_code)->toStartWith('IFGS-');
+
+    // Buat pengguna dengan peran Admin/Manager
+    $this->actingAs($admin)->post(route('pengguna.store'), [
+        'name' => 'Manager Baru',
+        'email' => 'manager.baru@ifgs.test',
+        'password' => 'password123',
+        'role' => 'Admin/Manager',
+    ])->assertRedirect(route('pengguna.index'));
+
+    $newAdmin = User::where('email', 'manager.baru@ifgs.test')->first();
+    expect($newAdmin->user_code)->not->toBeEmpty()
+        ->and($newAdmin->user_code)->toStartWith('IFGS-');
+
+    // Halaman index menampilkan ID Pengguna untuk semua user
+    $response = $this->actingAs($admin)->get(route('pengguna.index'));
+    $response->assertOk();
+    $response->assertSee('ID Pengguna');
+    $response->assertSee($kasir->user_code);
+    $response->assertSee($newAdmin->user_code);
 });

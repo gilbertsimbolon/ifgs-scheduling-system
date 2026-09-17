@@ -2,9 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\KasirController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
+use App\Http\Controllers\MembershipTransactionController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\PenggunaController;
 use App\Http\Controllers\ProductController;
@@ -34,11 +34,6 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Kasir / Front Desk Tablet (Khusus Kasir & Admin/Manager)
-    Route::middleware('role:Kasir|Admin/Manager')->prefix('kasir')->name('kasir.')->group(function () {
-        Route::get('/', [KasirController::class, 'index'])->name('index');
-    });
 
     // Pengguna (Admin/Manager bisa kelola penuh; Kasir bisa lihat dan tambah pengguna)
     Route::middleware('role:Admin/Manager|Kasir')->prefix('pengguna')->name('pengguna.')->group(function () {
@@ -76,6 +71,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/available-slots', [ReservationController::class, 'availableSlots'])->name('available-slots');
         Route::patch('/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('cancel');
     });
+
+    // Pemesanan Paket Membership oleh Member (Upload Bukti Transfer)
+    Route::post('/memberships/order', [MembershipController::class, 'order'])->name('memberships.order');
 
     // Jadwal Kunjungan (Member lihat jadwal sendiri, Admin lihat seluruh jadwal & kelola status)
     Route::prefix('schedules')->name('schedules.')->group(function () {
@@ -138,13 +136,23 @@ Route::middleware('auth')->group(function () {
         });
 
         // Transaksi Membership
+        // Data Membership
         Route::prefix('memberships')->name('memberships.')->group(function () {
             Route::get('/', [MembershipController::class, 'index'])->name('index');
             Route::post('/', [MembershipController::class, 'store'])->name('store');
             Route::get('/calculate-end-date', [MembershipController::class, 'calculateEndDate'])->name('calculate-end-date');
             Route::put('/{membership}', [MembershipController::class, 'update'])->name('update');
+            Route::patch('/{membership}/approve', [MembershipController::class, 'approve'])->name('approve');
+            Route::patch('/{membership}/reject', [MembershipController::class, 'reject'])->name('reject');
             Route::patch('/{membership}/cancel', [MembershipController::class, 'cancel'])->name('cancel');
             Route::delete('/{membership}', [MembershipController::class, 'destroy'])->name('destroy');
+        });
+
+        // Validasi Transaksi Membership (Kasir / Admin ACC & Tolak Pembayaran)
+        Route::prefix('transaksi-membership')->name('membership-transactions.')->group(function () {
+            Route::get('/', [MembershipTransactionController::class, 'index'])->name('index');
+            Route::patch('/{membership}/approve', [MembershipTransactionController::class, 'approve'])->name('approve');
+            Route::patch('/{membership}/reject', [MembershipTransactionController::class, 'reject'])->name('reject');
         });
 
         // Riwayat Transaksi & Struk

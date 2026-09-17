@@ -21,13 +21,13 @@ class PenggunaController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = User::with(['roles', 'member']);
         $query = User::with(['roles', 'member', 'trainer']);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('user_code', 'like', "%{$search}%");
             });
         }
 

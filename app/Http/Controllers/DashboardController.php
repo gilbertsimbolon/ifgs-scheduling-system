@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Membership;
+use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -18,14 +19,10 @@ class DashboardController extends Controller
     /**
      * Tampilkan Dashboard utama IFGS Scheduling System.
      */
-    public function index(Request $request): View|RedirectResponse
+    public function index(Request $request): View
     {
         $today = Carbon::today()->format('Y-m-d');
         $user = auth()->user();
-
-        if ($user->hasRole('Kasir')) {
-            return redirect()->route('kasir.index');
-        }
 
         $isMember = $user->hasRole('Member');
 
@@ -33,6 +30,14 @@ class DashboardController extends Controller
         if ($isMember) {
             $member = $user->member;
             $activeMembership = $member ? $member->activeMembership() : null;
+            $pendingMembership = $member ? Membership::with(['product', 'paymentMethod', 'transaction'])
+                ->where('member_id', $member->id)
+                ->where('status', Membership::STATUS_PENDING)
+                ->latest()
+                ->first() : null;
+
+            $activeProducts = Product::where('status', Product::STATUS_ACTIVE)->orderBy('price')->get();
+            $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->orderBy('name')->get();
 
             $myReservationsCount = $member ? Reservation::where('member_id', $member->id)->count() : 0;
             $myUpcomingSchedules = $member ? Schedule::with(['timeSlot', 'reservation'])
@@ -54,6 +59,9 @@ class DashboardController extends Controller
                 'isMember' => true,
                 'member' => $member,
                 'activeMembership' => $activeMembership,
+                'pendingMembership' => $pendingMembership,
+                'activeProducts' => $activeProducts,
+                'activePaymentMethods' => $activePaymentMethods,
                 'myReservationsCount' => $myReservationsCount,
                 'myUpcomingSchedules' => $myUpcomingSchedules,
                 'myRecentVisits' => $myRecentVisits,

@@ -73,7 +73,6 @@
                                 id="tambahRole" name="role" required>
                                 @foreach ($roles as $role)
                                     <option value="{{ $role }}"
-                                        {{ old('_modal') === 'create' && old('role') === $role ? 'selected' : '' }}>
                                         {{ (old('_modal') === 'create' ? old('role') === $role : $role === 'Member') ? 'selected' : '' }}>
                                         {{ $role }}
                                     </option>
@@ -85,7 +84,7 @@
                                 @enderror
                             @endif
                         </div>
-                        <div class="col-md-6 mb-3" id="tambahPhoneWrapper" style="display: none;">
+                        <div class="col-md-6 mb-3" id="tambahPhoneWrapper">
                             <label class="form-label" for="tambahPhone">No. HP / WhatsApp</label>
                             <div class="input-group input-group-merge">
                                 <span class="input-group-text"><i class="bx bx-phone"></i></span>
