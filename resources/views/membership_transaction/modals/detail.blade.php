@@ -10,8 +10,8 @@
             <div class="modal-body">
                 <div class="row g-4">
                     <!-- Kolom Kiri: Profil Member & Bukti Transfer -->
-                    <div class="col-md-5 border-end">
-                        <div class="text-center mb-3">
+                    <div class="col-md-5 border-end d-flex flex-column align-items-center">
+                        <div class="text-center mb-3 w-100">
                             <div class="avatar avatar-xl mx-auto mb-2">
                                 <span id="detailTxAvatar"
                                     class="avatar-initial rounded-circle bg-label-primary fs-3 fw-bold">
@@ -25,7 +25,7 @@
                         </div>
 
                         <!-- Profil Kontak (Tanpa latar belakang abu-abu) -->
-                        <div class="mb-3 text-center">
+                        <div class="mb-3 text-center w-100">
                             <div class="d-flex align-items-center justify-content-center mb-1 text-muted small">
                                 <i class="bx bx-envelope text-primary me-2"></i>
                                 <span id="detailTxEmail"></span>
@@ -43,30 +43,39 @@
                         </div>
 
                         <!-- Bukti Transfer (Hanya ditampilkan untuk pembayaran non-tunai/transfer) -->
-                        <div id="detailTxProofSection" class="text-center">
-                            <label class="form-label fw-semibold mb-2">
+                        <div id="detailTxProofSection" class="w-100 text-center">
+                            <label class="form-label fw-semibold mb-2 text-center d-block">
                                 <i class="bx bx-image text-primary me-1"></i> Bukti Transfer (SS)
                             </label>
-                            <div id="detailTxProofContainer" class="p-2 border rounded bg-white position-relative">
-                                <img id="detailTxProofImg" src="" alt="Bukti Transfer" class="img-fluid rounded"
+                            <div id="detailTxProofContainer"
+                                class="p-3 border rounded bg-white position-relative d-flex flex-column align-items-center justify-content-center text-center mx-auto"
+                                style="min-height: 170px;">
+                                <img id="detailTxProofImg" src="" alt="Bukti Transfer"
+                                    class="img-fluid rounded mx-auto d-block"
                                     style="max-height: 200px; object-fit: contain; cursor: pointer;">
-                                <div id="detailTxNoProof" class="text-muted small py-4 d-none">
-                                    <i class="bx bx-image-alt fs-2 d-block mb-1"></i>
-                                    Tidak ada bukti transfer diunggah
+                                <div id="detailTxNoProof"
+                                    class="text-muted small py-3 d-flex flex-column align-items-center justify-content-center text-center w-100 d-none">
+                                    <i class="bx bx-image-alt text-secondary mb-2"
+                                        style="font-size: 2.8rem; line-height: 1;"></i>
+                                    <span class="d-block text-center">Tidak ada bukti transfer diunggah</span>
                                 </div>
                             </div>
-                            <a id="detailTxProofZoomBtn" href="javascript:void(0);"
-                                class="btn btn-xs btn-outline-primary mt-2">
-                                <i class="bx bx-zoom-in me-1"></i> Lihat Gambar Penuh
-                            </a>
+                            <div class="text-center mt-2">
+                                <a id="detailTxProofZoomBtn" href="javascript:void(0);"
+                                    class="btn btn-xs btn-outline-primary d-inline-flex align-items-center">
+                                    <i class="bx bx-zoom-in me-1"></i> Lihat Gambar Penuh
+                                </a>
+                            </div>
                         </div>
 
                         <!-- Note Pembayaran Tunai / Cash (Tidak butuh bukti transfer) -->
-                        <div id="detailTxCashNote" class="p-3 border rounded text-center mb-0 d-none">
-                            <i class="bx bx-money text-success fs-2 d-block mb-1"></i>
+                        <div id="detailTxCashNote"
+                            class="p-4 border rounded text-center mb-0 d-flex flex-column align-items-center justify-content-center d-none mx-auto w-100"
+                            style="min-height: 150px;">
+                            <i class="bx bx-money text-success mb-2" style="font-size: 2.8rem; line-height: 1;"></i>
                             <span class="fw-semibold text-dark d-block mb-1">Pembayaran Tunai</span>
-                            <small class="text-muted">Transaksi ini dibayar langsung secara tunai di kasir dan tidak
-                                memerlukan bukti transfer.</small>
+                            <small class="text-muted text-center d-block">Transaksi ini dibayar langsung secara tunai di
+                                kasir dan tidak memerlukan bukti transfer.</small>
                         </div>
                     </div>
 

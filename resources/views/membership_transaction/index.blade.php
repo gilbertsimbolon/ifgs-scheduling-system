@@ -484,16 +484,24 @@
                     if (isCash) {
                         // Jika tunai, sembunyikan upload bukti transfer dan tampilkan note tunai
                         if (proofSection) proofSection.classList.add('d-none');
-                        if (cashNote) cashNote.classList.remove('d-none');
+                        if (cashNote) {
+                            cashNote.classList.remove('d-none');
+                            cashNote.classList.add('d-flex');
+                        }
                     } else {
                         // Jika non-tunai (transfer/qris), tampilkan bukti transfer
-                        if (cashNote) cashNote.classList.add('d-none');
+                        if (cashNote) {
+                            cashNote.classList.add('d-none');
+                            cashNote.classList.remove('d-flex');
+                        }
                         if (proofSection) proofSection.classList.remove('d-none');
 
                         if (proofUrl) {
                             proofImg.src = proofUrl;
                             proofImg.classList.remove('d-none');
+                            proofImg.classList.add('d-block');
                             noProof.classList.add('d-none');
+                            noProof.classList.remove('d-flex');
                             zoomBtn.classList.remove('d-none');
                             zoomBtn.onclick = function() {
                                 const modalDetailInst = bootstrap.Modal.getInstance(modalDetail);
@@ -509,7 +517,9 @@
                             proofImg.onclick = zoomBtn.onclick;
                         } else {
                             proofImg.classList.add('d-none');
+                            proofImg.classList.remove('d-block');
                             noProof.classList.remove('d-none');
+                            noProof.classList.add('d-flex');
                             zoomBtn.classList.add('d-none');
                         }
                     }

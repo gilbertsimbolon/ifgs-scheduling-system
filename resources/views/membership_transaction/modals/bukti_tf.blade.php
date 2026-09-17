@@ -9,13 +9,15 @@
             </div>
             <div class="modal-body text-center p-3">
                 <div class="mb-2">
-                    <span id="previewBuktiTfInvoice" class="badge bg-label-primary font-monospace fs-6"></span>
+                    <span id="previewBuktiTfInvoice" class="fw-semibold text-dark fs-6"></span>
                 </div>
-                <div class="bg-light p-2 rounded text-center overflow-auto" style="max-height: 70vh;">
-                    <img id="previewBuktiTfImg" src="" alt="Bukti Transfer" class="img-fluid rounded shadow-sm"
+                <div class="bg-light p-2 rounded text-center d-flex align-items-center justify-content-center overflow-auto"
+                    style="min-height: 250px; max-height: 70vh;">
+                    <img id="previewBuktiTfImg" src="" alt="Bukti Transfer"
+                        class="img-fluid rounded shadow-sm mx-auto d-block"
                         style="max-height: 65vh; object-fit: contain;">
                 </div>
-                <p class="text-muted small mt-2 mb-0">
+                <p class="text-muted small mt-2 mb-0 text-center">
                     Klik tautan di bawah untuk melihat resolusi asli jika diperlukan.
                     <a id="previewBuktiTfLink" href="#" target="_blank" class="ms-1 fw-semibold">
                         <i class="bx bx-link-external"></i> Buka Gambar Penuh
@@ -28,4 +30,3 @@
         </div>
     </div>
 </div>
-
