@@ -67,6 +67,12 @@
                 <div class="text-truncate">Trainer</div>
             </a>
         </li>
+        <li class="menu-item {{ request()->routeIs('trainer-bookings.*') ? 'active' : '' }}">
+            <a href="{{ route('trainer-bookings.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar-star"></i>
+                <div class="text-truncate">Sesi Trainer</div>
+            </a>
+        </li>
         <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
             <a href="{{ route('payment-methods.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-credit-card-front"></i>

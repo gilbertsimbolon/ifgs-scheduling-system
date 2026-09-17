@@ -129,4 +129,20 @@ class Member extends Model
     {
         return QrCode::size($size)->generate($this->qr_code);
     }
+
+    /**
+     * Accessor alias for phone number.
+     */
+    public function getPhoneNumberAttribute(): ?string
+    {
+        return $this->phone;
+    }
+
+    /**
+     * Daftar permohonan sesi latihan trainer oleh member ini.
+     */
+    public function trainerBookings(): HasMany
+    {
+        return $this->hasMany(TrainerBooking::class);
+    }
 }

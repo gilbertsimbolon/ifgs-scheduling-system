@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TimeSlotController;
+use App\Http\Controllers\TrainerBookingController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserQrCodeController;
@@ -84,6 +85,15 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{schedule}/status', [ScheduleController::class, 'updateStatus'])
             ->middleware('role:Admin/Manager|Kasir')
             ->name('update-status');
+    });
+
+    // Sesi Latihan Personal Trainer (Validasi ACC / Tolak oleh Trainer atau Admin)
+    Route::middleware('role:Admin/Manager|Trainer|Kasir|Member')->prefix('trainer-bookings')->name('trainer-bookings.')->group(function () {
+        Route::get('/', [TrainerBookingController::class, 'index'])->name('index');
+        Route::post('/', [TrainerBookingController::class, 'store'])->name('store');
+        Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])->name('approve');
+        Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])->name('reject');
+        Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])->name('complete');
     });
 
     // Master Data Time Slot (Admin Only)

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['user_id', 'trainer_code', 'phone', 'specialization', 'bio', 'status'])]
 class Trainer extends Model
@@ -66,5 +67,13 @@ class Trainer extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Daftar permohonan sesi latihan member dengan trainer ini.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(TrainerBooking::class);
     }
 }
