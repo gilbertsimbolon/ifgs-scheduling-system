@@ -13,48 +13,60 @@
                     <div class="col-md-5 border-end">
                         <div class="text-center mb-3">
                             <div class="avatar avatar-xl mx-auto mb-2">
-                                <span id="detailTxAvatar" class="avatar-initial rounded-circle bg-label-primary fs-3 fw-bold">
+                                <span id="detailTxAvatar"
+                                    class="avatar-initial rounded-circle bg-label-primary fs-3 fw-bold">
                                     --
                                 </span>
                             </div>
-                            <h5 id="detailTxMemberName" class="mb-1 fw-bold"></h5>
-                            <p class="text-muted small mb-1"><code id="detailTxMemberCode"></code></p>
+                            <h5 id="detailTxMemberName" class="mb-1 fw-bold text-dark"></h5>
+                            <p class="text-muted small mb-2"><span id="detailTxMemberCode"
+                                    class="fw-semibold text-secondary"></span></p>
                             <span id="detailTxStatusBadge" class="badge"></span>
                         </div>
 
-                        <div class="card bg-light border-0 shadow-none mb-3">
-                            <div class="card-body p-3">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="bx bx-envelope text-primary me-2"></i>
-                                    <span id="detailTxEmail" class="small text-truncate"></span>
+                        <!-- Profil Kontak (Tanpa latar belakang abu-abu) -->
+                        <div class="mb-3 text-center">
+                            <div class="d-flex align-items-center justify-content-center mb-1 text-muted small">
+                                <i class="bx bx-envelope text-primary me-2"></i>
+                                <span id="detailTxEmail"></span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center gap-2 text-muted small">
+                                <div class="d-flex align-items-center">
+                                    <i class="bx bx-phone text-success me-1"></i>
+                                    <span id="detailTxPhone"></span>
                                 </div>
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bx bx-phone text-success me-2"></i>
-                                        <span id="detailTxPhone" class="small"></span>
-                                    </div>
-                                    <a id="detailTxWaLink" href="#" target="_blank" class="btn btn-xs btn-outline-success">
-                                        <i class="bx bxl-whatsapp"></i> Chat
-                                    </a>
-                                </div>
+                                <a id="detailTxWaLink" href="#" target="_blank"
+                                    class="btn btn-xs btn-outline-success">
+                                    <i class="bx bxl-whatsapp me-1"></i> WhatsApp
+                                </a>
                             </div>
                         </div>
 
-                        <!-- Bukti Transfer Preview -->
-                        <div class="text-center">
+                        <!-- Bukti Transfer (Hanya ditampilkan untuk pembayaran non-tunai/transfer) -->
+                        <div id="detailTxProofSection" class="text-center">
                             <label class="form-label fw-semibold mb-2">
                                 <i class="bx bx-image text-primary me-1"></i> Bukti Transfer (SS)
                             </label>
                             <div id="detailTxProofContainer" class="p-2 border rounded bg-white position-relative">
-                                <img id="detailTxProofImg" src="" alt="Bukti Transfer" class="img-fluid rounded" style="max-height: 200px; object-fit: contain; cursor: pointer;">
+                                <img id="detailTxProofImg" src="" alt="Bukti Transfer" class="img-fluid rounded"
+                                    style="max-height: 200px; object-fit: contain; cursor: pointer;">
                                 <div id="detailTxNoProof" class="text-muted small py-4 d-none">
                                     <i class="bx bx-image-alt fs-2 d-block mb-1"></i>
                                     Tidak ada bukti transfer diunggah
                                 </div>
                             </div>
-                            <a id="detailTxProofZoomBtn" href="javascript:void(0);" class="btn btn-xs btn-outline-primary mt-2">
+                            <a id="detailTxProofZoomBtn" href="javascript:void(0);"
+                                class="btn btn-xs btn-outline-primary mt-2">
                                 <i class="bx bx-zoom-in me-1"></i> Lihat Gambar Penuh
                             </a>
+                        </div>
+
+                        <!-- Note Pembayaran Tunai / Cash (Tidak butuh bukti transfer) -->
+                        <div id="detailTxCashNote" class="p-3 border rounded text-center mb-0 d-none">
+                            <i class="bx bx-money text-success fs-2 d-block mb-1"></i>
+                            <span class="fw-semibold text-dark d-block mb-1">Pembayaran Tunai</span>
+                            <small class="text-muted">Transaksi ini dibayar langsung secara tunai di kasir dan tidak
+                                memerlukan bukti transfer.</small>
                         </div>
                     </div>
 
@@ -67,19 +79,19 @@
                                     <th class="ps-0 text-muted" style="width: 42%;">
                                         <i class="bx bx-hash me-1 text-primary"></i> No. Invoice
                                     </th>
-                                    <td>: <span id="detailTxInvoice" class="badge bg-label-primary font-monospace"></span></td>
+                                    <td>: <span id="detailTxInvoice" class="fw-semibold text-dark"></span></td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-muted">
                                         <i class="bx bx-package me-1 text-primary"></i> Paket Layanan
                                     </th>
-                                    <td>: <strong id="detailTxProductName"></strong></td>
+                                    <td>: <strong id="detailTxProductName" class="text-dark"></strong></td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-muted">
                                         <i class="bx bx-time me-1 text-primary"></i> Durasi Paket
                                     </th>
-                                    <td>: <span id="detailTxDuration"></span></td>
+                                    <td>: <span id="detailTxDuration" class="text-dark"></span></td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-muted">
@@ -91,7 +103,7 @@
                                     <th class="ps-0 text-muted">
                                         <i class="bx bx-credit-card me-1 text-primary"></i> Metode Bayar
                                     </th>
-                                    <td>: <span id="detailTxPaymentMethod" class="badge bg-label-info font-monospace"></span></td>
+                                    <td>: <span id="detailTxPaymentMethod" class="fw-semibold text-dark"></span></td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-muted">
@@ -103,7 +115,7 @@
                                     <th class="ps-0 text-muted">
                                         <i class="bx bx-calendar-event me-1 text-primary"></i> Periode Aktif
                                     </th>
-                                    <td>: <span id="detailTxPeriod" class="small"></span></td>
+                                    <td>: <span id="detailTxPeriod" class="small text-dark"></span></td>
                                 </tr>
                                 <tr>
                                     <th class="ps-0 text-muted">
@@ -124,7 +136,8 @@
                             <div class="d-flex align-items-center">
                                 <i class="bx bx-time-five fs-4 me-2"></i>
                                 <div class="small">
-                                    Pesanan ini berstatus <strong>Menunggu Validasi</strong>. Mohon periksa bukti transfer di sebelah kiri sebelum melakukan persetujuan (ACC) atau penolakan.
+                                    Pesanan ini berstatus <strong>Menunggu Validasi</strong>. Mohon periksa pembayaran
+                                    sebelum melakukan persetujuan (ACC) atau penolakan.
                                 </div>
                             </div>
                         </div>
@@ -147,4 +160,3 @@
         </div>
     </div>
 </div>
-

@@ -141,7 +141,7 @@ class Membership extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
+        return 'Rp ' . number_format((float) $this->price, 0, ',', '.');
     }
 
     /**
@@ -201,5 +201,19 @@ class Membership extends Model
     public function getPaymentProofUrlAttribute(): ?string
     {
         return $this->transaction?->payment_proof_url;
+    }
+
+    /**
+     * Memeriksa apakah transaksi membership menggunakan metode pembayaran tunai / cash.
+     */
+    public function isCashPayment(): bool
+    {
+        if (! $this->paymentMethod) {
+            return false;
+        }
+
+        return $this->paymentMethod->type === PaymentMethod::TYPE_CASH
+            || strtolower($this->paymentMethod->name) === 'tunai'
+            || strtolower($this->paymentMethod->name) === 'cash';
     }
 }

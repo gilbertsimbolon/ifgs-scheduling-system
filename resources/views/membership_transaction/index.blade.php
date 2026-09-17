@@ -11,7 +11,8 @@
                     <span class="text-muted fw-light">Manajemen /</span> Transaksi Membership
                 </h5>
                 <p class="text-muted small mb-0">
-                    Validasi pembayaran transfer member, periksa bukti transfer, setujui (ACC), atau tolak pesanan membership.
+                    Validasi pembayaran transfer member, periksa bukti transfer, setujui (ACC), atau tolak pesanan
+                    membership.
                 </p>
             </div>
             <div class="d-flex gap-2">
@@ -101,7 +102,8 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
-                                <h4 class="card-title mb-0 text-primary">Rp {{ number_format($metrics['total_revenue'], 0, ',', '.') }}</h4>
+                                <h4 class="card-title mb-0 text-primary">Rp
+                                    {{ number_format($metrics['total_revenue'], 0, ',', '.') }}</h4>
                             </div>
                             <div class="avatar bg-light-primary rounded p-2">
                                 <i class="bx bx-wallet fs-2 text-primary"></i>
@@ -122,7 +124,8 @@
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-search"></i></span>
                             <input type="text" id="search" name="search" class="form-control"
-                                placeholder="Cari nama member, kode, invoice, atau paket..." value="{{ request('search') }}" />
+                                placeholder="Cari nama member, kode, invoice, atau paket..."
+                                value="{{ request('search') }}" />
                         </div>
                     </div>
 
@@ -143,7 +146,8 @@
                         <select name="payment_method_id" id="payment_method_id" class="form-select">
                             <option value="">Semua Metode</option>
                             @foreach ($paymentMethods as $pm)
-                                <option value="{{ $pm->id }}" {{ request('payment_method_id') == $pm->id ? 'selected' : '' }}>
+                                <option value="{{ $pm->id }}"
+                                    {{ request('payment_method_id') == $pm->id ? 'selected' : '' }}>
                                     {{ $pm->name }}
                                 </option>
                             @endforeach
@@ -154,7 +158,8 @@
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="bx bx-filter-alt me-1"></i> Filter
                         </button>
-                        <a href="{{ route('membership-transactions.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                        <a href="{{ route('membership-transactions.index') }}" class="btn btn-outline-secondary"
+                            title="Reset Filter">
                             <i class="bx bx-refresh"></i>
                         </a>
                     </div>
@@ -166,14 +171,16 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="text-center" style="width: 50px;">#</th>
-                            <th>No. Invoice & Tanggal</th>
+                            <th class="text-center" style="width: 40px;">#</th>
+                            <th>No. Invoice</th>
+                            <th>Tanggal Pesanan</th>
                             <th>Pelanggan / Member</th>
                             <th>Paket Layanan</th>
-                            <th>Nominal & Metode</th>
+                            <th>Nominal</th>
+                            <th>Metode Bayar</th>
                             <th class="text-center">Bukti Bayar</th>
                             <th class="text-center">Status</th>
-                            <th class="text-center" style="width: 140px;">Aksi Kasir</th>
+                            <th class="text-center" style="width: 120px;">Aksi Kasir</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -185,24 +192,30 @@
                                 $memberEmail = $item->member?->user?->email ?? '-';
                                 $memberPhone = $item->member?->phone_number ?? '-';
                                 $productName = $item->product?->name ?? 'Paket Dihapus';
-                                $durationText = $item->product ? $item->product->duration . ' ' . ucfirst($item->product->duration_unit) : '-';
+                                $durationText = $item->product?->duration_formatted ?? '-';
                                 $priceFormatted = 'Rp ' . number_format($item->price, 0, ',', '.');
-                                $methodName = $item->paymentMethod?->name ?? 'Tunai';
-                                $invoiceNumber = $item->transaction?->invoice_number ?? ('MEM-' . $item->id);
+                                $isCash = $item->isCashPayment();
+                                $methodName = $item->paymentMethod?->name ?? ($isCash ? 'Tunai' : 'Transfer');
+                                $invoiceNumber = $item->transaction?->invoice_number ?? 'MEM-' . $item->id;
                                 $cashierName = $item->transaction?->user?->name ?? '-';
                                 $rejectionReason = $item->transaction?->rejection_reason ?? '';
-                                $createdAtFormatted = $item->created_at ? $item->created_at->translatedFormat('d M Y, H:i') : '-';
-                                $periodFormatted = ($item->start_date ? $item->start_date->format('d/m/Y') : '-') . ' s/d ' . ($item->end_date ? $item->end_date->format('d/m/Y') : '-');
+                                $createdAtFormatted = $item->created_at
+                                    ? $item->created_at->translatedFormat('d M Y, H:i')
+                                    : '-';
+                                $periodFormatted =
+                                    ($item->start_date ? $item->start_date->format('d/m/Y') : '-') .
+                                    ' s/d ' .
+                                    ($item->end_date ? $item->end_date->format('d/m/Y') : '-');
                             @endphp
                             <tr>
                                 <td class="text-center fw-semibold text-muted">
                                     {{ $memberships->firstItem() + $index }}
                                 </td>
                                 <td>
-                                    <span class="badge bg-label-primary font-monospace mb-1">{{ $invoiceNumber }}</span>
-                                    <div class="small text-muted">
-                                        <i class="bx bx-calendar me-1"></i>{{ $createdAtFormatted }}
-                                    </div>
+                                    <span class="fw-semibold text-dark">{{ $invoiceNumber }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small text-nowrap">{{ $createdAtFormatted }}</span>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -213,29 +226,35 @@
                                         </div>
                                         <div>
                                             <div class="fw-semibold text-dark">{{ $memberName }}</div>
-                                            <div class="small text-muted"><code class="text-primary">{{ $memberCode }}</code></div>
+                                            <div class="small text-muted">{{ $memberCode }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="fw-semibold">{{ $productName }}</div>
-                                    <div class="small text-muted"><i class="bx bx-time me-1"></i>{{ $durationText }}</div>
+                                    <div class="fw-semibold text-dark">{{ $productName }}</div>
+                                    <div class="small text-muted"><i class="bx bx-time me-1"></i>{{ $durationText }}
+                                    </div>
                                 </td>
                                 <td>
-                                    <div class="fw-bold text-success">{{ $priceFormatted }}</div>
-                                    <span class="badge bg-label-info font-monospace small">{{ $methodName }}</span>
+                                    <span class="fw-bold text-success">{{ $priceFormatted }}</span>
+                                </td>
+                                <td>
+                                    <span class="text-dark">{{ $methodName }}</span>
                                 </td>
                                 <td class="text-center">
-                                    @if ($proofUrl)
+                                    @if ($isCash)
+                                        <span class="badge bg-label-secondary">
+                                            <i class="bx bx-money me-1"></i>Tunai
+                                        </span>
+                                    @elseif ($proofUrl)
                                         <button type="button" class="btn btn-xs btn-outline-primary btn-preview-proof"
                                             data-bs-toggle="modal" data-bs-target="#modalPreviewBuktiTf"
-                                            data-invoice="{{ $invoiceNumber }}"
-                                            data-proof-url="{{ $proofUrl }}"
+                                            data-invoice="{{ $invoiceNumber }}" data-proof-url="{{ $proofUrl }}"
                                             title="Lihat Bukti Transfer">
-                                            <i class="bx bx-image me-1"></i> Lihat SS
+                                            <i class="bx bx-image me-1"></i> Lihat Bukti
                                         </button>
                                     @else
-                                        <span class="text-muted small italic">- Tidak Ada -</span>
+                                        <span class="badge bg-label-warning">Belum Ada</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -244,7 +263,8 @@
                                     </span>
                                     @if ($item->status === \App\Models\Membership::STATUS_REJECTED && $rejectionReason)
                                         <div class="small text-danger mt-1" title="{{ $rejectionReason }}">
-                                            <i class="bx bx-info-circle"></i> {{ \Illuminate\Support\Str::limit($rejectionReason, 20) }}
+                                            <i class="bx bx-info-circle"></i>
+                                            {{ \Illuminate\Support\Str::limit($rejectionReason, 20) }}
                                         </div>
                                     @endif
                                 </td>
@@ -253,24 +273,17 @@
                                         <!-- Detail Button -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-info btn-detail-tx"
                                             data-bs-toggle="modal" data-bs-target="#modalDetailTransaction"
-                                            data-id="{{ $item->id }}"
-                                            data-member-name="{{ $memberName }}"
-                                            data-member-code="{{ $memberCode }}"
-                                            data-email="{{ $memberEmail }}"
-                                            data-phone="{{ $memberPhone }}"
-                                            data-product="{{ $productName }}"
-                                            data-duration="{{ $durationText }}"
-                                            data-price="{{ $priceFormatted }}"
-                                            data-method="{{ $methodName }}"
-                                            data-invoice="{{ $invoiceNumber }}"
-                                            data-created="{{ $createdAtFormatted }}"
-                                            data-period="{{ $periodFormatted }}"
-                                            data-cashier="{{ $cashierName }}"
+                                            data-id="{{ $item->id }}" data-member-name="{{ $memberName }}"
+                                            data-member-code="{{ $memberCode }}" data-email="{{ $memberEmail }}"
+                                            data-phone="{{ $memberPhone }}" data-product="{{ $productName }}"
+                                            data-duration="{{ $durationText }}" data-price="{{ $priceFormatted }}"
+                                            data-method="{{ $methodName }}" data-is-cash="{{ $isCash ? '1' : '0' }}"
+                                            data-invoice="{{ $invoiceNumber }}" data-created="{{ $createdAtFormatted }}"
+                                            data-period="{{ $periodFormatted }}" data-cashier="{{ $cashierName }}"
                                             data-status="{{ $item->status }}"
                                             data-status-label="{{ $item->status_label }}"
                                             data-status-class="{{ $item->status_badge_class }}"
-                                            data-proof-url="{{ $proofUrl ?? '' }}"
-                                            data-reason="{{ $rejectionReason }}"
+                                            data-proof-url="{{ $proofUrl ?? '' }}" data-reason="{{ $rejectionReason }}"
                                             data-acc-action="{{ route('membership-transactions.approve', $item) }}"
                                             data-tolak-action="{{ route('membership-transactions.reject', $item) }}"
                                             title="Lihat Detail & Bukti">
@@ -283,8 +296,7 @@
                                                 data-bs-toggle="modal" data-bs-target="#modalAccTransaction"
                                                 data-action="{{ route('membership-transactions.approve', $item) }}"
                                                 data-member-name="{{ $memberName }}"
-                                                data-product="{{ $productName }}"
-                                                title="Setujui (ACC) Transaksi">
+                                                data-product="{{ $productName }}" title="Setujui (ACC) Transaksi">
                                                 <i class="bx bx-check"></i>
                                             </button>
 
@@ -293,8 +305,7 @@
                                                 data-bs-toggle="modal" data-bs-target="#modalTolakTransaction"
                                                 data-action="{{ route('membership-transactions.reject', $item) }}"
                                                 data-member-name="{{ $memberName }}"
-                                                data-product="{{ $productName }}"
-                                                title="Tolak Transaksi">
+                                                data-product="{{ $productName }}" title="Tolak Transaksi">
                                                 <i class="bx bx-x"></i>
                                             </button>
                                         @endif
@@ -303,7 +314,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center py-5 text-muted">
+                                <td colspan="10" class="text-center py-5 text-muted">
                                     <i class="bx bx-receipt fs-1 d-block mb-2 text-secondary"></i>
                                     Tidak ada data transaksi membership ditemukan.
                                 </td>
@@ -317,7 +328,8 @@
             @if ($memberships->hasPages())
                 <div class="card-footer d-flex justify-content-between align-items-center py-3">
                     <span class="text-muted small">
-                        Menampilkan {{ $memberships->firstItem() }} sampai {{ $memberships->lastItem() }} dari {{ $memberships->total() }} transaksi
+                        Menampilkan {{ $memberships->firstItem() }} sampai {{ $memberships->lastItem() }} dari
+                        {{ $memberships->total() }} transaksi
                     </span>
                     <div>
                         {{ $memberships->links() }}
@@ -415,6 +427,7 @@
                     const duration = btn.getAttribute('data-duration') || '-';
                     const price = btn.getAttribute('data-price') || '-';
                     const method = btn.getAttribute('data-method') || '-';
+                    const isCash = btn.getAttribute('data-is-cash') === '1';
                     const invoice = btn.getAttribute('data-invoice') || '-';
                     const created = btn.getAttribute('data-created') || '-';
                     const period = btn.getAttribute('data-period') || '-';
@@ -430,7 +443,8 @@
                     currentDetailMemberName = name;
                     currentDetailProduct = product;
 
-                    document.getElementById('detailTxAvatar').textContent = name.substring(0, 2).toUpperCase();
+                    document.getElementById('detailTxAvatar').textContent = name.substring(0, 2)
+                        .toUpperCase();
                     document.getElementById('detailTxMemberName').textContent = name;
                     document.getElementById('detailTxMemberCode').textContent = code;
                     document.getElementById('detailTxEmail').textContent = email;
@@ -460,31 +474,44 @@
                     badge.textContent = statusLabel;
                     badge.className = 'badge ' + statusClass;
 
-                    // Proof Image
+                    // Bukti Transfer vs Catatan Tunai
+                    const proofSection = document.getElementById('detailTxProofSection');
+                    const cashNote = document.getElementById('detailTxCashNote');
                     const proofImg = document.getElementById('detailTxProofImg');
                     const noProof = document.getElementById('detailTxNoProof');
                     const zoomBtn = document.getElementById('detailTxProofZoomBtn');
 
-                    if (proofUrl) {
-                        proofImg.src = proofUrl;
-                        proofImg.classList.remove('d-none');
-                        noProof.classList.add('d-none');
-                        zoomBtn.classList.remove('d-none');
-                        zoomBtn.onclick = function() {
-                            const modalDetailInst = bootstrap.Modal.getInstance(modalDetail);
-                            if (modalDetailInst) modalDetailInst.hide();
-
-                            const previewModal = new bootstrap.Modal(document.getElementById('modalPreviewBuktiTf'));
-                            document.getElementById('previewBuktiTfInvoice').textContent = invoice;
-                            document.getElementById('previewBuktiTfImg').src = proofUrl;
-                            document.getElementById('previewBuktiTfLink').href = proofUrl;
-                            previewModal.show();
-                        };
-                        proofImg.onclick = zoomBtn.onclick;
+                    if (isCash) {
+                        // Jika tunai, sembunyikan upload bukti transfer dan tampilkan note tunai
+                        if (proofSection) proofSection.classList.add('d-none');
+                        if (cashNote) cashNote.classList.remove('d-none');
                     } else {
-                        proofImg.classList.add('d-none');
-                        noProof.classList.remove('d-none');
-                        zoomBtn.classList.add('d-none');
+                        // Jika non-tunai (transfer/qris), tampilkan bukti transfer
+                        if (cashNote) cashNote.classList.add('d-none');
+                        if (proofSection) proofSection.classList.remove('d-none');
+
+                        if (proofUrl) {
+                            proofImg.src = proofUrl;
+                            proofImg.classList.remove('d-none');
+                            noProof.classList.add('d-none');
+                            zoomBtn.classList.remove('d-none');
+                            zoomBtn.onclick = function() {
+                                const modalDetailInst = bootstrap.Modal.getInstance(modalDetail);
+                                if (modalDetailInst) modalDetailInst.hide();
+
+                                const previewModal = new bootstrap.Modal(document.getElementById(
+                                    'modalPreviewBuktiTf'));
+                                document.getElementById('previewBuktiTfInvoice').textContent = invoice;
+                                document.getElementById('previewBuktiTfImg').src = proofUrl;
+                                document.getElementById('previewBuktiTfLink').href = proofUrl;
+                                previewModal.show();
+                            };
+                            proofImg.onclick = zoomBtn.onclick;
+                        } else {
+                            proofImg.classList.add('d-none');
+                            noProof.classList.remove('d-none');
+                            zoomBtn.classList.add('d-none');
+                        }
                     }
 
                     // Rejection reason row
@@ -517,7 +544,8 @@
                     const accModalEl = document.getElementById('modalAccTransaction');
                     const form = document.getElementById('formAccTransaction');
                     if (form) form.action = currentDetailAccAction;
-                    document.getElementById('accTransactionMemberName').textContent = currentDetailMemberName;
+                    document.getElementById('accTransactionMemberName').textContent =
+                        currentDetailMemberName;
                     document.getElementById('accTransactionProduct').textContent = currentDetailProduct;
 
                     const accModal = new bootstrap.Modal(accModalEl);
@@ -536,7 +564,8 @@
                         const reasonInput = document.getElementById('tolakTransactionReason');
                         if (reasonInput) reasonInput.value = '';
                     }
-                    document.getElementById('tolakTransactionMemberName').textContent = currentDetailMemberName;
+                    document.getElementById('tolakTransactionMemberName').textContent =
+                        currentDetailMemberName;
                     document.getElementById('tolakTransactionProduct').textContent = currentDetailProduct;
 
                     const tolakModal = new bootstrap.Modal(tolakModalEl);
@@ -546,4 +575,3 @@
         });
     </script>
 @endpush
-
