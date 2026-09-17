@@ -92,6 +92,14 @@ class DashboardController extends Controller
             ->sum('price');
         $currentMonthLabel = Carbon::now()->translatedFormat('F Y');
 
+        // Metrik Validasi Transaksi Membership (Dipindahkan dari Halaman Transaksi Membership)
+        $txMetrics = [
+            'pending' => Membership::where('status', Membership::STATUS_PENDING)->count(),
+            'approved' => Membership::where('status', Membership::STATUS_ACTIVE)->count(),
+            'rejected' => Membership::whereIn('status', [Membership::STATUS_REJECTED, Membership::STATUS_CANCELLED])->count(),
+            'total_revenue' => Membership::where('status', Membership::STATUS_ACTIVE)->sum('price'),
+        ];
+
         // Reservasi Hari Ini
         $todayReservationsCount = Reservation::whereDate('visit_date', $today)->count();
         $todayPendingReservations = Reservation::whereDate('visit_date', $today)
@@ -152,6 +160,7 @@ class DashboardController extends Controller
             'slotOccupancies' => $slotOccupancies,
             'recentSchedules' => $recentSchedules,
             'operationalSlots' => $activeSlots,
+            'txMetrics' => $txMetrics,
         ]);
     }
 }

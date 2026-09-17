@@ -80,7 +80,9 @@ test('admin dashboard displays membership metrics and monthly revenue', function
         ->assertSee('Membership Aktif')
         ->assertSee('Kadaluarsa')
         ->assertSee('Pendapatan Bulan Ini')
-        ->assertSee('Rp 150.000');
+        ->assertSee('Rp 150.000')
+        ->assertSee('Validasi Transaksi Membership')
+        ->assertSee('Menunggu Validasi');
 });
 
 test('dashboard displays dynamic operational schedule cards', function () {

@@ -352,9 +352,6 @@
                                     <div class="d-flex align-items-center my-1">
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
-                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
                                     <small class="text-muted">{{ $currentMonthLabel }}</small>
                                 </div>
@@ -366,6 +363,100 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Kartu Metrik Transaksi & Validasi Membership (Dipindahkan dari Halaman Transaksi Membership) -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted fw-semibold text-uppercase small mb-0">
+                    <i class="bx bx-receipt me-1 text-primary"></i> Validasi Transaksi Membership
+                </h6>
+                <a href="{{ route('membership-transactions.index') }}" class="small fw-semibold text-primary">
+                    Buka Halaman Transaksi &rarr;
+                </a>
+            </div>
+            <div class="row g-3 mb-4">
+                <!-- Menunggu Validasi -->
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ route('membership-transactions.index', ['status' => 'pending']) }}"
+                        class="text-decoration-none">
+                        <div class="card h-100 border-start border-warning border-4 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted fw-semibold d-block mb-1">Menunggu Validasi</span>
+                                        <h4 class="card-title mb-0 text-warning">
+                                            {{ number_format($txMetrics['pending']) }}</h4>
+                                    </div>
+                                    <div class="avatar bg-light-warning rounded p-2">
+                                        <i class="bx bx-time-five fs-2 text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Transaksi Disetujui -->
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ route('membership-transactions.index', ['status' => 'active']) }}"
+                        class="text-decoration-none">
+                        <div class="card h-100 border-start border-success border-4 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted fw-semibold d-block mb-1">Transaksi Disetujui</span>
+                                        <h4 class="card-title mb-0 text-success">
+                                            {{ number_format($txMetrics['approved']) }}</h4>
+                                    </div>
+                                    <div class="avatar bg-light-success rounded p-2">
+                                        <i class="bx bx-check-double fs-2 text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Ditolak / Batal -->
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ route('membership-transactions.index', ['status' => 'rejected']) }}"
+                        class="text-decoration-none">
+                        <div class="card h-100 border-start border-danger border-4 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted fw-semibold d-block mb-1">Ditolak / Batal</span>
+                                        <h4 class="card-title mb-0 text-danger">
+                                            {{ number_format($txMetrics['rejected']) }}</h4>
+                                    </div>
+                                    <div class="avatar bg-light-danger rounded p-2">
+                                        <i class="bx bx-x-circle fs-2 text-danger"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Total Pendapatan Transaksi -->
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ route('membership-transactions.index') }}" class="text-decoration-none">
+                        <div class="card h-100 border-start border-primary border-4 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
+                                        <h4 class="card-title mb-0 text-primary">Rp
+                                            {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
+                                    </div>
+                                    <div class="avatar bg-light-primary rounded p-2">
+                                        <i class="bx bx-wallet fs-2 text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             </div>
 

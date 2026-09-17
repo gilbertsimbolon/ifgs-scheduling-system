@@ -5,15 +5,11 @@
 @section('content')
     <div class="container-xxl flex-grow-1">
         <!-- Header -->
-        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 mt-2 gap-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 mt-2 gap-2">
             <div>
                 <h5 class="fw-bold py-1 mb-0">
                     <span class="text-muted fw-light">Manajemen /</span> Transaksi Membership
                 </h5>
-                <p class="text-muted small mb-0">
-                    Validasi pembayaran transfer member, periksa bukti transfer, setujui (ACC), atau tolak pesanan
-                    membership.
-                </p>
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ route('memberships.index') }}" class="btn btn-outline-primary">
@@ -48,71 +44,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-
-        <!-- Metric Cards -->
-        <div class="row g-3 mb-4">
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 border-start border-warning border-4 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <span class="text-muted fw-semibold d-block mb-1">Menunggu Validasi</span>
-                                <h4 class="card-title mb-0 text-warning">{{ number_format($metrics['pending']) }}</h4>
-                            </div>
-                            <div class="avatar bg-light-warning rounded p-2">
-                                <i class="bx bx-time-five fs-2 text-warning"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 border-start border-success border-4 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <span class="text-muted fw-semibold d-block mb-1">Transaksi Disetujui</span>
-                                <h4 class="card-title mb-0 text-success">{{ number_format($metrics['approved']) }}</h4>
-                            </div>
-                            <div class="avatar bg-light-success rounded p-2">
-                                <i class="bx bx-check-double fs-2 text-success"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 border-start border-danger border-4 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <span class="text-muted fw-semibold d-block mb-1">Ditolak / Batal</span>
-                                <h4 class="card-title mb-0 text-danger">{{ number_format($metrics['rejected']) }}</h4>
-                            </div>
-                            <div class="avatar bg-light-danger rounded p-2">
-                                <i class="bx bx-x-circle fs-2 text-danger"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-sm-6 col-xl-3">
-                <div class="card h-100 border-start border-primary border-4 shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div>
-                                <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
-                                <h4 class="card-title mb-0 text-primary">Rp
-                                    {{ number_format($metrics['total_revenue'], 0, ',', '.') }}</h4>
-                            </div>
-                            <div class="avatar bg-light-primary rounded p-2">
-                                <i class="bx bx-wallet fs-2 text-primary"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Filter & Table Card -->
         <div class="card shadow-sm">
