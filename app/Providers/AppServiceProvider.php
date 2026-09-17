@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        RedirectIfAuthenticated::redirectUsing(fn () => '/');
+        if (config('app.env') === 'production' || str_contains(request()->getHost(), 'ngrok') || request()->header('X-Forwarded-Proto') === 'https') {
+            URL::forceScheme('https');
+        }
+
+        RedirectIfAuthenticated::redirectUsing(fn() => '/');
     }
 }

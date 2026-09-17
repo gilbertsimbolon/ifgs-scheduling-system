@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MemberController;
@@ -94,6 +95,14 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])->name('approve');
         Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])->name('reject');
         Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])->name('complete');
+    });
+
+    // Operasional: Presensi Check-in & Check-out Member via Barcode / QR Code
+    Route::middleware('role:Admin/Manager|Kasir|Trainer')->prefix('operasional')->name('attendances.')->group(function () {
+        Route::get('/checkin-checkout', [AttendanceController::class, 'index'])->name('index');
+        Route::post('/checkin-checkout/scan', [AttendanceController::class, 'scan'])->name('scan');
+        Route::patch('/checkin-checkout/{attendance}/checkout', [AttendanceController::class, 'checkout'])->name('checkout');
+        Route::delete('/checkin-checkout/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
     });
 
     // Master Data Time Slot (Admin Only)

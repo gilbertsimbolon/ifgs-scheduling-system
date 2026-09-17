@@ -69,6 +69,26 @@ class Member extends Model
     }
 
     /**
+     * Get all gym attendance records for this member.
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * Get the active check-in record for today (currently in gym, not checked out yet).
+     */
+    public function currentAttendanceToday(): ?Attendance
+    {
+        return $this->attendances()
+            ->today()
+            ->currentlyInGym()
+            ->latest('check_in_at')
+            ->first();
+    }
+
+    /**
      * Get the current active membership for this member.
      */
     public function activeMembership(): ?Membership

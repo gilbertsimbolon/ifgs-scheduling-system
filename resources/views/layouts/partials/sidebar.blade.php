@@ -87,6 +87,20 @@
         </li>
 
         <!-- 3. KUNJUNGAN (Core Flow Algoritma Greedy) -->
+        <!-- 3. OPERASIONAL -->
+        @hasanyrole('Admin/Manager|Kasir|Trainer')
+            <li class="menu-header small text-uppercase">
+                <span class="menu-header-text">OPERASIONAL</span>
+            </li>
+            <li class="menu-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                <a href="{{ route('attendances.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-barcode-reader"></i>
+                    <div class="text-truncate">Check-in & Check-out</div>
+                </a>
+            </li>
+        @endhasanyrole
+
+        <!-- 4. KUNJUNGAN (Core Flow Algoritma Greedy) -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">KUNJUNGAN</span>
         </li>
