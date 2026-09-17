@@ -5,20 +5,29 @@
             <div class="modal-header bg-primary text-white border-0 pb-3">
                 <div class="w-100 text-center">
                     <h5 class="modal-title text-white fw-bold d-inline-flex align-items-center justify-content-center" id="modalQrCodeMemberLabel">
+                    <h5 class="modal-title text-white fw-bold d-inline-flex align-items-center justify-content-center"
+                        id="modalQrCodeMemberLabel">
                         <i class="bx bx-qr-scan me-2 fs-4"></i> QR Code Absensi Kunjungan
                     </h5>
                     <small class="text-white-50">Indo Fitness Gym Sport Tondano</small>
                 </div>
                 <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
+                    data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4 bg-white">
                 <div class="mb-3">
                     <h5 class="fw-bold text-dark mb-0">{{ auth()->user()->name }}</h5>
                     <p class="text-muted small mb-0">ID Member: <code class="text-primary fw-bold fs-6">{{ $member->member_code ?? '-' }}</code></p>
+                    <p class="text-muted small mb-0">ID Member: <code
+                            class="text-primary fw-bold fs-6">{{ $member->member_code ?? (auth()->user()->user_code ?? auth()->user()->qr_code) }}</code>
+                    </p>
                 </div>
 
                 <!-- Kontainer QR Code dengan Background Putih Bersih & Kontras Tinggi -->
                 <div class="d-inline-block p-3 bg-white rounded-3 border border-2 border-dark shadow-sm my-2" style="max-width: 260px;">
+                <div class="d-inline-block p-3 bg-white rounded-3 border border-2 border-dark shadow-sm my-2"
+                    style="max-width: 260px;">
                     {!! auth()->user()->getQrCodeSvg(230) !!}
                 </div>
 
@@ -31,6 +40,8 @@
                         <i class="bx bx-info-circle fs-5 me-2 flex-shrink-0"></i>
                         <div>
                             Arahkan layar ponsel ini ke barcode scanner absensi di meja resepsionis saat memasuki area gym.
+                            Arahkan layar ponsel ini ke barcode scanner absensi di meja resepsionis saat memasuki area
+                            gym.
                         </div>
                     </div>
                 </div>

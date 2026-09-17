@@ -13,15 +13,15 @@ beforeEach(function () {
     Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
 });
 
-test('user creation automatically generates unique qr_code starting with IFGS-QR-', function () {
+test('user creation automatically generates unique qr_code matching user_code', function () {
     $user = User::factory()->create([
         'name' => 'Jane Member',
         'email' => 'jane@example.com',
     ]);
 
     expect($user->qr_code)->not->toBeNull()
-        ->and($user->qr_code)->toStartWith('IFGS-QR-')
-        ->and(strlen($user->qr_code))->toBe(18); // 'IFGS-QR-' (8) + 10 random alphanumeric chars = 18
+        ->and($user->qr_code)->toBe($user->user_code)
+        ->and($user->qr_code)->toStartWith('IFGS-');
 });
 
 test('findByQrCode finds user by qr_code string or member_code', function () {
@@ -75,7 +75,7 @@ test('user registration via register endpoint generates qr_code automatically', 
     $user = User::where('email', 'budi@example.com')->first();
     expect($user)->not->toBeNull()
         ->and($user->qr_code)->not->toBeNull()
-        ->and($user->qr_code)->toStartWith('IFGS-QR-');
+        ->and($user->qr_code)->toStartWith('IFGS-');
 });
 
 test('authenticated user can download their own QR code as svg file', function () {
@@ -86,7 +86,7 @@ test('authenticated user can download their own QR code as svg file', function (
 
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'image/svg+xml');
-    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-'.$user->slug.'.svg"');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-' . $user->slug . '.svg"');
     expect($response->getContent())->toContain('<svg');
 });
 
@@ -101,7 +101,7 @@ test('staff (Admin/Manager & Kasir) can download any user QR code', function () 
 
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'image/svg+xml');
-    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-'.$targetUser->slug.'.svg"');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-' . $targetUser->slug . '.svg"');
 });
 
 test('member cannot download another user QR code and receives 403', function () {

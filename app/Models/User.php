@@ -42,11 +42,11 @@ class User extends Authenticatable
             if (empty($user->slug)) {
                 $user->slug = static::generateUniqueSlug($user->name);
             }
-            if (empty($user->qr_code)) {
-                $user->qr_code = static::generateUniqueQrCode();
-            }
             if (empty($user->user_code)) {
                 $user->user_code = static::generateUniqueUserCode();
+            }
+            if (empty($user->qr_code)) {
+                $user->qr_code = $user->user_code;
             }
         });
     }
@@ -57,19 +57,19 @@ class User extends Authenticatable
      */
     public static function generateUniqueUserCode(): string
     {
-        $prefix = 'IFGS-'.now()->format('Ym').'-';
+        $prefix = 'IFGS-' . now()->format('Ym') . '-';
 
         $last = static::where('user_code', 'like', "{$prefix}%")
             ->orderByDesc('user_code')
             ->first();
 
         $nextSequence = 1;
-        if ($last && preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $last->user_code, $matches)) {
+        if ($last && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $last->user_code, $matches)) {
             $nextSequence = ((int) $matches[1]) + 1;
         }
 
         do {
-            $code = $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $code = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (static::where('user_code', $code)->exists() || Member::where('member_code', $code)->exists());
 
@@ -90,9 +90,7 @@ class User extends Authenticatable
         $count = 2;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
-            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -104,17 +102,11 @@ class User extends Authenticatable
 
     /**
      * Generate a unique QR code string for gym attendance.
-     * Format: IFGS-QR-XXXXXXXXXX
+     * Defaults to user_code format: IFGS-YYYYMM-XXXX
      */
     public static function generateUniqueQrCode(): string
     {
-        do {
-            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
-            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
-            $code = 'IFGS-QR-'.strtoupper(Str::random(10));
-        } while (static::where('qr_code', $code)->exists());
-
-        return $code;
+        return static::generateUniqueUserCode();
     }
 
     /**
@@ -122,17 +114,25 @@ class User extends Authenticatable
      */
     public function getQrCodeSvg(int $size = 200): string
     {
-        return QrCode::size($size)->generate($this->qr_code ?? $this->id);
+        $code = $this->qr_code ?: ($this->member?->member_code ?: ($this->user_code ?: "IFGS-UID-{$this->id}"));
+
+        return QrCode::size($size)->generate($code);
     }
 
     /**
-     * Find a user by their unique QR code or member code.
+     * Find a user by their unique QR code, user code, member code, phone, email, or ID.
      */
     public static function findByQrCode(string $code): ?User
     {
+        $code = trim($code);
+
         return static::where('qr_code', $code)
             ->orWhere('user_code', $code)
-            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code))
+            ->orWhere('email', $code)
+            ->when(is_numeric($code), fn($q) => $q->orWhere('id', (int) $code))
+            ->orWhereHas('member', fn($q) => $q->where('member_code', $code)->orWhere('phone', $code))
+            ->when(is_numeric($code), fn($q) => $q->orWhere('id', (int) $code))
+            ->orWhereHas('member', fn($q) => $q->where('member_code', $code)->orWhere('phone', $code))
             ->first();
     }
 

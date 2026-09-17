@@ -207,9 +207,15 @@
             </div>
 
             <!-- 7. Langsung Area Scan Barcode TOK (Kamera Otomatis Aktif Langsung, Tanpa Embel-embel Lain) -->
-            <div class="scanner-container mx-auto mb-2" id="cameraWrapper">
+            <div class="scanner-container mx-auto mb-2 position-relative" id="cameraWrapper">
                 <div id="reader"></div>
                 <div id="laserLine" class="scan-laser"></div>
+                <!-- Tombol Ganti Kamera jika di HP memiliki kamera depan & belakang -->
+                <button type="button" id="btnSwitchCamera"
+                    class="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-2 opacity-75 hover-opacity-100 d-none"
+                    style="z-index: 20; border-radius: 50rem;" title="Ganti Kamera Depan / Belakang">
+                    <i class="bx bx-sync me-1"></i> Ganti Kamera
+                </button>
             </div>
 
             <!-- Bagian di bawah area scan dihilangkan sesuai permintaan user -->
@@ -511,61 +517,115 @@
                 // Background scan frame errors are ignored
             }
 
-            // OTOMATIS AKTIFKAN KAMERA PERANGKAT LANGSUNG (BEBAS PROMPT PONSEL)
+            // OTOMATIS AKTIFKAN KAMERA PERANGKAT LANGSUNG (CEPAT, HARDWARE-ACCELERATED & BEBAS PROMPT PONSEL)
+            let availableCameras = [];
+            let currentCameraIndex = 0;
+
+            const scannerConfig = {
+                fps: 25, // 25 frame per detik untuk pemindaian responsif instan
+                qrbox: function(viewfinderWidth, viewfinderHeight) {
+                    // Tangkap barcode di seluruh area kamera (85% layar) tanpa terbatasi kotak kecil
+                    const edge = Math.min(viewfinderWidth, viewfinderHeight);
+                    return {
+                        width: Math.max(Math.floor(edge * 0.88), 240),
+                        height: Math.max(Math.floor(edge * 0.88), 240)
+                    };
+                },
+                aspectRatio: 1.0,
+                videoConstraints: {
+                    width: {
+                        ideal: 1280
+                    },
+                    height: {
+                        ideal: 720
+                    }
+                }
+            };
+
             function autoStartCamera() {
                 try {
-                    html5QrCode = new Html5Qrcode("reader");
-                    const config = {
-                        fps: 15,
-                        qrbox: {
-                            width: 250,
-                            height: 250
+                    // Gunakan hardware-accelerated BarcodeDetector bawaan browser (misal Chrome di Android/PC)
+                    html5QrCode = new Html5Qrcode("reader", {
+                        experimentalFeatures: {
+                            useBarCodeDetectorIfSupported: true
                         },
-                        aspectRatio: 1.0
-                    };
+                        verbose: false
+                    });
 
-                    // Dapatkan kamera fisik lokal yang terpasang di perangkat (laptop webcam / kamera bawaan)
-                    // Menggunakan device ID spesifik atau facingMode "user" agar Windows/Chrome tidak memicu prompt 'Connect to Phone'
                     Html5Qrcode.getCameras().then(cameras => {
                         if (cameras && cameras.length > 0) {
-                            const selectedCameraId = cameras[0].id;
-                            html5QrCode.start(
-                                selectedCameraId,
-                                config,
-                                onScanSuccess,
-                                onScanFailure
-                            ).then(() => {
-                                isScanning = true;
-                            }).catch(err => {
-                                console.warn(
-                                    "Gagal membuka kamera dengan deviceId, mencoba fallback:",
-                                    err);
-                                fallbackStartCamera(config);
-                            });
+                            availableCameras = cameras;
+
+                            // Jika di HP / tablet (memiliki lebih dari 1 kamera), prioritaskan kamera belakang utama
+                            let selectedIndex = 0;
+                            if (cameras.length > 1) {
+                                const btnSwitch = document.getElementById('btnSwitchCamera');
+                                if (btnSwitch) btnSwitch.classList.remove('d-none');
+
+                                for (let i = 0; i < cameras.length; i++) {
+                                    const label = cameras[i].label.toLowerCase();
+                                    if (label.includes('back') || label.includes('rear') || label.includes(
+                                            'belakang') || label.includes('environment')) {
+                                        selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            }
+                            currentCameraIndex = selectedIndex;
+
+                            startCameraWithDevice(cameras[selectedIndex].id);
                         } else {
-                            fallbackStartCamera(config);
+                            fallbackStartCamera();
                         }
                     }).catch(err => {
                         console.warn("Tidak dapat membaca daftar kamera:", err);
-                        fallbackStartCamera(config);
+                        fallbackStartCamera();
                     });
                 } catch (e) {
                     console.error("Inisialisasi kamera gagal:", e);
                 }
             }
 
-            function fallbackStartCamera(config) {
+            function startCameraWithDevice(deviceId) {
+                html5QrCode.start(
+                    deviceId,
+                    scannerConfig,
+                    onScanSuccess,
+                    onScanFailure
+                ).then(() => {
+                    isScanning = true;
+                }).catch(err => {
+                    console.warn("Gagal membuka kamera dengan deviceId, mencoba fallback:", err);
+                    fallbackStartCamera();
+                });
+            }
+
+            function fallbackStartCamera() {
                 // Fallback menggunakan webcam bawaan (facingMode: "user")
                 html5QrCode.start({
                         facingMode: "user"
                     },
-                    config,
+                    scannerConfig,
                     onScanSuccess,
                     onScanFailure
                 ).then(() => {
                     isScanning = true;
                 }).catch(err => {
                     console.warn("Fallback kamera gagal:", err);
+                });
+            }
+
+            // Tombol Switch Kamera (Depan / Belakang di HP)
+            const btnSwitch = document.getElementById('btnSwitchCamera');
+            if (btnSwitch) {
+                btnSwitch.addEventListener('click', function() {
+                    if (availableCameras.length > 1 && html5QrCode && isScanning) {
+                        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+                        html5QrCode.stop().then(() => {
+                            isScanning = false;
+                            startCameraWithDevice(availableCameras[currentCameraIndex].id);
+                        }).catch(e => console.warn(e));
+                    }
                 });
             }
 

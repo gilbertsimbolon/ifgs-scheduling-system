@@ -95,6 +95,8 @@
                             <p class="text-white-50 mb-3">
                                 ID Member: <strong
                                     class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull;
+                                    class="text-white font-monospace">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                &bull;
                                 Kode QR: <span class="text-white-50 font-monospace">{{ auth()->user()->qr_code }}</span>
                             </p>
                             <div class="d-flex flex-wrap gap-2">
@@ -138,6 +140,8 @@
                                     {{ $activeMembership->product->name ?? 'Membership Reguler' }}</h4>
                                 <p class="text-muted small mb-3">Kode Member: <strong
                                         class="text-dark">{{ $member->member_code ?? '-' }}</strong></p>
+                                        class="text-dark">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                </p>
                                 <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                     <small class="text-muted">Masa Berlaku:</small>
                                     <span class="badge bg-label-success">s/d
@@ -353,6 +357,8 @@
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
+                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
                                     <small class="text-muted">{{ $currentMonthLabel }}</small>
                                 </div>
@@ -451,6 +457,8 @@
                                         <h4 class="card-title mb-0 text-primary">Rp
                                             {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
                                         <h4 class="card-title mb-0 text-primary">Rp {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
+                                        <h4 class="card-title mb-0 text-primary">Rp
+                                            {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
                                     </div>
                                     <div class="avatar bg-light-primary rounded p-2">
                                         <i class="bx bx-wallet fs-2 text-primary"></i>

@@ -122,6 +122,33 @@ test('scan check-in can locate member via user qr_code', function () {
     ]);
 });
 
+test('scan check-in works for user without prior member record', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $standaloneUser = User::factory()->create([
+        'name' => 'Admin Tester',
+        'user_code' => 'IFGS-202609-0099',
+        'qr_code' => 'IFGS-202609-0099',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->postJson(route('attendances.scan'), [
+            'code' => 'IFGS-202609-0099',
+            'mode' => 'check_in',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'success' => true,
+            'action' => 'check_in',
+        ]);
+
+    $this->assertDatabaseHas('members', [
+        'user_id' => $standaloneUser->id,
+    ]);
+});
+
 test('scan check-in automatically activates approved trainer booking for today to in_progress', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
