@@ -356,10 +356,8 @@
                                     <div class="d-flex align-items-center my-1">
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
-                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
-                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">
+                                            {{ 'Rp ' . number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
                                     <small class="text-muted">{{ $currentMonthLabel }}</small>
                                 </div>
@@ -457,10 +455,8 @@
                                         <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
                                         <h4 class="card-title mb-0 text-primary">Rp
                                             {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
-                                        <h4 class="card-title mb-0 text-primary">Rp
-                                            {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
-                                        <h4 class="card-title mb-0 text-primary">Rp
-                                            {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
+                                        <h4 class="card-title mb-0 text-primary">
+                                            {{ 'Rp ' . number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
                                     </div>
                                     <div class="avatar bg-light-primary rounded p-2">
                                         <i class="bx bx-wallet fs-2 text-primary"></i>

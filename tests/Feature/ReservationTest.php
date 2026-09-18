@@ -250,3 +250,61 @@ test('reservation table displays separated columns and Indonesian formatted date
     $dashResponse->assertSee('Total Reservasi');
     $dashResponse->assertSee('Terjadwal (Optimal)');
 });
+
+test('reservation is rejected if chosen time slot does not match member active membership package', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $fitnessProduct = Product::factory()->create([
+        'name' => 'Fitness 1 Bulan',
+    ]);
+
+    $membership = Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $fitnessProduct->id,
+        'status' => 'active',
+        'start_date' => Carbon::today()->subDays(5)->format('Y-m-d'),
+        'end_date' => Carbon::today()->addDays(25)->format('Y-m-d'),
+    ]);
+
+    $zumbaSlot = TimeSlot::factory()->create([
+        'name' => 'Aerobic & Zumba',
+        'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+        'capacity' => 30,
+        'status' => 'active',
+    ]);
+
+    $fitnessSlot = TimeSlot::factory()->create([
+        'name' => 'Fitness',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'capacity' => 100,
+        'status' => 'active',
+    ]);
+
+    // Next Monday to ensure gym is open
+    $visitDate = Carbon::now()->next(Carbon::MONDAY)->format('Y-m-d');
+
+    // 1. Try to book Zumba with only a Fitness membership -> Must be rejected
+    $rejectResponse = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => $visitDate,
+            'time_slot_id' => $zumbaSlot->id,
+        ]);
+
+    $rejectResponse->assertRedirect();
+    $rejectResponse->assertSessionHas('error');
+    expect(Reservation::count())->toBe(0);
+
+    // 2. Try to book Fitness with a Fitness membership -> Must succeed
+    $successResponse = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => $visitDate,
+            'time_slot_id' => $fitnessSlot->id,
+        ]);
+
+    $successResponse->assertRedirect(route('reservations.index'));
+    $successResponse->assertSessionHas('success');
+    expect(Reservation::count())->toBe(1);
+    expect(Reservation::first()->time_slot_id)->toBe($fitnessSlot->id);
+});

@@ -143,14 +143,13 @@
                             <tr>
                                 <td>{{ $reservations->firstItem() + $index }}</td>
                                 <td>
-                                    <span class="fw-bold text-primary font-monospace">{{ $res->code }}</span>
+                                    <span class="fw-semibold text-primary">{{ $res->code }}</span>
                                     <small class="d-block text-muted">{{ $res->created_at->format('d/m/Y H:i') }}</small>
                                 </td>
                                 @if (!$isMember)
                                     <td>
                                         <div class="fw-semibold text-heading">{{ $res->member->user->name ?? '-' }}</div>
-                                        <small
-                                            class="text-muted font-monospace">{{ $res->member->member_code ?? '-' }}</small>
+                                        <small class="text-muted">{{ $res->member->member_code ?? '-' }}</small>
                                     </td>
                                 @endif
                                 <td>
@@ -165,7 +164,7 @@
                                         class="text-body">{{ $res->timeSlot->name ?? ($res->membership->product->name ?? 'Fitness') }}</span>
                                 </td>
                                 <td>
-                                    <span class="text-body font-monospace">{{ $res->timeSlot->time_range ?? '-' }}</span>
+                                    <span class="text-body">{{ $res->timeSlot->time_range ?? '-' }}</span>
                                 </td>
                                 <td>
                                     @if ($res->status === 'scheduled')
@@ -240,7 +239,7 @@
                                                     &bull; {{ $res->member->user->email ?? '-' }}</small>
                                                 <div class="mt-2 text-muted small">
                                                     Kode Reservasi: <span
-                                                        class="fw-semibold text-dark font-monospace">{{ $res->code }}</span>
+                                                        class="fw-semibold text-dark">{{ $res->code }}</span>
                                                 </div>
                                             </div>
 
@@ -263,7 +262,7 @@
                                                 </div>
                                                 <div class="col-6">
                                                     <small class="text-muted d-block">Waktu Sesi</small>
-                                                    <span class="fw-semibold font-monospace text-dark">
+                                                    <span class="fw-semibold text-dark">
                                                         {{ $res->timeSlot ? $res->timeSlot->time_range : '-' }}
                                                     </span>
                                                 </div>
@@ -360,39 +359,61 @@
                 <form action="{{ route('reservations.store') }}" method="POST" id="formTambahReservasi">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title fw-bold">
-                            <i class="bx bx-calendar-plus text-primary me-1"></i> Buat Reservasi Kunjungan Gym
+                        <h5 class="modal-title fw-bold text-dark">
+                            <i class="bx bx-calendar-plus me-1"></i> Buat Reservasi Kunjungan Gym
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- Alert Penjelasan Algoritma Greedy -->
-                        <div class="alert alert-primary d-flex align-items-center mb-3">
-                            <i class="bx bx-brain fs-3 me-2"></i>
-                            <div class="small">
-                                <strong>Sistem Penjadwalan Cerdas Algoritma Greedy:</strong>
-                                Sistem akan secara otomatis menganalisis dan merekomendasikan Time Slot yang paling seimbang
-                                beban kunjungannya untuk mencegah penumpukan massa di gym Indo Fitness Tondano.
-                            </div>
-                        </div>
-
                         <div class="row g-3">
                             @if (!$isMember)
                                 <div class="col-12">
-                                    <label class="form-label" for="select_member_id">Pilih Member (Membership Aktif) <span
-                                            class="text-danger">*</span></label>
-                                    <select class="form-select" id="select_member_id" name="member_id" required>
-                                        <option value="">-- Pilih Member --</option>
-                                        @foreach ($activeMembers as $m)
-                                            <option value="{{ $m->id }}"
-                                                {{ old('member_id') == $m->id ? 'selected' : '' }}>
-                                                {{ $m->user->name }} ({{ $m->member_code }}) - Paket:
-                                                {{ $m->memberships->first()->product->name ?? 'Aktif' }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <small class="text-muted">Hanya member yang memiliki paket membership aktif yang dapat
-                                        melakukan reservasi.</small>
+                                    <label class="form-label fw-semibold" for="member_search_input">
+                                        Pilih Member (Membership Aktif) <span class="text-danger">*</span>
+                                    </label>
+
+                                    <!-- Input tersembunyi member_id untuk form submission -->
+                                    <input type="hidden" name="member_id" id="selected_member_id"
+                                        value="{{ old('member_id') }}" required>
+
+                                    <!-- Search bar input -->
+                                    <div class="position-relative" id="member_search_wrapper">
+                                        <div class="input-group input-group-merge">
+                                            <span class="input-group-text"><i class="bx bx-search"></i></span>
+                                            <input type="text" id="member_search_input" class="form-control"
+                                                placeholder="Ketik nama member, kode member (IFGS-...), atau nomor HP..."
+                                                autocomplete="off">
+                                        </div>
+                                        <small class="text-muted d-block mt-1" id="member_search_help">
+                                            <i class="bx bx-info-circle me-1"></i> Ketik minimal 3 huruf untuk mencari
+                                            member secara instan.
+                                        </small>
+
+                                        <!-- Floating live search results -->
+                                        <div id="member_search_results"
+                                            class="dropdown-menu w-100 shadow-lg p-0 overflow-auto border mt-1"
+                                            style="max-height: 250px; display: none; position: absolute; z-index: 1060;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Selected Member Preview Card -->
+                                    <div id="selected_member_box"
+                                        class="p-3 border rounded bg-lighter d-none align-items-center justify-content-between mt-1">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="avatar avatar-md flex-shrink-0" id="selected_member_avatar"></div>
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold text-dark" id="selected_member_name">-</h6>
+                                                <div class="text-muted small">
+                                                    <span id="selected_member_code">-</span> &bull; Paket: <span
+                                                        id="selected_member_package" class="fw-medium text-dark">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                            id="btn_change_selected_member">
+                                            <i class="bx bx-refresh me-1"></i> Ganti
+                                        </button>
+                                    </div>
                                 </div>
                             @else
                                 <div class="col-12">
@@ -401,9 +422,9 @@
                                             <div>
                                                 <span class="text-muted small d-block">Paket Membership Anda:</span>
                                                 <strong
-                                                    class="text-primary fs-6">{{ $myActiveMembership->product->name ?? 'Membership Aktif' }}</strong>
+                                                    class="text-dark fs-6">{{ $myActiveMembership->product->name ?? 'Membership Aktif' }}</strong>
                                             </div>
-                                            <span class="badge bg-label-success">
+                                            <span class="badge bg-secondary">
                                                 Berlaku s/d
                                                 {{ $myActiveMembership ? $myActiveMembership->end_date->format('d M Y') : '-' }}
                                             </span>
@@ -412,39 +433,102 @@
                                 </div>
                             @endif
 
-                            <div class="col-md-6">
-                                <label class="form-label" for="res_visit_date">Tanggal Kunjungan <span
-                                        class="text-danger">*</span></label>
+                            <!-- 2 Cards Checklist Jenis Kunjungan (Fitness vs Zumba) -->
+                            <div class="col-12">
+                                <label class="form-label fw-semibold d-block mb-2">
+                                    Pilih Jenis Kunjungan (Sesi Layanan) <span class="text-danger">*</span>
+                                </label>
+                                <input type="hidden" name="time_slot_id" id="res_time_slot_id"
+                                    value="{{ old('time_slot_id') }}" required>
+
+                                <div class="row g-2" id="serviceSlotCardsContainer">
+                                    @foreach ($timeSlots as $slot)
+                                        <div class="col-12 col-md-6">
+                                            <div class="service-slot-card border rounded p-3 h-100 position-relative bg-white"
+                                                id="service_card_{{ $slot->id }}" data-slot-id="{{ $slot->id }}"
+                                                data-category="{{ $slot->category }}" data-name="{{ $slot->name }}"
+                                                style="cursor: pointer; transition: all 0.2s ease-in-out;">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <input class="form-check-input service-card-radio m-0"
+                                                            type="radio" name="service_card_radio"
+                                                            id="radio_slot_{{ $slot->id }}"
+                                                            value="{{ $slot->id }}"
+                                                            style="pointer-events: none; width: 1.2em; height: 1.2em;">
+                                                        <div>
+                                                            <label
+                                                                class="form-check-label fw-semibold text-dark mb-0 d-block cursor-pointer"
+                                                                for="radio_slot_{{ $slot->id }}">
+                                                                {{ $slot->name }}
+                                                            </label>
+                                                            <small class="text-muted">
+                                                                <i
+                                                                    class="bx bx-time-five me-1"></i>{{ $slot->time_range }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <span class="badge bg-label-secondary service-card-badge"
+                                                        id="service_badge_{{ $slot->id }}">
+                                                        {{ $isMember ? 'Memuat...' : 'Pilih Member' }}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    class="pt-2 border-top mt-2 d-flex justify-content-between align-items-center text-muted small">
+                                                    <span>Kapasitas: <strong class="text-dark">{{ $slot->capacity }}
+                                                            org</strong></span>
+                                                    <span>{{ $slot->category === 'fitness' ? 'Sesi Umum / Bebas' : 'Sesi Khusus Terjadwal' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <small class="text-muted d-block mt-1" id="service_card_help">
+                                    @if ($isMember)
+                                        Pilih jenis kunjungan yang aktif pada paket membership Anda.
+                                    @else
+                                        Pilih member terlebih dahulu untuk melihat jenis kunjungan yang aktif pada paketnya.
+                                    @endif
+                                </small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold" for="res_visit_date">
+                                    Tanggal Kunjungan <span class="text-danger">*</span>
+                                </label>
                                 <input type="date" class="form-control" id="res_visit_date" name="visit_date"
                                     min="{{ date('Y-m-d') }}" value="{{ old('visit_date', date('Y-m-d')) }}" required>
                                 <small class="text-muted">Pilih tanggal rencana Anda berolahraga.</small>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label" for="res_time_slot_id">Preferensi Time Slot (Opsional)</label>
-                                <select class="form-select" id="res_time_slot_id" name="time_slot_id">
-                                    <option value="">-- Otomatis Pilih Terbaik (Algoritma Greedy) --</option>
-                                    @foreach ($timeSlots as $slot)
-                                        <option value="{{ $slot->id }}"
-                                            {{ old('time_slot_id') == $slot->id ? 'selected' : '' }}>
-                                            {{ $slot->name }} ({{ $slot->time_range }}) - Kuota: {{ $slot->capacity }}
-                                            org
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">Jika dibiarkan kosong, Algoritma Greedy akan memilihkan sesi
-                                    paling renggang.</small>
-                            </div>
-
-                            <!-- Live Slot Capacity Monitor -->
-                            <div class="col-12 mt-3">
-                                <label class="form-label small fw-bold text-muted mb-1">Ketersediaan Kuota Slot Waktu pada
-                                    Tanggal Terpilih:</label>
-                                <div id="slotCapacityContainer" class="p-2 border rounded bg-lighter">
-                                    <div class="text-center py-2 text-muted small" id="slotLoadingNotice">
-                                        <i class="bx bx-loader-alt bx-spin me-1"></i> Memuat status slot waktu...
+                            <!-- Live Schedule & Slot Realtime Area -->
+                            <div class="col-12 mt-2">
+                                <label class="form-label small fw-semibold text-muted mb-1">
+                                    Jadwal Operasional & Ketersediaan Slot Real-Time:
+                                </label>
+                                <div id="realtimeScheduleContainer">
+                                    <!-- Prompt before choosing service type -->
+                                    <div id="schedulePlaceholder"
+                                        class="p-3 border rounded bg-lighter text-center text-muted small">
+                                        <i class="bx bx-calendar-event fs-3 d-block mb-1 text-muted"></i>
+                                        Silakan pilih <strong>Jenis Kunjungan</strong> terlebih dahulu untuk melihat jadwal
+                                        dan ketersediaan slot.
                                     </div>
-                                    <div class="row g-2" id="slotCardsRow"></div>
+
+                                    <!-- Schedule & Slot Card when service type & date are selected -->
+                                    <div id="scheduleCardBox" class="d-none"></div>
+
+                                    <!-- Loading notice -->
+                                    <div id="scheduleLoadingBox"
+                                        class="p-3 border rounded bg-lighter text-center text-muted small d-none">
+                                        <i class="bx bx-loader-alt bx-spin me-1"></i> Memeriksa ketersediaan kuota slot...
+                                    </div>
+
+                                    <!-- Sunday closed notice -->
+                                    <div id="scheduleClosedBox" class="alert alert-danger mb-0 d-none">
+                                        <i class="bx bx-calendar-x me-1"></i> <strong>Gym Tutup:</strong> Indo Fitness Gym
+                                        Sport tutup pada hari Minggu sesuai ketentuan jadwal operasional resmi gym. Silakan
+                                        pilih hari operasional (Senin - Sabtu).
+                                    </div>
                                 </div>
                             </div>
 
@@ -470,60 +554,398 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var dateInput = document.getElementById('res_visit_date');
-            var container = document.getElementById('slotCardsRow');
-            var loading = document.getElementById('slotLoadingNotice');
+            // === 1. FITUR PENCARIAN INSTAN MEMBER (SEARCH BAR MIN 3 HURUF, ZERO LOADING) ===
+            const activeMembers = @json($activeMembersList ?? []);
+            const searchInput = document.getElementById('member_search_input');
+            const searchResults = document.getElementById('member_search_results');
+            const searchWrapper = document.getElementById('member_search_wrapper');
+            const selectedBox = document.getElementById('selected_member_box');
+            const selectedIdInput = document.getElementById('selected_member_id');
+            const btnChange = document.getElementById('btn_change_selected_member');
 
-            function checkSlotAvailability(selectedDate) {
-                if (!selectedDate) return;
-                loading.style.display = 'block';
-                container.innerHTML = '';
+            function selectMember(member) {
+                if (!member) return;
+                selectedIdInput.value = member.id;
+                searchWrapper.classList.add('d-none');
+                searchResults.style.display = 'none';
+
+                document.getElementById('selected_member_name').textContent = member.name;
+                document.getElementById('selected_member_code').textContent = member.member_code;
+                document.getElementById('selected_member_package').textContent = member.package_name;
+
+                const avatarContainer = document.getElementById('selected_member_avatar');
+                if (member.avatar_url) {
+                    avatarContainer.innerHTML =
+                        `<img src="${member.avatar_url}" class="rounded-circle object-fit-cover" style="width: 40px; height: 40px;">`;
+                } else {
+                    avatarContainer.innerHTML =
+                        `<span class="avatar-initial rounded-circle bg-secondary text-white fw-bold">${member.initials}</span>`;
+                }
+
+                selectedBox.classList.remove('d-none');
+                selectedBox.classList.add('d-flex');
+
+                // Update 2 card jenis kunjungan sesuai paket member yang dipilih
+                if (typeof updateServiceCards === 'function') {
+                    updateServiceCards(member.allowed_categories || []);
+                }
+            }
+
+            if (btnChange) {
+                btnChange.addEventListener('click', function() {
+                    selectedIdInput.value = '';
+                    selectedBox.classList.add('d-none');
+                    selectedBox.classList.remove('d-flex');
+                    searchWrapper.classList.remove('d-none');
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.focus();
+                    }
+                    if (typeof updateServiceCards === 'function') {
+                        updateServiceCards([]);
+                    }
+                });
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const q = this.value.trim().toLowerCase();
+                    if (q.length < 3) {
+                        searchResults.style.display = 'none';
+                        searchResults.innerHTML = '';
+                        return;
+                    }
+
+                    const matches = activeMembers.filter(m => {
+                        const name = (m.name || '').toLowerCase();
+                        const code = (m.member_code || '').toLowerCase();
+                        const phone = (m.phone || '').toLowerCase();
+                        const email = (m.email || '').toLowerCase();
+                        return name.includes(q) || code.includes(q) || phone.includes(q) || email
+                            .includes(q);
+                    });
+
+                    if (matches.length === 0) {
+                        searchResults.innerHTML =
+                            '<div class="p-3 text-center text-muted small"><i class="bx bx-user-x me-1"></i> Tidak ditemukan member aktif dengan kata kunci tersebut.</div>';
+                        searchResults.style.display = 'block';
+                        return;
+                    }
+
+                    let html = '';
+                    matches.forEach(m => {
+                        const avatarHtml = m.avatar_url ?
+                            `<img src="${m.avatar_url}" class="rounded-circle object-fit-cover" style="width: 32px; height: 32px;">` :
+                            `<span class="avatar-initial rounded-circle bg-secondary text-white fw-semibold" style="font-size: 0.75rem;">${m.initials}</span>`;
+
+                        html += `
+                            <a href="javascript:void(0);" class="dropdown-item p-2 border-bottom member-result-item d-flex align-items-center justify-content-between" data-id="${m.id}">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="avatar avatar-sm flex-shrink-0">
+                                        ${avatarHtml}
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold text-dark mb-0">${m.name}</div>
+                                        <small class="text-muted" style="font-size: 0.75rem;">${m.member_code} &bull; ${m.phone !== '-' ? m.phone : m.email}</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-label-primary ms-2">${m.package_name}</span>
+                            </a>
+                        `;
+                    });
+
+                    searchResults.innerHTML = html;
+                    searchResults.style.display = 'block';
+
+                    searchResults.querySelectorAll('.member-result-item').forEach(item => {
+                        item.addEventListener('click', function() {
+                            const memId = this.getAttribute('data-id');
+                            const mem = activeMembers.find(m => m.id == memId);
+                            if (mem) {
+                                selectMember(mem);
+                            }
+                        });
+                    });
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (searchWrapper && !searchWrapper.contains(e.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
+
+                const oldMemberId = "{{ old('member_id') }}";
+                if (oldMemberId) {
+                    const oldMem = activeMembers.find(m => m.id == oldMemberId);
+                    if (oldMem) {
+                        selectMember(oldMem);
+                    }
+                }
+            }
+
+            // === 2. FITUR 2 CARD CHECKLIST JENIS KUNJUNGAN & REALTIME JADWAL + KUOTA SLOT ===
+            const slotSelect = document.getElementById('res_time_slot_id');
+            const dateInput = document.getElementById('res_visit_date');
+            const placeholderBox = document.getElementById('schedulePlaceholder');
+            const cardBox = document.getElementById('scheduleCardBox');
+            const loadingBox = document.getElementById('scheduleLoadingBox');
+            const closedBox = document.getElementById('scheduleClosedBox');
+            const submitBtn = document.getElementById('btnSubmitReservasi');
+            const serviceCards = document.querySelectorAll('.service-slot-card');
+
+            window.selectServiceCard = function(slotId) {
+                const targetCard = document.getElementById('service_card_' + slotId);
+                if (!targetCard) return;
+
+                const radio = targetCard.querySelector('.service-card-radio');
+                if (radio && radio.disabled) return;
+
+                serviceCards.forEach(c => {
+                    c.classList.remove('border-primary');
+                    c.style.borderColor = '#d9dee3';
+                    c.style.backgroundColor = '#ffffff';
+                    const r = c.querySelector('.service-card-radio');
+                    if (r && !r.disabled) r.checked = false;
+                });
+
+                targetCard.classList.add('border-primary');
+                targetCard.style.borderColor = '#696cff';
+                targetCard.style.backgroundColor = 'rgba(105, 108, 255, 0.04)';
+                if (radio) radio.checked = true;
+
+                slotSelect.value = slotId;
+                updateRealtimeSchedule();
+            };
+
+            window.updateServiceCards = function(allowedCategories = []) {
+                let autoSelectId = null;
+                let enabledCount = 0;
+
+                serviceCards.forEach(card => {
+                    const slotId = card.getAttribute('data-slot-id');
+                    const category = card.getAttribute('data-category');
+                    const radio = card.querySelector('.service-card-radio');
+                    const badge = document.getElementById('service_badge_' + slotId);
+
+                    if (!allowedCategories || allowedCategories.length === 0) {
+                        // Belum ada member yang dipilih
+                        card.classList.remove('border-primary');
+                        card.style.opacity = '0.65';
+                        card.style.cursor = 'not-allowed';
+                        card.style.borderColor = '#d9dee3';
+                        card.style.backgroundColor = '#fbfbfb';
+                        if (radio) {
+                            radio.disabled = true;
+                            radio.checked = false;
+                        }
+                        if (badge) {
+                            badge.className = 'badge bg-label-secondary service-card-badge';
+                            badge.textContent = 'Pilih Member';
+                        }
+                        return;
+                    }
+
+                    const isAllowed = allowedCategories.includes(category);
+                    if (isAllowed) {
+                        enabledCount++;
+                        card.style.opacity = '1';
+                        card.style.cursor = 'pointer';
+                        card.style.backgroundColor = '#ffffff';
+                        if (radio) radio.disabled = false;
+                        if (badge) {
+                            badge.className = 'badge bg-label-success service-card-badge';
+                            badge.textContent = 'Termasuk Paket';
+                        }
+
+                        if (slotSelect.value == slotId || enabledCount === 1) {
+                            autoSelectId = slotId;
+                        }
+                    } else {
+                        // Nonaktif / Tidak Berlangganan
+                        card.classList.remove('border-primary');
+                        card.style.opacity = '0.5';
+                        card.style.cursor = 'not-allowed';
+                        card.style.borderColor = '#e7eaf0';
+                        card.style.backgroundColor = '#f8f9fa';
+                        if (radio) {
+                            radio.disabled = true;
+                            radio.checked = false;
+                        }
+                        if (badge) {
+                            badge.className = 'badge bg-label-secondary service-card-badge';
+                            badge.textContent = 'Tidak Berlangganan';
+                        }
+
+                        if (slotSelect.value == slotId) {
+                            slotSelect.value = '';
+                        }
+                    }
+                });
+
+                if (autoSelectId) {
+                    selectServiceCard(autoSelectId);
+                } else {
+                    updateRealtimeSchedule();
+                }
+            };
+
+            serviceCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const slotId = this.getAttribute('data-slot-id');
+                    const radio = this.querySelector('.service-card-radio');
+
+                    if (radio && radio.disabled) {
+                        const memberSelected = selectedIdInput ? selectedIdInput.value : '';
+                        if (!memberSelected && @json(!$isMember)) {
+                            alert(
+                                'Silakan cari dan pilih member terlebih dahulu pada kolom pencarian di atas.'
+                                );
+                            if (searchInput) searchInput.focus();
+                        } else {
+                            alert(
+                                'Member tidak berlangganan sesi kunjungan ini pada paket membership aktifnya.'
+                                );
+                        }
+                        return;
+                    }
+
+                    selectServiceCard(slotId);
+                });
+            });
+
+            function updateRealtimeSchedule() {
+                const slotId = slotSelect.value;
+                const selectedDate = dateInput ? dateInput.value : '';
+
+                if (!selectedDate) {
+                    return;
+                }
+
+                // Cek apakah hari Minggu
+                const d = new Date(selectedDate + 'T00:00:00');
+                if (d.getDay() === 0) {
+                    placeholderBox.classList.add('d-none');
+                    cardBox.classList.add('d-none');
+                    loadingBox.classList.add('d-none');
+                    closedBox.classList.remove('d-none');
+                    if (submitBtn) submitBtn.disabled = true;
+                    return;
+                } else {
+                    closedBox.classList.add('d-none');
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+
+                // Jika jenis kunjungan belum dipilih, tampilkan placeholder instruksi
+                if (!slotId) {
+                    placeholderBox.classList.remove('d-none');
+                    cardBox.classList.add('d-none');
+                    loadingBox.classList.add('d-none');
+                    return;
+                }
+
+                // Jika jenis kunjungan sudah dipilih, muat jadwal & kuota slot realtime
+                placeholderBox.classList.add('d-none');
+                cardBox.classList.add('d-none');
+                loadingBox.classList.remove('d-none');
 
                 fetch("{{ route('reservations.available-slots') }}?date=" + encodeURIComponent(selectedDate))
                     .then(response => response.json())
                     .then(res => {
-                        loading.style.display = 'none';
+                        loadingBox.classList.add('d-none');
                         if (!res.slots || res.slots.length === 0) {
-                            container.innerHTML =
-                                '<div class="col-12 text-center text-muted small py-2">Tidak ada time slot aktif.</div>';
+                            cardBox.innerHTML =
+                                '<div class="p-3 border rounded text-center text-muted small">Tidak ada time slot aktif.</div>';
+                            cardBox.classList.remove('d-none');
                             return;
                         }
 
-                        var html = '';
-                        res.slots.forEach(slot => {
-                            var badgeColor = slot.remaining === 0 ? 'bg-danger' : (slot.remaining <= 3 ?
-                                'bg-warning' : 'bg-success');
-                            var cardBg = slot.remaining === 0 ? 'border-danger' : 'border-success';
+                        const slot = res.slots.find(s => s.id == slotId);
+                        if (!slot) {
+                            cardBox.innerHTML =
+                                '<div class="p-3 border rounded text-center text-muted small">Informasi slot tidak ditemukan.</div>';
+                            cardBox.classList.remove('d-none');
+                            return;
+                        }
 
-                            html += `
-                                <div class="col-sm-6 col-md-4">
-                                    <div class="card p-2 border ${cardBg} h-100 shadow-none">
-                                        <div class="d-flex justify-content-between align-items-center mb-1">
-                                            <span class="fw-semibold small text-truncate">${slot.name}</span>
-                                            <span class="badge ${badgeColor}">${slot.remaining === 0 ? 'Penuh' : 'Sisa ' + slot.remaining}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.75rem;">
-                                            <span><i class="bx bx-time me-1"></i>${slot.time_range}</span>
-                                            <span>${slot.occupied}/${slot.capacity} org</span>
-                                        </div>
+                        const badgeClass = slot.is_full ? 'bg-label-danger' : (slot.remaining <= 10 ?
+                            'bg-label-warning' : 'bg-label-success');
+                        const statusText = slot.is_full ? 'Kuota Penuh' : 'Tersedia (' + slot.remaining +
+                            ' Slot)';
+
+                        if (slot.is_full) {
+                            if (submitBtn) submitBtn.disabled = true;
+                        } else {
+                            if (submitBtn) submitBtn.disabled = false;
+                        }
+
+                        cardBox.innerHTML = `
+                            <div class="card p-3 border rounded bg-lighter shadow-none">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <span class="text-muted small d-block">Jadwal Sesi</span>
+                                        <span class="fw-semibold text-dark fs-6">
+                                            <i class="bx bx-time-five me-1 text-primary"></i> ${slot.time_range}
+                                        </span>
+                                        <span class="text-muted ms-1">(${slot.name})</span>
+                                    </div>
+                                    <div>
+                                        <span class="badge ${badgeClass} fs-6 py-2 px-3">${statusText}</span>
                                     </div>
                                 </div>
-                            `;
-                        });
-                        container.innerHTML = html;
+                                <div class="d-flex justify-content-between align-items-center small text-muted pt-2 mt-2 border-top">
+                                    <span>Kapasitas: <strong class="text-dark">${slot.capacity} org</strong></span>
+                                    <span>Terjadwal: <strong class="text-dark">${slot.occupied} org</strong></span>
+                                    <span>Sisa Kuota: <strong class="${slot.is_full ? 'text-danger' : 'text-success'}">${slot.remaining} org</strong></span>
+                                </div>
+                                ${slot.is_full ? '<div class="alert alert-danger p-2 small mt-2 mb-0"><i class="bx bx-x-circle me-1"></i> Kuota untuk sesi ini telah penuh pada tanggal yang dipilih. Silakan pilih tanggal lain.</div>' : ''}
+                            </div>
+                        `;
+                        cardBox.classList.remove('d-none');
                     })
                     .catch(err => {
-                        loading.style.display = 'none';
-                        container.innerHTML =
-                            '<div class="col-12 text-center text-danger small py-2">Gagal memuat kuota slot.</div>';
+                        loadingBox.classList.add('d-none');
+                        cardBox.innerHTML =
+                            '<div class="p-3 border rounded text-center text-danger small">Gagal memuat status kuota slot secara realtime.</div>';
+                        cardBox.classList.remove('d-none');
                     });
             }
 
             if (dateInput) {
-                dateInput.addEventListener('change', function() {
-                    checkSlotAvailability(this.value);
+                dateInput.addEventListener('change', updateRealtimeSchedule);
+            }
+
+            // Inisialisasi awal saat modal / form dimuat
+            @if ($isMember)
+                const myAllowedCategories = @json($myAllowedCategories ?? []);
+                updateServiceCards(myAllowedCategories);
+            @else
+                updateServiceCards([]);
+            @endif
+
+            const oldSlotId = "{{ old('time_slot_id') }}";
+            if (oldSlotId) {
+                selectServiceCard(oldSlotId);
+            }
+
+            // === 3. VALIDASI SUBMIT FORM ===
+            const form = document.getElementById('formTambahReservasi');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    @if (!$isMember)
+                        if (!selectedIdInput.value) {
+                            e.preventDefault();
+                            alert('Silakan pilih member terlebih dahulu melalui kolom pencarian.');
+                            if (searchInput) searchInput.focus();
+                            return false;
+                        }
+                    @endif
+
+                    if (!slotSelect.value) {
+                        e.preventDefault();
+                        alert('Silakan pilih Jenis Kunjungan (klik salah satu kartu sesi yang aktif).');
+                        return false;
+                    }
                 });
-                checkSlotAvailability(dateInput.value);
             }
         });
     </script>

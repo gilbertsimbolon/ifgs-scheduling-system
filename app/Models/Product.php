@@ -101,6 +101,8 @@ class Product extends Model
     public function getFormattedPriceAttribute(): string
     {
         return 'Rp '.number_format((float) $this->price, 0, ',', '.');
+
+        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
     }
 
     /**
@@ -120,5 +122,56 @@ class Product extends Model
             'year' => $start->copy()->addYears($this->duration_value),
             default => $start->copy()->addMonths($this->duration_value),
         };
+    }
+
+    /**
+     * Mengetahui apakah paket produk ini mencakup kategori layanan time slot tertentu.
+     */
+    public function supportsCategory(string $category): bool
+    {
+        $nameLower = strtolower($this->name);
+
+        if ($category === TimeSlot::CATEGORY_FITNESS) {
+            if ((str_contains($nameLower, 'aerobic') || str_contains($nameLower, 'zumba'))
+                && ! str_contains($nameLower, 'fitness')
+                && ! str_contains($nameLower, 'gym')
+            ) {
+                return false;
+            }
+
+            return str_contains($nameLower, 'fitness')
+                || str_contains($nameLower, 'gym')
+                || ! (str_contains($nameLower, 'aerobic') || str_contains($nameLower, 'zumba'));
+        }
+
+        if ($category === TimeSlot::CATEGORY_AEROBIC_ZUMBA) {
+            return str_contains($nameLower, 'aerobic') || str_contains($nameLower, 'zumba');
+        }
+
+        return false;
+    }
+
+    /**
+     * Mengambil daftar kategori time slot yang dicakup oleh produk ini.
+     *
+     * @return array<int, string>
+     */
+    public function supportedCategories(): array
+    {
+        $categories = [];
+
+        if ($this->supportsCategory(TimeSlot::CATEGORY_FITNESS)) {
+            $categories[] = TimeSlot::CATEGORY_FITNESS;
+        }
+
+        if ($this->supportsCategory(TimeSlot::CATEGORY_AEROBIC_ZUMBA)) {
+            $categories[] = TimeSlot::CATEGORY_AEROBIC_ZUMBA;
+        }
+
+        if (empty($categories)) {
+            $categories[] = TimeSlot::CATEGORY_FITNESS;
+        }
+
+        return $categories;
     }
 }

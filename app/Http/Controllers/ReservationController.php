@@ -83,16 +83,47 @@ class ReservationController extends Controller
         $timeSlots = TimeSlot::active()->orderBy('start_time')->get();
 
         $activeMembers = collect();
+        $activeMembersList = collect();
         if (! $isMember) {
             $activeMembers = Member::with(['user', 'memberships' => function ($q) {
                 $q->where('status', Membership::STATUS_ACTIVE)
-                    ->whereDate('end_date', '>=', now());
+                    ->whereDate('end_date', '>=', now())
+                    ->with('product');
             }])->get()->filter(fn (Member $m) => $m->memberships->isNotEmpty());
+
+            $activeMembersList = $activeMembers->map(function (Member $m) {
+                $packages = [];
+                $allowedCategories = [];
+                foreach ($m->memberships as $ms) {
+                    if ($ms->product) {
+                        $packages[] = $ms->product->name;
+                        $allowedCategories = array_merge($allowedCategories, $ms->product->supportedCategories());
+                    }
+                }
+                $allowedCategories = array_values(array_unique($allowedCategories));
+
+                return [
+                    'id' => $m->id,
+                    'name' => $m->user->name ?? '-',
+                    'member_code' => $m->member_code ?? '-',
+                    'phone' => $m->phone ?? ($m->user->phone ?? '-'),
+                    'email' => $m->user->email ?? '',
+                    'package_name' => $m->memberships->first()?->product?->name ?? 'Membership Aktif',
+                    'package_name' => ! empty($packages) ? implode(', ', array_unique($packages)) : 'Membership Aktif',
+                    'allowed_categories' => $allowedCategories,
+                    'avatar_url' => $m->user->avatar_url,
+                    'initials' => strtoupper(substr($m->user->name ?? 'M', 0, 2)),
+                ];
+            })->values();
         }
 
         $myActiveMembership = null;
+        $myAllowedCategories = [];
         if ($isMember && $user->member) {
             $myActiveMembership = $user->member->activeMembership();
+            if ($myActiveMembership && $myActiveMembership->product) {
+                $myAllowedCategories = $myActiveMembership->product->supportedCategories();
+            }
         }
 
         return view('reservation.index', compact(
@@ -100,8 +131,10 @@ class ReservationController extends Controller
             'metrics',
             'timeSlots',
             'activeMembers',
+            'activeMembersList',
             'isMember',
-            'myActiveMembership'
+            'myActiveMembership',
+            'myAllowedCategories'
         ));
     }
 
@@ -154,19 +187,45 @@ class ReservationController extends Controller
         }
 
         // 1. Validasi membership aktif pada tanggal kunjungan
-        $validMembership = $member->memberships()
+        $activeMemberships = $member->memberships()
             ->where('status', Membership::STATUS_ACTIVE)
             ->whereDate('start_date', '<=', $visitDate)
             ->whereDate('end_date', '>=', $visitDate)
-            ->first();
+            ->with('product')
+            ->get();
 
-        if (! $validMembership) {
+        if ($activeMemberships->isEmpty()) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Member '{$member->user->name}' tidak memiliki paket membership aktif pada tanggal {$visitDate}.");
         }
 
-        // 2. Validasi duplikat reservasi pada tanggal yang sama
+        // 2. Validasi kesesuaian kategori Time Slot dengan paket membership
+        $chosenSlot = ! empty($validated['time_slot_id'])
+            ? TimeSlot::find($validated['time_slot_id'])
+            : null;
+
+        $validMembership = null;
+        if ($chosenSlot) {
+            foreach ($activeMemberships as $membership) {
+                if ($membership->product && $membership->product->supportsCategory($chosenSlot->category)) {
+                    $validMembership = $membership;
+                    break;
+                }
+            }
+
+            if (! $validMembership) {
+                $activePackageNames = $activeMemberships->pluck('product.name')->filter()->unique()->join(', ');
+
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', "Member '{$member->user->name}' berlangganan paket ({$activePackageNames}), yang tidak mencakup sesi '{$chosenSlot->name}'. Silakan pilih sesi yang sesuai dengan paket aktif.");
+            }
+        } else {
+            $validMembership = $activeMemberships->first();
+        }
+
+        // 3. Validasi duplikat reservasi pada tanggal yang sama
         $duplicateReservation = Reservation::where('member_id', $member->id)
             ->whereDate('visit_date', $visitDate)
             ->whereIn('status', [Reservation::STATUS_PENDING, Reservation::STATUS_SCHEDULED])
@@ -179,6 +238,7 @@ class ReservationController extends Controller
         }
 
         // 3. Buat record reservasi (Initial State)
+        // 4. Buat record reservasi (Initial State)
         $reservation = Reservation::create([
             'code' => Reservation::generateCode(),
             'member_id' => $member->id,
