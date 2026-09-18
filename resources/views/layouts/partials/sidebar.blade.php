@@ -79,19 +79,26 @@
                 <div class="text-truncate">Metode Pembayaran</div>
             </a>
         </li>
-        <li class="menu-item {{ request()->routeIs('time-slots.*') ? 'active' : '' }}">
-            <a href="{{ route('time-slots.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-time-five"></i>
-                <div class="text-truncate">Jadwal Operasional</div>
+
+        <!-- 3. OPERASIONAL -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">OPERASIONAL</span>
+        </li>
+        @hasrole('Admin/Manager')
+            <li class="menu-item {{ request()->routeIs('time-slots.*') ? 'active' : '' }}">
+                <a href="{{ route('time-slots.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-time-five"></i>
+                    <div class="text-truncate">Jadwal Operasional</div>
+                </a>
+            </li>
+        @endhasrole
+        <li class="menu-item {{ request()->routeIs('reservations.*') ? 'active' : '' }}">
+            <a href="{{ route('reservations.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar-event"></i>
+                <div class="text-truncate">Reservasi</div>
             </a>
         </li>
-
-        <!-- 3. KUNJUNGAN (Core Flow Algoritma Greedy) -->
-        <!-- 3. OPERASIONAL -->
         @hasanyrole('Admin/Manager|Kasir|Trainer')
-            <li class="menu-header small text-uppercase">
-                <span class="menu-header-text">OPERASIONAL</span>
-            </li>
             <li class="menu-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                 <a href="{{ route('attendances.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-barcode-reader"></i>
@@ -103,12 +110,6 @@
         <!-- 4. KUNJUNGAN (Core Flow Algoritma Greedy) -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">KUNJUNGAN</span>
-        </li>
-        <li class="menu-item {{ request()->routeIs('reservations.*') ? 'active' : '' }}">
-            <a href="{{ route('reservations.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-calendar-event"></i>
-                <div class="text-truncate">Reservasi</div>
-            </a>
         </li>
         <li class="menu-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
             <a href="{{ route('schedules.index') }}" class="menu-link">

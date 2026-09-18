@@ -57,19 +57,19 @@ class User extends Authenticatable
      */
     public static function generateUniqueUserCode(): string
     {
-        $prefix = 'IFGS-' . now()->format('Ym') . '-';
+        $prefix = 'IFGS-'.now()->format('Ym').'-';
 
         $last = static::where('user_code', 'like', "{$prefix}%")
             ->orderByDesc('user_code')
             ->first();
 
         $nextSequence = 1;
-        if ($last && preg_match('/^' . preg_quote($prefix, '/') . '(\d+)$/', $last->user_code, $matches)) {
+        if ($last && preg_match('/^'.preg_quote($prefix, '/').'(\d+)$/', $last->user_code, $matches)) {
             $nextSequence = ((int) $matches[1]) + 1;
         }
 
         do {
-            $code = $prefix . str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
+            $code = $prefix.str_pad((string) $nextSequence, 4, '0', STR_PAD_LEFT);
             $nextSequence++;
         } while (static::where('user_code', $code)->exists() || Member::where('member_code', $code)->exists());
 
@@ -90,7 +90,7 @@ class User extends Authenticatable
         $count = 2;
 
         while (static::where('slug', $slug)
-            ->when($ignoreId, fn($query) => $query->where('id', '!=', $ignoreId))
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->exists()
         ) {
             $slug = "{$baseSlug}-{$count}";
@@ -129,10 +129,10 @@ class User extends Authenticatable
         return static::where('qr_code', $code)
             ->orWhere('user_code', $code)
             ->orWhere('email', $code)
-            ->when(is_numeric($code), fn($q) => $q->orWhere('id', (int) $code))
-            ->orWhereHas('member', fn($q) => $q->where('member_code', $code)->orWhere('phone', $code))
-            ->when(is_numeric($code), fn($q) => $q->orWhere('id', (int) $code))
-            ->orWhereHas('member', fn($q) => $q->where('member_code', $code)->orWhere('phone', $code))
+            ->when(is_numeric($code), fn ($q) => $q->orWhere('id', (int) $code))
+            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code)->orWhere('phone', $code))
+            ->when(is_numeric($code), fn ($q) => $q->orWhere('id', (int) $code))
+            ->orWhereHas('member', fn ($q) => $q->where('member_code', $code)->orWhere('phone', $code))
             ->first();
     }
 

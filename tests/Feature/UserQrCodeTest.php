@@ -86,7 +86,7 @@ test('authenticated user can download their own QR code as svg file', function (
 
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'image/svg+xml');
-    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-' . $user->slug . '.svg"');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-'.$user->slug.'.svg"');
     expect($response->getContent())->toContain('<svg');
 });
 
@@ -101,7 +101,7 @@ test('staff (Admin/Manager & Kasir) can download any user QR code', function () 
 
     $response->assertStatus(200);
     $response->assertHeader('Content-Type', 'image/svg+xml');
-    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-' . $targetUser->slug . '.svg"');
+    $response->assertHeader('Content-Disposition', 'attachment; filename="qrcode-'.$targetUser->slug.'.svg"');
 });
 
 test('member cannot download another user QR code and receives 403', function () {

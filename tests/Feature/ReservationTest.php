@@ -196,3 +196,57 @@ test('member cannot make reservation on Sunday because gym is closed', function 
     $response->assertRedirect();
     $response->assertSessionHas('error', 'Indo Fitness Gym Sport tutup pada hari Minggu sesuai ketentuan jadwal operasional.');
 });
+
+test('reservation table displays separated columns and Indonesian formatted date', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create(['name' => 'Budi Santoso']);
+    $member = Member::factory()->create(['user_id' => $user->id, 'member_code' => 'MBR-9988']);
+    $product = Product::factory()->create(['name' => 'VIP Unlimited']);
+    $membership = Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'status' => 'active',
+    ]);
+    $timeSlot = TimeSlot::factory()->create([
+        'name' => 'Fitness Pagi',
+        'start_time' => '08:00',
+        'end_time' => '22:00',
+    ]);
+
+    $visitDate = Carbon::parse('2026-08-10'); // Senin, 10 Agustus 2026
+    $reservation = Reservation::factory()->create([
+        'member_id' => $member->id,
+        'membership_id' => $membership->id,
+        'time_slot_id' => $timeSlot->id,
+        'visit_date' => $visitDate,
+        'code' => 'RSV-20260810-0001',
+        'status' => 'scheduled',
+    ]);
+
+    $response = $this->actingAs($admin)->get(route('reservations.index'));
+    $response->assertOk();
+
+    // Verify column headers
+    $response->assertSee('<th>Member</th>', false);
+    $response->assertSee('<th>Paket</th>', false);
+    $response->assertSee('<th>Waktu</th>', false);
+    $response->assertSee('<th>Jenis Kunjungan</th>', false);
+    $response->assertSee('<th>Waktu Sesi</th>', false);
+
+    // Verify plain text row data without background badges on Member/Paket/Waktu
+    $response->assertSee('Budi Santoso');
+    $response->assertSee('MBR-9988');
+    $response->assertSee('VIP Unlimited');
+    $response->assertSee($visitDate->locale('id')->translatedFormat('l, d F Y')); // Senin, 10 Agustus 2026
+    $response->assertSee('Fitness Pagi');
+    $response->assertSee('08:00 - 22:00');
+
+    // Verify metric cards are on dashboard
+    $dashResponse = $this->actingAs($admin)->get(route('dashboard'));
+    $dashResponse->assertOk();
+    $dashResponse->assertSee('Ringkasan Status Reservasi Sistem');
+    $dashResponse->assertSee('Total Reservasi');
+    $dashResponse->assertSee('Terjadwal (Optimal)');
+});

@@ -95,7 +95,7 @@
                             <p class="text-white-50 mb-3">
                                 ID Member: <strong
                                     class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull;
-                                    class="text-white font-monospace">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                class="text-white font-monospace">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
                                 &bull;
                                 Kode QR: <span class="text-white-50 font-monospace">{{ auth()->user()->qr_code }}</span>
                             </p>
@@ -140,7 +140,7 @@
                                     {{ $activeMembership->product->name ?? 'Membership Reguler' }}</h4>
                                 <p class="text-muted small mb-3">Kode Member: <strong
                                         class="text-dark">{{ $member->member_code ?? '-' }}</strong></p>
-                                        class="text-dark">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                class="text-dark">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                     <small class="text-muted">Masa Berlaku:</small>
@@ -356,7 +356,8 @@
                                     <div class="d-flex align-items-center my-1">
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
+                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
+                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                         <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
                                             {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
                                     </div>
@@ -456,7 +457,8 @@
                                         <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
                                         <h4 class="card-title mb-0 text-primary">Rp
                                             {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
-                                        <h4 class="card-title mb-0 text-primary">Rp {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
+                                        <h4 class="card-title mb-0 text-primary">Rp
+                                            {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
                                         <h4 class="card-title mb-0 text-primary">Rp
                                             {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
                                     </div>
@@ -467,6 +469,88 @@
                             </div>
                         </div>
                     </a>
+                </div>
+            </div>
+
+            <!-- Kartu Metrik Reservasi (Dipindahkan dari Halaman Reservasi) -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="text-muted fw-semibold text-uppercase small mb-0">
+                    <i class="bx bx-calendar-event me-1 text-primary"></i> Ringkasan Status Reservasi Sistem
+                </h6>
+                <a href="{{ route('reservations.index') }}" class="small fw-semibold text-primary">
+                    Buka Halaman Reservasi &rarr;
+                </a>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card card-border-shadow-primary h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded bg-label-primary"><i
+                                            class="bx bx-list-ul"></i></span>
+                                </div>
+                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['total'] }}</h4>
+                            </div>
+                            <small class="text-muted">Total Reservasi</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card card-border-shadow-success h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded bg-label-success"><i
+                                            class="bx bx-calendar-check"></i></span>
+                                </div>
+                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['scheduled'] }}</h4>
+                            </div>
+                            <small class="text-muted">Terjadwal (Optimal)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card card-border-shadow-warning h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded bg-label-warning"><i
+                                            class="bx bx-time"></i></span>
+                                </div>
+                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['pending'] }}</h4>
+                            </div>
+                            <small class="text-muted">Menunggu Slot</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card card-border-shadow-info h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded bg-label-info"><i
+                                            class="bx bx-check-double"></i></span>
+                                </div>
+                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['completed'] }}</h4>
+                            </div>
+                            <small class="text-muted">Selesai Dikunjungi</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 col-xl">
+                    <div class="card card-border-shadow-danger h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar avatar-sm me-2">
+                                    <span class="avatar-initial rounded bg-label-danger"><i
+                                            class="bx bx-x-circle"></i></span>
+                                </div>
+                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['cancelled'] }}</h4>
+                            </div>
+                            <small class="text-muted">Dibatalkan</small>
+                        </div>
+                    </div>
                 </div>
             </div>
 

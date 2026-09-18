@@ -55,6 +55,15 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get() : collect();
 
+            $memberRes = $member ? Reservation::where('member_id', $member->id) : null;
+            $reservationMetrics = [
+                'total' => $memberRes ? (clone $memberRes)->count() : 0,
+                'scheduled' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_SCHEDULED)->count() : 0,
+                'pending' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_PENDING)->count() : 0,
+                'completed' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_COMPLETED)->count() : 0,
+                'cancelled' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_CANCELLED)->count() : 0,
+            ];
+
             return view('dashboard.index', [
                 'isMember' => true,
                 'member' => $member,
@@ -66,6 +75,7 @@ class DashboardController extends Controller
                 'myUpcomingSchedules' => $myUpcomingSchedules,
                 'myRecentVisits' => $myRecentVisits,
                 'operationalSlots' => TimeSlot::active()->orderBy('start_time')->get(),
+                'reservationMetrics' => $reservationMetrics,
             ]);
         }
 
@@ -140,6 +150,15 @@ class DashboardController extends Controller
         // 5 Reservasi / Kunjungan Terbaru Hari Ini
         $recentSchedules = $todaySchedules->sortByDesc('id')->take(6);
 
+        // Metrik Reservasi Sistem (Dipindahkan dari Halaman Reservasi)
+        $reservationMetrics = [
+            'total' => Reservation::count(),
+            'scheduled' => Reservation::where('status', Reservation::STATUS_SCHEDULED)->count(),
+            'pending' => Reservation::where('status', Reservation::STATUS_PENDING)->count(),
+            'completed' => Reservation::where('status', Reservation::STATUS_COMPLETED)->count(),
+            'cancelled' => Reservation::where('status', Reservation::STATUS_CANCELLED)->count(),
+        ];
+
         return view('dashboard.index', [
             'isMember' => false,
             'today' => $today,
@@ -161,6 +180,7 @@ class DashboardController extends Controller
             'recentSchedules' => $recentSchedules,
             'operationalSlots' => $activeSlots,
             'txMetrics' => $txMetrics,
+            'reservationMetrics' => $reservationMetrics,
         ]);
     }
 }
