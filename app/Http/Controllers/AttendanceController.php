@@ -94,6 +94,22 @@ class AttendanceController extends Controller
                 ], 422);
             }
 
+            // Proteksi Anti-Double Scan: Jika mode auto dan baru saja check-in kurang dari 2 menit (120 detik),
+            // jangan checkout! Cegah barcode yang ditaruh lama/ganda langsung ter-checkout.
+            $secondsSinceCheckIn = $currentAttendance->check_in_at ? (int) abs(now()->diffInSeconds($currentAttendance->check_in_at)) : 999;
+            if ($mode === 'auto' && $secondsSinceCheckIn < 120) {
+                $timeAgo = $currentAttendance->check_in_at->diffForHumans();
+
+                return response()->json([
+                    'success' => true,
+                    'action' => 'already_checked_in',
+                    'message' => "Member {$member->user?->name} sudah Check-in ({$timeAgo}). Selamat berlatih! 💪",
+                    'seconds_since_check_in' => $secondsSinceCheckIn,
+                    'member' => $this->formatMemberPayload($member),
+                    'attendance' => $this->formatAttendancePayload($currentAttendance),
+                ]);
+            }
+
             $currentAttendance->update([
                 'check_out_at' => now(),
                 'status' => Attendance::STATUS_COMPLETED,
@@ -282,7 +298,7 @@ class AttendanceController extends Controller
             return Member::firstOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'member_code' => $user->user_code ?? ('IFGS-' . now()->format('Ym') . '-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT)),
+                    'member_code' => $user->user_code ?? ('IFGS-'.now()->format('Ym').'-'.str_pad((string) $user->id, 4, '0', STR_PAD_LEFT)),
                     'phone' => null,
                 ]
             );
@@ -291,7 +307,7 @@ class AttendanceController extends Controller
         // 2. Cari langsung di tabel members (member_code, phone, atau member ID)
         $member = Member::where('member_code', $code)
             ->orWhere('phone', $code)
-            ->when(is_numeric($code), fn($q) => $q->orWhere('id', (int) $code))
+            ->when(is_numeric($code), fn ($q) => $q->orWhere('id', (int) $code))
             ->first();
         if ($member) {
             return $member;

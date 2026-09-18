@@ -235,6 +235,38 @@ test('scan check-out marks attendance as completed and completes active trainer 
     expect($booking->fresh()->completed_at)->not->toBeNull();
 });
 
+test('scan in auto mode within cooldown period returns already_checked_in and does not check out', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $memberUser = User::factory()->create(['name' => 'Doni Silaban']);
+    $memberUser->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
+
+    $attendance = Attendance::factory()->create([
+        'member_id' => $member->id,
+        'date' => today()->toDateString(),
+        'check_in_at' => now()->subSeconds(15),
+        'check_out_at' => null,
+        'status' => Attendance::STATUS_CHECKED_IN,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->postJson(route('attendances.scan'), [
+            'code' => $member->member_code,
+            'mode' => 'auto',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'success' => true,
+            'action' => 'already_checked_in',
+        ]);
+
+    expect($attendance->fresh()->status)->toBe(Attendance::STATUS_CHECKED_IN);
+    expect($attendance->fresh()->check_out_at)->toBeNull();
+});
+
 test('scan check-in fails if member is already checked in', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');

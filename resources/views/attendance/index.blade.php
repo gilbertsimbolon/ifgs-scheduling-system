@@ -104,6 +104,49 @@
             }
         }
 
+        .scan-feedback-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(8px);
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 1rem;
+            animation: fadeInOverlay 0.25s ease-out;
+        }
+
+        @keyframes fadeInOverlay {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .feedback-icon {
+            font-size: 3.8rem;
+            line-height: 1;
+        }
+
+        .cooldown-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 50rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.85rem;
+            color: #ffffff;
+        }
+
         .user-friendly-note {
             font-size: 1.25rem;
             font-weight: 700;
@@ -210,10 +253,32 @@
             <div class="scanner-container mx-auto mb-2 position-relative" id="cameraWrapper">
                 <div id="reader"></div>
                 <div id="laserLine" class="scan-laser"></div>
+
+                <!-- Overlay Konfirmasi Hasil Scan (Jeda Kamera & Countdown) -->
+                <div id="scanFeedbackOverlay" class="scan-feedback-overlay d-none">
+                    <div class="feedback-content text-center p-3 w-100">
+                        <div id="feedbackIconWrapper" class="feedback-icon mb-2">
+                            <i id="feedbackIcon" class="bx bx-check-circle text-success"></i>
+                        </div>
+                        <h4 id="feedbackTitle" class="fw-bold mb-1 text-white">Check-in Berhasil!</h4>
+                        <h5 id="feedbackMemberName" class="fw-bold text-warning mb-1 fs-5">Member</h5>
+                        <div class="mb-2">
+                            <span id="feedbackCode" class="badge bg-dark bg-opacity-75 text-light font-monospace border border-secondary">ID: -</span>
+                        </div>
+                        <div id="feedbackMessage" class="small text-white-50 mb-3 px-2">Selamat datang di Indo Fitness Gym Sport.</div>
+                        <div>
+                            <div class="cooldown-badge">
+                                <i class="bx bx-time-five me-1 text-warning"></i>
+                                <span>Siap scan berikutnya dalam <strong id="cooldownSeconds" class="text-warning">4</strong> detik</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tombol Ganti Kamera jika di HP memiliki kamera depan & belakang -->
                 <button type="button" id="btnSwitchCamera"
                     class="btn btn-sm btn-dark position-absolute bottom-0 end-0 m-2 opacity-75 hover-opacity-100 d-none"
-                    style="z-index: 20; border-radius: 50rem;" title="Ganti Kamera Depan / Belakang">
+                    style="z-index: 30; border-radius: 50rem;" title="Ganti Kamera Depan / Belakang">
                     <i class="bx bx-sync me-1"></i> Ganti Kamera
                 </button>
             </div>
@@ -496,15 +561,23 @@
             // Scanner State Management
             let html5QrCode = null;
             let isScanning = false;
+            let isProcessing = false;
+            let isCooldown = false;
+            let cooldownTimer = null;
+            let cooldownInterval = null;
             let lastScannedCode = '';
             let lastScanTime = 0;
             let toastTimer = null;
 
             // Callback when QR detected by camera
             function onScanSuccess(decodedText) {
+                if (isCooldown || isProcessing) {
+                    return;
+                }
+
                 const now = Date.now();
-                // Prevent duplicate rapid-fire triggers within 3 seconds for same code
-                if (decodedText === lastScannedCode && (now - lastScanTime < 3000)) {
+                // Prevent duplicate rapid-fire triggers within 4 seconds for same code
+                if (decodedText === lastScannedCode && (now - lastScanTime < 4000)) {
                     return;
                 }
                 lastScannedCode = decodedText;
@@ -659,6 +732,12 @@
 
             // Core Scan AJAX Dispatcher
             function processScanCode(code, method = 'camera') {
+                if (isProcessing || isCooldown) {
+                    return;
+                }
+
+                isProcessing = true;
+
                 fetch('{{ route('attendances.scan') }}', {
                         method: 'POST',
                         headers: {
@@ -684,28 +763,53 @@
                     })
                     .catch(error => {
                         handleScanError(error);
+                    })
+                    .finally(() => {
+                        isProcessing = false;
                     });
             }
 
-            // Tampilkan Notifikasi Toast Mengambang Saat Scan Berhasil
+            // Tampilkan Notifikasi Toast & Feedback Overlay Saat Scan Berhasil
             function handleScanSuccess(data) {
-                const action = data.action; // 'check_in' or 'check_out'
-                playBeep(action);
+                const action = data.action; // 'check_in', 'check_out', or 'already_checked_in'
+                playBeep(action === 'already_checked_in' ? 'check_in' : action);
 
                 const member = data.member || {};
                 const attendance = data.attendance || {};
                 const isCheckIn = action === 'check_in';
+                const isCheckOut = action === 'check_out';
+                const isAlready = action === 'already_checked_in';
+
+                // Tampilkan Overlay Visual Langsung di Atas Scanner Viewport
+                showFeedbackOverlay(action, member, attendance, data.trainer_notice || data.message);
+
+                // Notifikasi Toast Mengambang di Atas
+                let toastType = 'success';
+                let toastIcon = 'bx-check-circle';
+                let toastTitle = `Check-in Berhasil! (${attendance.check_in_at || ''} WITA)`;
+
+                if (isCheckOut) {
+                    toastType = 'info';
+                    toastIcon = 'bx-log-out-circle';
+                    toastTitle = `Check-out Berhasil! (${attendance.check_out_at || ''} WITA)`;
+                } else if (isAlready) {
+                    toastType = 'warning';
+                    toastIcon = 'bx-time-five';
+                    toastTitle = `Sudah Check-in (${attendance.check_in_at || ''} WITA)`;
+                }
 
                 showToast(
-                    isCheckIn ? 'success' : 'info',
-                    isCheckIn ? 'bx-check-circle' : 'bx-log-out-circle',
-                    isCheckIn ? `Check-in Berhasil! (${attendance.check_in_at || ''} WITA)` :
-                    `Check-out Berhasil! (${attendance.check_out_at || ''} WITA)`,
+                    toastType,
+                    toastIcon,
+                    toastTitle,
                     `${member.name || 'Member'} &bull; ${data.trainer_notice || data.message || 'Presensi berhasil dicatat.'}`
                 );
+
+                // Berikan jeda kamera (Pause/Cooldown 4 detik) agar tidak ter-scan ganda
+                startScannerCooldown(4, true);
             }
 
-            // Tampilkan Notifikasi Toast Mengambang Saat Scan Gagal
+            // Tampilkan Notifikasi Toast Saat Scan Gagal
             function handleScanError(err) {
                 playBeep('error');
                 showToast(
@@ -714,6 +818,73 @@
                     'Pemindaian Gagal!',
                     err.message || 'Kode barcode tidak dikenali atau terjadi kesalahan.'
                 );
+
+                // Jeda singkat 2 detik saat error agar tidak membunyikan beep bertubi-tubi
+                startScannerCooldown(2, false);
+            }
+
+            function showFeedbackOverlay(action, member, attendance, message) {
+                const overlay = document.getElementById('scanFeedbackOverlay');
+                const icon = document.getElementById('feedbackIcon');
+                const title = document.getElementById('feedbackTitle');
+                const memberName = document.getElementById('feedbackMemberName');
+                const codeBadge = document.getElementById('feedbackCode');
+                const msgEl = document.getElementById('feedbackMessage');
+                const laser = document.getElementById('laserLine');
+
+                if (!overlay) return;
+
+                if (laser) laser.style.display = 'none';
+
+                if (action === 'check_in') {
+                    icon.className = 'bx bx-check-circle text-success';
+                    title.textContent = 'Check-in Berhasil!';
+                    title.className = 'fw-bold mb-1 text-success';
+                } else if (action === 'check_out') {
+                    icon.className = 'bx bx-log-out-circle text-info';
+                    title.textContent = 'Check-out Berhasil!';
+                    title.className = 'fw-bold mb-1 text-info';
+                } else { // already_checked_in
+                    icon.className = 'bx bx-time-five text-warning';
+                    title.textContent = 'Sudah Check-in!';
+                    title.className = 'fw-bold mb-1 text-warning';
+                }
+
+                memberName.textContent = member.name || 'Member IFGS';
+                codeBadge.textContent = member.member_code || ('ID: ' + (attendance.code || '-'));
+                msgEl.textContent = message || '';
+
+                overlay.classList.remove('d-none');
+            }
+
+            function startScannerCooldown(seconds = 4, showVisualCountdown = true) {
+                isCooldown = true;
+                if (cooldownTimer) clearTimeout(cooldownTimer);
+                if (cooldownInterval) clearInterval(cooldownInterval);
+
+                let remaining = Math.ceil(seconds);
+                const secondsEl = document.getElementById('cooldownSeconds');
+                if (secondsEl) secondsEl.textContent = remaining;
+
+                if (showVisualCountdown) {
+                    cooldownInterval = setInterval(() => {
+                        remaining--;
+                        if (secondsEl) secondsEl.textContent = Math.max(0, remaining);
+                        if (remaining <= 0) {
+                            clearInterval(cooldownInterval);
+                        }
+                    }, 1000);
+                }
+
+                cooldownTimer = setTimeout(() => {
+                    const overlay = document.getElementById('scanFeedbackOverlay');
+                    const laser = document.getElementById('laserLine');
+                    if (overlay) overlay.classList.add('d-none');
+                    if (laser) laser.style.display = '';
+
+                    isCooldown = false;
+                    lastScannedCode = ''; // Reset kode terakhir agar kamera siap scan berikutnya
+                }, seconds * 1000);
             }
 
             function showToast(type, icon, title, message) {
