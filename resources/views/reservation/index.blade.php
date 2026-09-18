@@ -203,134 +203,6 @@
                                     </div>
                                 </td>
                             </tr>
-
-                            <!-- Modal Detail Reservation -->
-                            <div class="modal fade" id="modalDetailReservation{{ $res->id }}" tabindex="-1"
-                                aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title fw-bold text-dark">
-                                                <i class="bx bx-calendar-detail me-1"></i> Detail Reservasi Kunjungan
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <!-- Foto Profil & Identitas Member -->
-                                            <div class="text-center pb-3 border-bottom mb-3">
-                                                <div class="avatar avatar-xl mx-auto mb-2">
-                                                    @if ($res->member?->user?->avatar_url)
-                                                        <img src="{{ $res->member->user->avatar_url }}"
-                                                            alt="{{ $res->member->user->name ?? '-' }}"
-                                                            class="rounded-circle object-fit-cover border"
-                                                            style="width: 75px; height: 75px;" />
-                                                    @else
-                                                        <span
-                                                            class="avatar-initial rounded-circle bg-secondary text-white fw-bold fs-3"
-                                                            style="width: 75px; height: 75px; display: inline-flex; align-items: center; justify-content: center;">
-                                                            {{ strtoupper(substr($res->member->user->name ?? 'M', 0, 2)) }}
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <h5 class="mb-1 fw-bold text-dark">{{ $res->member->user->name ?? '-' }}
-                                                </h5>
-                                                <small class="text-muted d-block">{{ $res->member->member_code ?? '-' }}
-                                                    &bull; {{ $res->member->user->email ?? '-' }}</small>
-                                                <div class="mt-2 text-muted small">
-                                                    Kode Reservasi: <span
-                                                        class="fw-semibold text-dark">{{ $res->code }}</span>
-                                                </div>
-                                            </div>
-
-                                            <div class="row g-3 mb-2">
-                                                <div class="col-6">
-                                                    <small class="text-muted d-block">Waktu</small>
-                                                    <span
-                                                        class="fw-semibold text-dark">{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <small class="text-muted d-block">Paket</small>
-                                                    <span
-                                                        class="fw-semibold text-dark">{{ $res->membership->product->name ?? '-' }}</span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <small class="text-muted d-block">Jenis Kunjungan</small>
-                                                    <span class="fw-semibold text-dark">
-                                                        {{ $res->timeSlot->name ?? ($res->membership->product->name ?? 'Fitness') }}
-                                                    </span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <small class="text-muted d-block">Waktu Sesi</small>
-                                                    <span class="fw-semibold text-dark">
-                                                        {{ $res->timeSlot ? $res->timeSlot->time_range : '-' }}
-                                                    </span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <small class="text-muted d-block">Status Kunjungan</small>
-                                                    <span class="fw-semibold text-dark">
-                                                        @if ($res->status === 'scheduled')
-                                                            Terjadwal
-                                                        @elseif ($res->status === 'pending')
-                                                            Pending
-                                                        @elseif ($res->status === 'completed')
-                                                            Selesai
-                                                        @else
-                                                            Dibatalkan
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            @if ($res->notes)
-                                                <div class="pt-3 border-top mt-2">
-                                                    <small class="text-muted d-block">Catatan Reservasi:</small>
-                                                    <p class="text-dark mb-0 small">{{ $res->notes }}</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-outline-secondary"
-                                                data-bs-dismiss="modal">Tutup</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Modal Cancel Reservation -->
-                            @if ($res->canBeCancelled())
-                                <div class="modal fade" id="modalCancelReservation{{ $res->id }}" tabindex="-1"
-                                    aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <form action="{{ route('reservations.cancel', $res) }}" method="POST">
-                                                @csrf
-                                                @method('PATCH')
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title fw-bold text-danger">
-                                                        <i class="bx bx-x-circle me-1"></i> Batalkan Reservasi
-                                                    </h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                        aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p>Apakah Anda yakin ingin membatalkan reservasi
-                                                        <strong>{{ $res->code }}</strong> pada waktu
-                                                        <strong>{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</strong>?
-                                                    </p>
-                                                    <p class="text-muted small mb-0">Kuota slot waktu akan dilepaskan
-                                                        kembali dan dapat digunakan oleh member lain.</p>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary"
-                                                        data-bs-dismiss="modal">Kembali</button>
-                                                    <button type="submit" class="btn btn-danger">Ya, Batalkan</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
                         @empty
                             <tr>
                                 <td colspan="{{ $isMember ? 8 : 9 }}" class="text-center py-4 text-muted">
@@ -351,6 +223,134 @@
             @endif
         </div>
     </div>
+
+    <!-- Modals Detail & Batalkan Reservasi (Ditempatkan di luar table agar tidak terpengaruh white-space: nowrap) -->
+    @foreach ($reservations as $res)
+        <!-- Modal Detail Reservasi -->
+        <div class="modal fade" id="modalDetailReservation{{ $res->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold text-dark">
+                            <i class="bx bx-calendar-event me-1"></i> Detail Reservasi
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-wrap" style="white-space: normal; word-break: break-word;">
+                        <!-- Foto Profil & Nama Member -->
+                        <div class="text-center mb-4 pb-2 border-bottom">
+                            <div class="d-inline-block mb-3">
+                                @if ($res->member && $res->member->user && $res->member->user->profile_photo_path)
+                                    <img src="{{ asset('storage/' . $res->member->user->profile_photo_path) }}"
+                                        alt="{{ $res->member->user->name }}"
+                                        class="rounded-circle shadow-sm object-fit-cover"
+                                        style="width: 76px; height: 76px; border: 3px solid #e7e7ff;">
+                                @else
+                                    <span
+                                        class="avatar-initial rounded-circle bg-label-primary fs-2 fw-bold d-inline-flex align-items-center justify-content-center shadow-sm"
+                                        style="width: 76px; height: 76px; border: 3px solid #e7e7ff;">
+                                        {{ strtoupper(substr($res->member->user->name ?? 'M', 0, 2)) }}
+                                    </span>
+                                @endif
+                            </div>
+                            <h5 class="mb-1 fw-bold text-dark">{{ $res->member->user->name ?? '-' }}</h5>
+                            <small class="text-muted d-block">{{ $res->member->member_code ?? '-' }}
+                                &bull; {{ $res->member->user->email ?? '-' }}</small>
+                            <div class="mt-2 text-muted small">
+                                Kode Reservasi: <span class="fw-semibold text-dark">{{ $res->code }}</span>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Waktu</small>
+                                <span
+                                    class="fw-semibold text-dark">{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Paket</small>
+                                <span class="fw-semibold text-dark">{{ $res->membership->product->name ?? '-' }}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Jenis Kunjungan</small>
+                                <span class="fw-semibold text-dark">
+                                    {{ $res->timeSlot->name ?? ($res->membership->product->name ?? 'Fitness') }}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Waktu Sesi</small>
+                                <span class="fw-semibold text-dark">
+                                    {{ $res->timeSlot ? $res->timeSlot->time_range : '-' }}
+                                </span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Status Kunjungan</small>
+                                <span class="fw-semibold text-dark">
+                                    @if ($res->status === 'scheduled')
+                                        Terjadwal
+                                    @elseif ($res->status === 'pending')
+                                        Pending
+                                    @elseif ($res->status === 'completed')
+                                        Selesai
+                                    @else
+                                        Dibatalkan
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+
+                        @if ($res->notes)
+                            <div class="pt-3 border-top mt-2">
+                                <small class="text-muted d-block">Catatan Reservasi:</small>
+                                <p class="text-dark mb-0 small">{{ $res->notes }}</p>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Cancel Reservation -->
+        @if ($res->canBeCancelled())
+            <div class="modal fade" id="modalCancelReservation{{ $res->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form action="{{ route('reservations.cancel', $res) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold text-danger">
+                                    <i class="bx bx-x-circle me-1"></i> Batalkan Reservasi
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-wrap" style="white-space: normal; word-break: break-word;">
+                                <p class="mb-3 text-dark fs-6" style="line-height: 1.6;">
+                                    Apakah Anda yakin ingin membatalkan reservasi <strong>{{ $res->code }}</strong> pada
+                                    waktu
+                                    <strong>{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</strong>?
+                                </p>
+                                <div class="alert alert-warning py-2 px-3 small mb-0 d-flex align-items-center">
+                                    <i class="bx bx-info-circle me-2 fs-5 text-warning flex-shrink-0"></i>
+                                    <span>Kuota slot waktu akan dilepaskan kembali dan dapat digunakan oleh member
+                                        lain.</span>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">Kembali</button>
+                                <button type="submit" class="btn btn-danger">Ya, Batalkan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
 
     <!-- Modal Tambah Reservasi Baru -->
     <div class="modal fade" id="modalTambahReservasi" tabindex="-1" aria-hidden="true">
@@ -799,12 +799,12 @@
                         if (!memberSelected && @json(!$isMember)) {
                             alert(
                                 'Silakan cari dan pilih member terlebih dahulu pada kolom pencarian di atas.'
-                                );
+                            );
                             if (searchInput) searchInput.focus();
                         } else {
                             alert(
                                 'Member tidak berlangganan sesi kunjungan ini pada paket membership aktifnya.'
-                                );
+                            );
                         }
                         return;
                     }
