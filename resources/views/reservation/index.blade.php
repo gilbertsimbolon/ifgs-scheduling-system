@@ -188,7 +188,7 @@
                                         <button type="button" class="btn btn-icon btn-sm btn-label-info"
                                             data-bs-toggle="modal"
                                             data-bs-target="#modalDetailReservation{{ $res->id }}"
-                                            title="Detail Reservasi & Greedy Assignment">
+                                            title="Detail Reservasi">
                                             <i class="bx bx-show"></i>
                                         </button>
 
@@ -211,69 +211,80 @@
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title fw-bold">
-                                                <i class="bx bx-calendar-detail text-primary me-1"></i> Detail Reservasi
-                                                Kunjungan
+                                            <h5 class="modal-title fw-bold text-dark">
+                                                <i class="bx bx-calendar-detail me-1"></i> Detail Reservasi Kunjungan
                                             </h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
+                                            <!-- Foto Profil & Identitas Member -->
                                             <div class="text-center pb-3 border-bottom mb-3">
-                                                <span
-                                                    class="badge bg-label-primary font-monospace fs-6 px-3 py-2">{{ $res->code }}</span>
-                                                <h6 class="mt-2 mb-0">{{ $res->member->user->name ?? '-' }}</h6>
-                                                <small class="text-muted">{{ $res->member->member_code ?? '-' }} &bull;
-                                                    {{ $res->member->user->email ?? '-' }}</small>
+                                                <div class="avatar avatar-xl mx-auto mb-2">
+                                                    @if ($res->member?->user?->avatar_url)
+                                                        <img src="{{ $res->member->user->avatar_url }}"
+                                                            alt="{{ $res->member->user->name ?? '-' }}"
+                                                            class="rounded-circle object-fit-cover border"
+                                                            style="width: 75px; height: 75px;" />
+                                                    @else
+                                                        <span
+                                                            class="avatar-initial rounded-circle bg-secondary text-white fw-bold fs-3"
+                                                            style="width: 75px; height: 75px; display: inline-flex; align-items: center; justify-content: center;">
+                                                            {{ strtoupper(substr($res->member->user->name ?? 'M', 0, 2)) }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                <h5 class="mb-1 fw-bold text-dark">{{ $res->member->user->name ?? '-' }}
+                                                </h5>
+                                                <small class="text-muted d-block">{{ $res->member->member_code ?? '-' }}
+                                                    &bull; {{ $res->member->user->email ?? '-' }}</small>
+                                                <div class="mt-2 text-muted small">
+                                                    Kode Reservasi: <span
+                                                        class="fw-semibold text-dark font-monospace">{{ $res->code }}</span>
+                                                </div>
                                             </div>
 
-                                            <div class="row g-2 mb-3">
+                                            <div class="row g-3 mb-2">
                                                 <div class="col-6">
                                                     <small class="text-muted d-block">Waktu</small>
                                                     <span
-                                                        class="fw-semibold">{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</span>
+                                                        class="fw-semibold text-dark">{{ $res->visit_date->locale('id')->translatedFormat('l, d F Y') }}</span>
                                                 </div>
                                                 <div class="col-6">
                                                     <small class="text-muted d-block">Paket</small>
                                                     <span
-                                                        class="fw-semibold">{{ $res->membership->product->name ?? '-' }}</span>
+                                                        class="fw-semibold text-dark">{{ $res->membership->product->name ?? '-' }}</span>
                                                 </div>
-                                                <div class="col-6 mt-2">
+                                                <div class="col-6">
                                                     <small class="text-muted d-block">Jenis Kunjungan</small>
-                                                    <span class="fw-semibold text-primary">
+                                                    <span class="fw-semibold text-dark">
                                                         {{ $res->timeSlot->name ?? ($res->membership->product->name ?? 'Fitness') }}
                                                     </span>
                                                 </div>
-                                                <div class="col-6 mt-2">
+                                                <div class="col-6">
                                                     <small class="text-muted d-block">Waktu Sesi</small>
-                                                    <span class="fw-semibold font-monospace">
-                                                        {{ $res->timeSlot ? $res->timeSlot->time_range : 'Belum Ditentukan' }}
+                                                    <span class="fw-semibold font-monospace text-dark">
+                                                        {{ $res->timeSlot ? $res->timeSlot->time_range : '-' }}
                                                     </span>
                                                 </div>
-                                                <div class="col-6 mt-2">
+                                                <div class="col-6">
                                                     <small class="text-muted d-block">Status Kunjungan</small>
-                                                    <span
-                                                        class="badge bg-label-{{ $res->status === 'scheduled' ? 'success' : ($res->status === 'pending' ? 'warning' : ($res->status === 'completed' ? 'info' : 'danger')) }}">
-                                                        {{ strtoupper($res->status) }}
+                                                    <span class="fw-semibold text-dark">
+                                                        @if ($res->status === 'scheduled')
+                                                            Terjadwal
+                                                        @elseif ($res->status === 'pending')
+                                                            Pending
+                                                        @elseif ($res->status === 'completed')
+                                                            Selesai
+                                                        @else
+                                                            Dibatalkan
+                                                        @endif
                                                     </span>
                                                 </div>
                                             </div>
 
-                                            @if ($res->schedule)
-                                                <div class="card bg-lighter border mb-3">
-                                                    <div class="card-body p-3">
-                                                        <h6 class="mb-1 text-primary"><i class="bx bx-cog me-1"></i> Info
-                                                            Optimasi Algoritma Greedy</h6>
-                                                        <small class="d-block text-muted mb-1">Kode Jadwal: <strong
-                                                                class="text-dark">{{ $res->schedule->schedule_code }}</strong></small>
-                                                        <small
-                                                            class="text-dark">{{ $res->schedule->notes ?? 'Dialokasikan oleh Algoritma Greedy untuk menjaga keseimbangan beban gym.' }}</small>
-                                                    </div>
-                                                </div>
-                                            @endif
-
                                             @if ($res->notes)
-                                                <div class="mb-2">
+                                                <div class="pt-3 border-top mt-2">
                                                     <small class="text-muted d-block">Catatan Reservasi:</small>
                                                     <p class="text-dark mb-0 small">{{ $res->notes }}</p>
                                                 </div>
