@@ -98,6 +98,12 @@
                 <div class="text-truncate">Reservasi</div>
             </a>
         </li>
+        <li class="menu-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
+            <a href="{{ route('schedules.index') }}" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
+                <div class="text-truncate">Kunjungan</div>
+            </a>
+        </li>
         @hasanyrole('Admin/Manager|Kasir|Trainer')
             <li class="menu-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                 <a href="{{ route('attendances.index') }}" class="menu-link">
@@ -106,17 +112,6 @@
                 </a>
             </li>
         @endhasanyrole
-
-        <!-- 4. KUNJUNGAN (Core Flow Algoritma Greedy) -->
-        <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">KUNJUNGAN</span>
-        </li>
-        <li class="menu-item {{ request()->routeIs('schedules.*') ? 'active' : '' }}">
-            <a href="{{ route('schedules.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-calendar-check"></i>
-                <div class="text-truncate">Jadwal Kunjungan</div>
-            </a>
-        </li>
 
         <li class="menu-divider my-2"></li>
 

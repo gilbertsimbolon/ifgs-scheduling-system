@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-between align-items-center mb-2 mt-2 flex-wrap gap-2">
             <div>
                 <h5 class="fw-bold py-1 mb-0">
-                    <span class="text-muted fw-light">Kunjungan /</span> Reservasi
+                    <span class="text-muted fw-light">Operasional /</span> Reservasi
                 </h5>
             </div>
             <div>
