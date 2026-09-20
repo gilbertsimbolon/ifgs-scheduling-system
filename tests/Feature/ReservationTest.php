@@ -14,6 +14,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    Carbon::setTestNow('2026-09-18 10:00:00');
     Role::firstOrCreate(['name' => 'Admin/Manager', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'Kasir', 'guard_name' => 'web']);
     Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);

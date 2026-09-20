@@ -114,22 +114,17 @@
                     <div class="col-12 col-lg-6">
                         <div class="card h-100 border {{ $data['is_full'] ? 'border-danger' : 'border-light' }} shadow-sm">
                             <!-- Slot Header -->
-                            <div class="card-header pb-2 border-bottom d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title fw-bold mb-1 text-primary">
-                                        <i class="bx bx-time-five me-1"></i> {{ $slot->name }}
-                                    </h5>
-                                    <span class="badge bg-label-secondary fs-7">
-                                        {{ $slot->time_range }}
+                            <div class="card-header py-3 border-bottom">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <div class="d-flex align-items-center text-primary">
+                                        <i class="bx bx-time-five me-2 fs-5 d-flex align-items-center" style="line-height: 1;"></i>
+                                        <h5 class="card-title fw-bold mb-0 text-primary" style="line-height: 1.2;">
+                                            {{ $slot->name }}
+                                        </h5>
+                                    </div>
+                                    <span class="badge bg-label-secondary d-inline-flex align-items-center" style="font-size: 0.8rem; font-weight: 500; height: 26px; line-height: 1;">
+                                        {{ $slot->time_range }} WITA
                                     </span>
-                                </div>
-                                <div class="text-end">
-                                    @if ($data['is_full'])
-                                        <span class="badge bg-danger">Kapasitas Penuh</span>
-                                    @else
-                                        <span class="badge bg-success">Sisa Kuota: {{ $data['remaining'] }}</span>
-                                    @endif
-                                    <div class="text-muted small mt-1">Batas: {{ $slot->capacity }} org</div>
                                 </div>
                             </div>
 
