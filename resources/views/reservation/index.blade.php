@@ -893,7 +893,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center small text-muted pt-2 mt-2 border-top">
-                                    <span>Kapasitas: <strong class="text-dark">${slot.capacity} org</strong></span>
+                                    <span>Kuota Reservasi: <strong class="text-dark">${slot.reservation_quota ?? slot.capacity} org</strong></span>
                                     <span>Terjadwal: <strong class="text-dark">${slot.occupied} org</strong></span>
                                     <span>Sisa Kuota: <strong class="${slot.is_full ? 'text-danger' : 'text-success'}">${slot.remaining} org</strong></span>
                                 </div>

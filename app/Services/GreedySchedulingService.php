@@ -34,17 +34,17 @@ class GreedySchedulingService
         // 2. Hitung occupancy dan sisa kapasitas saat ini untuk tanggal kunjungan
         $slotOccupancies = $this->calculateOccupanciesForDate($visitDate, $activeSlots);
 
-        // 3. Evaluasi candidate slots yang masih memiliki sisa kapasitas
+        // 3. Evaluasi candidate slots yang masih memiliki sisa kuota reservasi
         $availableCandidates = $activeSlots->filter(function (TimeSlot $slot) use ($slotOccupancies) {
             $occupied = $slotOccupancies[$slot->id] ?? 0;
 
-            return $occupied < $slot->capacity;
+            return $occupied < $slot->effective_reservation_quota;
         });
 
         if ($availableCandidates->isEmpty()) {
             return [
                 'success' => false,
-                'message' => "Seluruh Time Slot pada tanggal {$visitDate} sudah penuh.",
+                'message' => "Seluruh kuota reservasi Time Slot pada tanggal {$visitDate} sudah penuh.",
             ];
         }
 
@@ -102,9 +102,11 @@ class GreedySchedulingService
                     'reason' => $selectionReason,
                     'slot_name' => $selectedSlot->name,
                     'slot_capacity' => $selectedSlot->capacity,
+                    'reservation_quota' => $selectedSlot->effective_reservation_quota,
+                    'walkin_quota' => $selectedSlot->walkin_quota,
                     'occupancy_before' => $occupancyBefore,
                     'occupancy_after' => $occupancyAfter,
-                    'remaining_capacity' => max(0, $selectedSlot->capacity - $occupancyAfter),
+                    'remaining_capacity' => max(0, $selectedSlot->effective_reservation_quota - $occupancyAfter),
                 ],
             ];
         });
@@ -122,9 +124,11 @@ class GreedySchedulingService
             $occA = $occupancies[$a->id] ?? 0;
             $occB = $occupancies[$b->id] ?? 0;
 
-            // Kriteria 1: Rasio kepadatan (occupancy rate = terisi / kapasitas)
-            $rateA = $a->capacity > 0 ? ($occA / $a->capacity) : 1.0;
-            $rateB = $b->capacity > 0 ? ($occB / $b->capacity) : 1.0;
+            // Kriteria 1: Rasio kepadatan terhadap kuota reservasi (occupancy rate = terisi / kuota reservasi)
+            $quotaA = $a->effective_reservation_quota;
+            $quotaB = $b->effective_reservation_quota;
+            $rateA = $quotaA > 0 ? ($occA / $quotaA) : 1.0;
+            $rateB = $quotaB > 0 ? ($occB / $quotaB) : 1.0;
 
             if ($rateA !== $rateB) {
                 return $rateA <=> $rateB; // Terendah diprioritaskan
@@ -167,6 +171,8 @@ class GreedySchedulingService
                 'slot_name' => $slot->name,
                 'time_range' => $slot->time_range,
                 'capacity' => $slot->capacity,
+                'reservation_quota' => $slot->effective_reservation_quota,
+                'walkin_quota' => $slot->walkin_quota,
                 'count' => $slotOccupancies[$slot->id] ?? 0,
             ];
         }
@@ -176,9 +182,9 @@ class GreedySchedulingService
         $details = [];
 
         foreach ($pendingReservations as $reservation) {
-            // Filter candidate yang kapasitasnya masih cukup dengan occupancy dinamis
+            // Filter candidate yang kapasitas reservasi masih cukup dengan occupancy dinamis
             $candidates = $activeSlots->filter(function (TimeSlot $slot) use ($slotOccupancies) {
-                return ($slotOccupancies[$slot->id] ?? 0) < $slot->capacity;
+                return ($slotOccupancies[$slot->id] ?? 0) < $slot->effective_reservation_quota;
             });
 
             if ($candidates->isEmpty()) {
@@ -186,7 +192,7 @@ class GreedySchedulingService
                 $details[] = [
                     'reservation_code' => $reservation->code,
                     'member_name' => $reservation->member->user->name ?? '-',
-                    'status' => 'Gagal: Kapasitas seluruh slot penuh',
+                    'status' => 'Gagal: Kuota reservasi seluruh slot sudah penuh',
                 ];
 
                 continue;
@@ -231,6 +237,8 @@ class GreedySchedulingService
                 'slot_name' => $slot->name,
                 'time_range' => $slot->time_range,
                 'capacity' => $slot->capacity,
+                'reservation_quota' => $slot->effective_reservation_quota,
+                'walkin_quota' => $slot->walkin_quota,
                 'count' => $slotOccupancies[$slot->id] ?? 0,
             ];
         }

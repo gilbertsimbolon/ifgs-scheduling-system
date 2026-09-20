@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GreedyController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MembershipTransactionController;
@@ -95,6 +96,13 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])->name('approve');
         Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])->name('reject');
         Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])->name('complete');
+    });
+
+    // Operasional: Algoritma Greedy & Manajemen Kuota Reservasi
+    Route::middleware('role:Admin/Manager|Kasir')->prefix('operasional/greedy')->name('greedy.')->group(function () {
+        Route::get('/', [GreedyController::class, 'index'])->name('index');
+        Route::patch('/slots/{timeSlot}/quota', [GreedyController::class, 'updateQuota'])->name('update-quota');
+        Route::post('/optimize', [GreedyController::class, 'optimizeBatch'])->name('optimize');
     });
 
     // Operasional: Presensi Check-in & Check-out Member via Barcode / QR Code

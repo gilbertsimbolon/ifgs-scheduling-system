@@ -309,14 +309,19 @@ class ReservationController extends Controller
 
         $data = $activeSlots->map(function (TimeSlot $slot) use ($occupancies) {
             $occupied = $occupancies[$slot->id] ?? 0;
-            $remaining = max(0, $slot->capacity - $occupied);
+            $quota = $slot->effective_reservation_quota;
+            $remaining = max(0, $quota - $occupied);
             $isFull = $remaining <= 0;
 
             return [
                 'id' => $slot->id,
                 'name' => $slot->name,
+                'category' => $slot->category,
+                'category_label' => $slot->category_label,
                 'time_range' => $slot->time_range,
                 'capacity' => $slot->capacity,
+                'reservation_quota' => $quota,
+                'walkin_quota' => $slot->walkin_quota,
                 'occupied' => $occupied,
                 'remaining' => $remaining,
                 'is_full' => $isFull,

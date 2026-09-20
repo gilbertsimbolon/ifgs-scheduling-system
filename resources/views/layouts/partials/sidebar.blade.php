@@ -104,6 +104,14 @@
                 <div class="text-truncate">Kunjungan</div>
             </a>
         </li>
+        @hasanyrole('Admin/Manager|Kasir')
+            <li class="menu-item {{ request()->routeIs('greedy.*') ? 'active' : '' }}">
+                <a href="{{ route('greedy.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-brain"></i>
+                    <div class="text-truncate">Greedy</div>
+                </a>
+            </li>
+        @endhasanyrole
         @hasanyrole('Admin/Manager|Kasir|Trainer')
             <li class="menu-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                 <a href="{{ route('attendances.index') }}" class="menu-link">

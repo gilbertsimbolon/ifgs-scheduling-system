@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'category', 'days', 'start_time', 'end_time', 'capacity', 'status'])]
+#[Fillable(['name', 'category', 'days', 'start_time', 'end_time', 'capacity', 'reservation_quota', 'status'])]
 class TimeSlot extends Model
 {
     /** @use HasFactory<TimeSlotFactory> */
@@ -52,7 +52,29 @@ class TimeSlot extends Model
     {
         return [
             'capacity' => 'integer',
+            'reservation_quota' => 'integer',
         ];
+    }
+
+    /**
+     * Kuota efektif yang dialokasikan untuk reservasi online.
+     * Jika belum disetel manual, default menggunakan 70% dari kapasitas fisik.
+     */
+    public function getEffectiveReservationQuotaAttribute(): int
+    {
+        if ($this->reservation_quota !== null) {
+            return (int) $this->reservation_quota;
+        }
+
+        return (int) round($this->capacity * 0.7);
+    }
+
+    /**
+     * Kuota yang dicadangkan khusus untuk pengunjung langsung (walk-in).
+     */
+    public function getWalkinQuotaAttribute(): int
+    {
+        return max(0, $this->capacity - $this->effective_reservation_quota);
     }
 
     /**
@@ -122,6 +144,24 @@ class TimeSlot extends Model
     public function isFullForDate(string $date): bool
     {
         return $this->getRemainingCapacityForDate($date) <= 0;
+    }
+
+    /**
+     * Hitung sisa kuota reservasi online untuk tanggal tertentu.
+     */
+    public function getRemainingReservationQuotaForDate(string $date): int
+    {
+        $occupied = $this->getOccupiedCountForDate($date);
+
+        return max(0, $this->effective_reservation_quota - $occupied);
+    }
+
+    /**
+     * Cek apakah kuota reservasi online sudah penuh untuk tanggal tertentu.
+     */
+    public function isReservationFullForDate(string $date): bool
+    {
+        return $this->getRemainingReservationQuotaForDate($date) <= 0;
     }
 
     /**
