@@ -116,7 +116,7 @@ class Schedule extends Model
     {
         return match ($this->status) {
             self::STATUS_SCHEDULED => 'Terjadwal',
-            self::STATUS_ATTENDED => 'Hadir',
+            self::STATUS_ATTENDED => 'Check-in',
             self::STATUS_NO_SHOW => 'Tidak Hadir',
             self::STATUS_CANCELLED => 'Dibatalkan',
             default => ucfirst($this->status),

@@ -4,6 +4,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GreedyController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MembershipTransactionController;
@@ -31,26 +32,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Landing Page Rute Utama (Terbuka untuk Umum / Tamu, Member, Trainer, Kasir, Admin)
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
-    // Pengguna (Admin/Manager bisa kelola penuh; Kasir bisa lihat dan tambah pengguna)
-    Route::middleware('role:Admin/Manager|Kasir')->prefix('pengguna')->name('pengguna.')->group(function () {
-        Route::get('/', [PenggunaController::class, 'index'])->name('index');
-        Route::post('/', [PenggunaController::class, 'store'])->name('store');
-    });
-    Route::middleware('role:Admin/Manager')->prefix('pengguna')->name('pengguna.')->group(function () {
-        Route::put('/{user:slug}', [PenggunaController::class, 'update'])->name('update');
-        Route::patch('/{user:slug}/status', [PenggunaController::class, 'toggleStatus'])->name('toggle-status');
-        Route::delete('/{user:slug}', [PenggunaController::class, 'destroy'])->name('destroy');
-    });
-
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profil Pengguna (QR Code, Data Diri, Ganti Password)
     Route::prefix('profile')->name('profile.')->group(function () {
@@ -67,7 +53,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/{user:slug}/card', [UserQrCodeController::class, 'printCard'])->name('card');
     });
 
-    // Reservasi Kunjungan (Member & Admin)
+    // Pemesanan Paket Membership oleh Member Mandiri atau Staf
+    Route::post('/memberships/order', [MembershipController::class, 'order'])->name('memberships.order');
+
+    // Reservasi Kunjungan (Member, Kasir, Admin)
     Route::prefix('reservations')->name('reservations.')->group(function () {
         Route::get('/', [ReservationController::class, 'index'])->name('index');
         Route::post('/', [ReservationController::class, 'store'])->name('store');
@@ -75,10 +64,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('cancel');
     });
 
-    // Pemesanan Paket Membership oleh Member (Upload Bukti Transfer)
-    Route::post('/memberships/order', [MembershipController::class, 'order'])->name('memberships.order');
-
-    // Jadwal Kunjungan (Member lihat jadwal sendiri, Admin lihat seluruh jadwal & kelola status)
+    // Jadwal Kunjungan (Member lihat jadwal sendiri, Kasir & Admin kelola semua)
     Route::prefix('schedules')->name('schedules.')->group(function () {
         Route::get('/', [ScheduleController::class, 'index'])->name('index');
         Route::post('/optimize', [ScheduleController::class, 'optimize'])
@@ -89,43 +75,35 @@ Route::middleware('auth')->group(function () {
             ->name('update-status');
     });
 
-    // Sesi Latihan Personal Trainer (Validasi ACC / Tolak oleh Trainer atau Admin)
-    Route::middleware('role:Admin/Manager|Trainer|Kasir|Member')->prefix('trainer-bookings')->name('trainer-bookings.')->group(function () {
+    // Sesi Latihan Personal Trainer (Member ajukan, Trainer/Admin/Kasir kelola)
+    Route::prefix('trainer-bookings')->name('trainer-bookings.')->group(function () {
         Route::get('/', [TrainerBookingController::class, 'index'])->name('index');
         Route::post('/', [TrainerBookingController::class, 'store'])->name('store');
-        Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])->name('approve');
-        Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])->name('reject');
-        Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])->name('complete');
+        Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])
+            ->middleware('role:Admin/Manager|Kasir|Trainer')
+            ->name('approve');
+        Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])
+            ->middleware('role:Admin/Manager|Kasir|Trainer')
+            ->name('reject');
+        Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])
+            ->middleware('role:Admin/Manager|Kasir|Trainer')
+            ->name('complete');
     });
 
-    // Operasional: Algoritma Greedy & Manajemen Kuota Reservasi
-    Route::middleware('role:Admin/Manager|Kasir')->prefix('operasional/greedy')->name('greedy.')->group(function () {
-        Route::get('/', [GreedyController::class, 'index'])->name('index');
-        Route::patch('/slots/{timeSlot}/quota', [GreedyController::class, 'updateQuota'])->name('update-quota');
-        Route::post('/optimize', [GreedyController::class, 'optimizeBatch'])->name('optimize');
-    });
+    // Dashboard Gym (Diakses Staf Admin & Kasir; dialihkan ke home jika Member/Trainer)
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Operasional: Presensi Check-in & Check-out Member via Barcode / QR Code
-    Route::middleware('role:Admin/Manager|Kasir|Trainer')->prefix('operasional')->name('attendances.')->group(function () {
-        Route::get('/checkin-checkout', [AttendanceController::class, 'index'])->name('index');
-        Route::post('/checkin-checkout/scan', [AttendanceController::class, 'scan'])->name('scan');
-        Route::patch('/checkin-checkout/{attendance}/checkout', [AttendanceController::class, 'checkout'])->name('checkout');
-        Route::delete('/checkin-checkout/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
-    });
-
-    // Master Data Time Slot (Admin Only)
-    Route::redirect('/time_slots', '/time-slots');
-    Route::middleware('role:Admin/Manager')->prefix('time-slots')->name('time-slots.')->group(function () {
-        Route::get('/', [TimeSlotController::class, 'index'])->name('index');
-        Route::post('/', [TimeSlotController::class, 'store'])->name('store');
-        Route::put('/{timeSlot}', [TimeSlotController::class, 'update'])->name('update');
-        Route::patch('/{timeSlot}/status', [TimeSlotController::class, 'toggleStatus'])->name('toggle-status');
-        Route::delete('/{timeSlot}', [TimeSlotController::class, 'destroy'])->name('destroy');
-    });
-
-    // Manajemen Member, Membership, Produk & Metode Pembayaran
+    // Operasional Kasir & Admin (Membership, Presensi Check-in/out, Transaksi)
     Route::middleware('role:Admin/Manager|Kasir')->group(function () {
-        // Member
+        // Presensi Check-in & Check-out Member via Barcode / QR Code
+        Route::prefix('operasional')->name('attendances.')->group(function () {
+            Route::get('/checkin-checkout', [AttendanceController::class, 'index'])->name('index');
+            Route::post('/checkin-checkout/scan', [AttendanceController::class, 'scan'])->name('scan');
+            Route::patch('/checkin-checkout/{attendance}/checkout', [AttendanceController::class, 'checkout'])->name('checkout');
+            Route::delete('/checkin-checkout/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
+        });
+
+        // Manajemen Member
         Route::prefix('member')->name('member.')->group(function () {
             Route::get('/', [MemberController::class, 'index'])->name('index');
             Route::post('/', [MemberController::class, 'store'])->name('store');
@@ -134,35 +112,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{member}', [MemberController::class, 'destroy'])->name('destroy');
         });
 
-        // Master Produk / Paket Layanan Gym
-        Route::prefix('products')->name('products.')->group(function () {
-            Route::get('/', [ProductController::class, 'index'])->name('index');
-            Route::post('/', [ProductController::class, 'store'])->name('store');
-            Route::get('/{product}', [ProductController::class, 'show'])->name('show');
-            Route::put('/{product}', [ProductController::class, 'update'])->name('update');
-            Route::patch('/{product}/status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
-            Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
-        });
-
-        // Manajemen Trainer
-        Route::prefix('trainers')->name('trainers.')->group(function () {
-            Route::get('/', [TrainerController::class, 'index'])->name('index');
-            Route::post('/', [TrainerController::class, 'store'])->name('store')->middleware('role:Admin/Manager');
-            Route::put('/{trainer}', [TrainerController::class, 'update'])->name('update')->middleware('role:Admin/Manager');
-            Route::patch('/{trainer}/status', [TrainerController::class, 'toggleStatus'])->name('toggle-status')->middleware('role:Admin/Manager');
-            Route::delete('/{trainer}', [TrainerController::class, 'destroy'])->name('destroy')->middleware('role:Admin/Manager');
-        });
-
-        // Master Data Metode Pembayaran
-        Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
-            Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
-            Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
-            Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
-            Route::patch('/{paymentMethod}/status', [PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
-            Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
-        });
-
-        // Transaksi Membership
         // Data Membership
         Route::prefix('memberships')->name('memberships.')->group(function () {
             Route::get('/', [MembershipController::class, 'index'])->name('index');
@@ -187,6 +136,63 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [TransactionController::class, 'index'])->name('index');
             Route::get('/{transaction}', [TransactionController::class, 'show'])->name('show');
             Route::get('/{transaction}/receipt', [TransactionController::class, 'receipt'])->name('receipt');
+        });
+    });
+
+    // Master Data & Konfigurasi Tingkat Lanjut (HANYA Admin/Manager)
+    Route::middleware('role:Admin/Manager')->group(function () {
+        // Pengguna (Admin Only)
+        Route::prefix('pengguna')->name('pengguna.')->group(function () {
+            Route::get('/', [PenggunaController::class, 'index'])->name('index');
+            Route::post('/', [PenggunaController::class, 'store'])->name('store');
+            Route::put('/{user:slug}', [PenggunaController::class, 'update'])->name('update');
+            Route::patch('/{user:slug}/status', [PenggunaController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{user:slug}', [PenggunaController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master Data Time Slot (Admin Only)
+        Route::redirect('/time_slots', '/time-slots');
+        Route::prefix('time-slots')->name('time-slots.')->group(function () {
+            Route::get('/', [TimeSlotController::class, 'index'])->name('index');
+            Route::post('/', [TimeSlotController::class, 'store'])->name('store');
+            Route::put('/{timeSlot}', [TimeSlotController::class, 'update'])->name('update');
+            Route::patch('/{timeSlot}/status', [TimeSlotController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{timeSlot}', [TimeSlotController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master Produk / Paket Layanan Gym (Admin Only)
+        Route::prefix('products')->name('products.')->group(function () {
+            Route::get('/', [ProductController::class, 'index'])->name('index');
+            Route::post('/', [ProductController::class, 'store'])->name('store');
+            Route::get('/{product}', [ProductController::class, 'show'])->name('show');
+            Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+            Route::patch('/{product}/status', [ProductController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master Trainer (Admin Only)
+        Route::prefix('trainers')->name('trainers.')->group(function () {
+            Route::get('/', [TrainerController::class, 'index'])->name('index');
+            Route::post('/', [TrainerController::class, 'store'])->name('store');
+            Route::put('/{trainer}', [TrainerController::class, 'update'])->name('update');
+            Route::patch('/{trainer}/status', [TrainerController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{trainer}', [TrainerController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master Data Metode Pembayaran (Admin Only)
+        Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
+            Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
+            Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
+            Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
+            Route::patch('/{paymentMethod}/status', [PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
+        });
+
+        // Operasional: Algoritma Greedy & Kuota Reservasi (Admin Only)
+        Route::prefix('operasional/greedy')->name('greedy.')->group(function () {
+            Route::get('/', [GreedyController::class, 'index'])->name('index');
+            Route::patch('/slots/{timeSlot}/quota', [GreedyController::class, 'updateQuota'])->name('update-quota');
+            Route::post('/optimize', [GreedyController::class, 'optimizeBatch'])->name('optimize');
         });
     });
 });

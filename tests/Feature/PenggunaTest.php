@@ -66,12 +66,12 @@ test('unauthenticated guest cannot access /pengguna and is redirected to login',
     $response->assertRedirect(route('login'));
 });
 
-test('kasir role can view pengguna index (read-only)', function () {
+test('kasir role cannot access pengguna index and receives 403', function () {
     $kasirUser = User::factory()->create();
     $kasirUser->assignRole('Kasir');
 
     $response = $this->actingAs($kasirUser)->get(route('pengguna.index'));
-    $response->assertStatus(200);
+    $response->assertStatus(403);
 });
 
 test('member role cannot access /pengguna and receives 403', function () {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
@@ -139,8 +140,28 @@ class ScheduleController extends Controller
             }
         }
 
+        // Sinkronisasi data Attendance Check-in
+        if ($newStatus === Schedule::STATUS_ATTENDED) {
+            $existingAtt = Attendance::where('member_id', $schedule->member_id)
+                ->whereDate('date', $schedule->scheduled_date)
+                ->first();
+            if (! $existingAtt) {
+                Attendance::create([
+                    'member_id' => $schedule->member_id,
+                    'membership_id' => $schedule->reservation?->membership_id ?? $schedule->member->activeMembership()?->id,
+                    'reservation_id' => $schedule->reservation_id,
+                    'date' => $schedule->scheduled_date->toDateString(),
+                    'check_in_at' => now(),
+                    'status' => Attendance::STATUS_CHECKED_IN,
+                    'scan_method' => 'manual',
+                    'notes' => 'Presensi via Halaman Kunjungan',
+                    'created_by' => auth()->id(),
+                ]);
+            }
+        }
+
         $label = match ($newStatus) {
-            Schedule::STATUS_ATTENDED => 'Hadir / Selesai',
+            Schedule::STATUS_ATTENDED => 'Check-in (Hadir)',
             Schedule::STATUS_CANCELLED => 'Dibatalkan',
             Schedule::STATUS_NO_SHOW => 'Tidak Hadir (No Show)',
             default => 'Terjadwal',

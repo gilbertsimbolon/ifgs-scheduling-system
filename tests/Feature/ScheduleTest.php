@@ -80,3 +80,85 @@ test('admin can update schedule attendance status to attended', function () {
     expect($schedule->fresh()->status)->toBe('attended');
     expect($reservation->fresh()->status)->toBe('completed');
 });
+
+test('admin sees empty state when time slot has no schedules', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    TimeSlot::factory()->create(['name' => 'Sesi Fitness', 'status' => 'active']);
+
+    $this->actingAs($admin)
+        ->get(route('schedules.index', ['date' => Carbon::today()->format('Y-m-d')]))
+        ->assertOk()
+        ->assertSee('Belum Ada Kunjungan Terjadwal')
+        ->assertSee('Belum ada kunjungan terjadwal di sesi ini.');
+});
+
+test('admin sees empty state when there are no active time slots', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    TimeSlot::query()->delete();
+
+    $this->actingAs($admin)
+        ->get(route('schedules.index', ['date' => Carbon::today()->format('Y-m-d')]))
+        ->assertOk()
+        ->assertSee('Belum Ada Sesi / Jadwal Layanan Aktif');
+});
+
+test('member sees empty state when having no schedules', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    Member::factory()->create(['user_id' => $user->id]);
+
+    $this->actingAs($user)
+        ->get(route('schedules.index'))
+        ->assertOk()
+        ->assertSee('Belum Ada Jadwal Kehadiran');
+});
+
+test('reservation appears as Terjadwal on schedule page and changes to Check-in when attended', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $memberUser = User::factory()->create(['name' => 'Budi Pratama']);
+    $memberUser->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
+
+    $slot = TimeSlot::factory()->create(['name' => 'Sesi Fitness']);
+    $date = Carbon::today()->format('Y-m-d');
+
+    $reservation = Reservation::factory()->create([
+        'member_id' => $member->id,
+        'time_slot_id' => $slot->id,
+        'visit_date' => $date,
+        'status' => 'scheduled',
+    ]);
+
+    $schedule = Schedule::factory()->create([
+        'member_id' => $member->id,
+        'reservation_id' => $reservation->id,
+        'time_slot_id' => $slot->id,
+        'scheduled_date' => $date,
+        'status' => 'scheduled',
+    ]);
+
+    // 1. Muncul dengan status Terjadwal sebelum absen
+    $this->actingAs($admin)
+        ->get(route('schedules.index', ['date' => $date]))
+        ->assertOk()
+        ->assertSee('Budi Pratama')
+        ->assertSee('Terjadwal');
+
+    // 2. Diabsen / check-in
+    $this->actingAs($admin)
+        ->patch(route('schedules.update-status', $schedule), ['status' => 'attended'])
+        ->assertRedirect();
+
+    // 3. Status berubah menjadi Check-in
+    $this->actingAs($admin)
+        ->get(route('schedules.index', ['date' => $date]))
+        ->assertOk()
+        ->assertSee('Budi Pratama')
+        ->assertSee('Check-in');
+});

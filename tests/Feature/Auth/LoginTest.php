@@ -55,7 +55,7 @@ test('active users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticatedAs($user);
-    $response->assertRedirect(route('pengguna.index'));
+    $response->assertRedirect(route('dashboard'));
 });
 
 test('member role users are redirected appropriately upon authentication', function () {
@@ -81,6 +81,7 @@ test('users can authenticate with remember me option', function () {
         'password' => Hash::make('password123'),
         'status' => User::STATUS_ACTIVE,
     ]);
+    $user->assignRole('Admin/Manager');
 
     $response = $this->post(route('login'), [
         'email' => 'remember@ifgs.test',
@@ -89,7 +90,7 @@ test('users can authenticate with remember me option', function () {
     ]);
 
     $this->assertAuthenticatedAs($user);
-    $response->assertRedirect(route('pengguna.index'));
+    $response->assertRedirect(route('dashboard'));
     $this->assertNotNull($user->fresh()->remember_token);
 });
 

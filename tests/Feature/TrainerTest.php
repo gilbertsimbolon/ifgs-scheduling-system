@@ -50,23 +50,13 @@ test('admin can view trainers index page with data', function () {
         ->assertSee('Tambah Trainer');
 });
 
-test('kasir can view trainers index page but cannot see action buttons', function () {
+test('kasir cannot access trainers index page and receives 403', function () {
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
-    $user = User::factory()->create(['name' => 'Zin Sarah']);
-    $user->assignRole('Trainer');
-    Trainer::factory()->create([
-        'user_id' => $user->id,
-        'specialization' => 'Aerobic & Zumba',
-    ]);
-
     $this->actingAs($kasir)
         ->get(route('trainers.index'))
-        ->assertOk()
-        ->assertSee('Zin Sarah')
-        ->assertSee('Aerobic & Zumba')
-        ->assertDontSee('Tambah Trainer');
+        ->assertForbidden();
 });
 
 test('admin can create a new trainer and auto-create user with Trainer role', function () {

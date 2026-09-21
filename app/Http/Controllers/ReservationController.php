@@ -256,14 +256,16 @@ class ReservationController extends Controller
             $validated['time_slot_id'] ?? null
         );
 
+        $destination = $request->filled('redirect_to') ? $request->redirect_to : route('reservations.index');
+
         if ($scheduleResult['success']) {
             $msg = "Reservasi {$reservation->code} berhasil dijadwalkan! {$scheduleResult['message']}";
 
-            return redirect()->route('reservations.index')->with('success', $msg);
+            return redirect($destination)->with('success', $msg);
         }
 
         // Jika seluruh slot penuh pada tanggal tersebut
-        return redirect()->route('reservations.index')
+        return redirect($destination)
             ->with('warning', "Reservasi dibuat ({$reservation->code}), namun jadwal gagal dialokasikan otomatis: {$scheduleResult['message']}");
     }
 
@@ -290,7 +292,9 @@ class ReservationController extends Controller
             $reservation->schedule->update(['status' => Schedule::STATUS_CANCELLED]);
         }
 
-        return redirect()->route('reservations.index')
+        $destination = $request->filled('redirect_to') ? $request->redirect_to : route('reservations.index');
+
+        return redirect($destination)
             ->with('success', "Reservasi {$reservation->code} berhasil dibatalkan.");
     }
 

@@ -204,7 +204,8 @@ class TrainerBookingController extends Controller
             ]);
         }
 
-        $redirect = redirect()->route('trainer-bookings.index')
+        $destination = $request->filled('redirect_to') ? $request->redirect_to : route('trainer-bookings.index');
+        $redirect = redirect($destination)
             ->with('success', "Sesi latihan untuk member {$memberName} berhasil disetujui (ACC).");
 
         if ($request->boolean('open_wa') && $waUrl) {
@@ -259,7 +260,8 @@ class TrainerBookingController extends Controller
             ]);
         }
 
-        $redirect = redirect()->route('trainer-bookings.index')
+        $destination = $request->filled('redirect_to') ? $request->redirect_to : route('trainer-bookings.index');
+        $redirect = redirect($destination)
             ->with('success', "Permohonan sesi latihan dari {$memberName} telah ditolak.");
 
         if ($request->boolean('open_wa') && $waRejectUrl) {
@@ -294,7 +296,9 @@ class TrainerBookingController extends Controller
             ]);
         }
 
-        return redirect()->route('trainer-bookings.index')
+        $destination = $request->filled('redirect_to') ? $request->redirect_to : route('trainer-bookings.index');
+
+        return redirect($destination)
             ->with('success', "Sesi latihan dengan member {$memberName} telah selesai dilaksanakan.");
     }
 }

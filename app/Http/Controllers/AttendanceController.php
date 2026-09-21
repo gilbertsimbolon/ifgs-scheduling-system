@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\Member;
 use App\Models\Reservation;
+use App\Models\Schedule;
 use App\Models\TrainerBooking;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -170,6 +171,17 @@ class AttendanceController extends Controller
 
         if ($reservation) {
             $reservation->update(['status' => Reservation::STATUS_COMPLETED]);
+            if ($reservation->schedule) {
+                $reservation->schedule->update(['status' => Schedule::STATUS_ATTENDED]);
+            }
+        } else {
+            $todaySchedule = Schedule::where('member_id', $member->id)
+                ->whereDate('scheduled_date', today())
+                ->where('status', Schedule::STATUS_SCHEDULED)
+                ->first();
+            if ($todaySchedule) {
+                $todaySchedule->update(['status' => Schedule::STATUS_ATTENDED]);
+            }
         }
 
         // Buat data presensi Check-in baru

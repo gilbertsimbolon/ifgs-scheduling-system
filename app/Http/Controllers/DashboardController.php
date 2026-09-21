@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Member;
 use App\Models\Membership;
-use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -19,65 +18,16 @@ class DashboardController extends Controller
     /**
      * Tampilkan Dashboard utama IFGS Scheduling System.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $today = Carbon::today()->format('Y-m-d');
         $user = auth()->user();
 
-        $isMember = $user->hasRole('Member');
-
-        // Jika user adalah Member, tampilkan ringkasan pribadi
-        if ($isMember) {
-            $member = $user->member;
-            $activeMembership = $member ? $member->activeMembership() : null;
-            $pendingMembership = $member ? Membership::with(['product', 'paymentMethod', 'transaction'])
-                ->where('member_id', $member->id)
-                ->where('status', Membership::STATUS_PENDING)
-                ->latest()
-                ->first() : null;
-
-            $activeProducts = Product::where('status', Product::STATUS_ACTIVE)->orderBy('price')->get();
-            $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->orderBy('name')->get();
-
-            $myReservationsCount = $member ? Reservation::where('member_id', $member->id)->count() : 0;
-            $myUpcomingSchedules = $member ? Schedule::with(['timeSlot', 'reservation'])
-                ->where('member_id', $member->id)
-                ->whereDate('scheduled_date', '>=', $today)
-                ->where('status', Schedule::STATUS_SCHEDULED)
-                ->orderBy('scheduled_date')
-                ->take(5)
-                ->get() : collect();
-
-            $myRecentVisits = $member ? Schedule::with('timeSlot')
-                ->where('member_id', $member->id)
-                ->where('status', Schedule::STATUS_ATTENDED)
-                ->orderByDesc('scheduled_date')
-                ->take(5)
-                ->get() : collect();
-
-            $memberRes = $member ? Reservation::where('member_id', $member->id) : null;
-            $reservationMetrics = [
-                'total' => $memberRes ? (clone $memberRes)->count() : 0,
-                'scheduled' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_SCHEDULED)->count() : 0,
-                'pending' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_PENDING)->count() : 0,
-                'completed' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_COMPLETED)->count() : 0,
-                'cancelled' => $memberRes ? (clone $memberRes)->where('status', Reservation::STATUS_CANCELLED)->count() : 0,
-            ];
-
-            return view('dashboard.index', [
-                'isMember' => true,
-                'member' => $member,
-                'activeMembership' => $activeMembership,
-                'pendingMembership' => $pendingMembership,
-                'activeProducts' => $activeProducts,
-                'activePaymentMethods' => $activePaymentMethods,
-                'myReservationsCount' => $myReservationsCount,
-                'myUpcomingSchedules' => $myUpcomingSchedules,
-                'myRecentVisits' => $myRecentVisits,
-                'operationalSlots' => TimeSlot::active()->orderBy('start_time')->get(),
-                'reservationMetrics' => $reservationMetrics,
-            ]);
+        // Member dan Trainer tidak masuk ke admin panel / dashboard
+        if (! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+            return redirect()->route('home');
         }
+
+        $today = Carbon::today()->format('Y-m-d');
 
         // Metrik Utama Gym untuk Admin / Pengelola
         $totalMembers = Member::count();

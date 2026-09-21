@@ -34,16 +34,14 @@ test('authenticated admin can view gym dashboard with kpi metrics and time slots
         ->assertSee('Sesi Pagi Utama');
 });
 
-test('authenticated member can view personal dashboard', function () {
+test('authenticated member is redirected to landing page from /dashboard', function () {
     $user = User::factory()->create(['name' => 'Gilbert Simbolon']);
     $user->assignRole('Member');
     $member = Member::factory()->create(['user_id' => $user->id]);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertOk()
-        ->assertSee('Halo, Gilbert Simbolon')
-        ->assertSee('Paket Membership Anda');
+        ->assertRedirect(route('home'));
 });
 
 test('authenticated user accessing root url sees welcome page with link to dashboard', function () {

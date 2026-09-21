@@ -57,15 +57,11 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        if ($user->hasRole('Kasir')) {
-            return redirect()->route('kasir.index');
+        if ($user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+            return redirect()->intended(route('dashboard'));
         }
 
-        $defaultDestination = $user->hasRole('Member')
-            ? url('/')
-            : route('pengguna.index');
-
-        return redirect()->intended($defaultDestination);
+        return redirect()->intended(route('home'));
     }
 
     /**

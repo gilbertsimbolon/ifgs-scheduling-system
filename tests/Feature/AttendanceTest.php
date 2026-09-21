@@ -2,6 +2,9 @@
 
 use App\Models\Attendance;
 use App\Models\Member;
+use App\Models\Reservation;
+use App\Models\Schedule;
+use App\Models\TimeSlot;
 use App\Models\Trainer;
 use App\Models\TrainerBooking;
 use App\Models\User;
@@ -45,7 +48,7 @@ test('admin can access checkin-checkout page and view scanner and branding', fun
         ->assertSee('id="reader"', false);
 });
 
-test('kasir and trainer can access checkin-checkout page', function () {
+test('kasir can access checkin-checkout page while trainer cannot', function () {
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
@@ -58,7 +61,7 @@ test('kasir and trainer can access checkin-checkout page', function () {
 
     $this->actingAs($trainerUser)
         ->get(route('attendances.index'))
-        ->assertOk();
+        ->assertForbidden();
 });
 
 test('scan check-in creates attendance record with status checked_in', function () {
@@ -408,4 +411,48 @@ test('kasir cannot delete attendance record', function () {
     $this->actingAs($kasir)
         ->delete(route('attendances.destroy', $attendance))
         ->assertForbidden();
+});
+
+test('scan check-in automatically updates scheduled visit to attended', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $memberUser = User::factory()->create(['name' => 'Dewi Lestari']);
+    $memberUser->assignRole('Member');
+    $member = Member::factory()->create([
+        'user_id' => $memberUser->id,
+        'member_code' => 'IFGS-M-099',
+    ]);
+
+    $slot = TimeSlot::factory()->create();
+    $reservation = Reservation::factory()->create([
+        'member_id' => $member->id,
+        'time_slot_id' => $slot->id,
+        'visit_date' => today()->toDateString(),
+        'status' => 'scheduled',
+    ]);
+
+    $schedule = Schedule::factory()->create([
+        'member_id' => $member->id,
+        'reservation_id' => $reservation->id,
+        'time_slot_id' => $slot->id,
+        'scheduled_date' => today()->toDateString(),
+        'status' => 'scheduled',
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->postJson(route('attendances.scan'), [
+            'code' => 'IFGS-M-099',
+            'mode' => 'auto',
+            'method' => 'barcode_scanner',
+        ]);
+
+    $response->assertOk()
+        ->assertJson([
+            'success' => true,
+            'action' => 'check_in',
+        ]);
+
+    expect($reservation->fresh()->status)->toBe(Reservation::STATUS_COMPLETED);
+    expect($schedule->fresh()->status)->toBe(Schedule::STATUS_ATTENDED);
 });

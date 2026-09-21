@@ -37,12 +37,14 @@
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">MANAJEMEN</span>
         </li>
-        <li class="menu-item {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
-            <a href="{{ route('pengguna.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-user"></i>
-                <div class="text-truncate">Pengguna</div>
-            </a>
-        </li>
+        @hasrole('Admin/Manager')
+            <li class="menu-item {{ request()->routeIs('pengguna.*') ? 'active' : '' }}">
+                <a href="{{ route('pengguna.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-user"></i>
+                    <div class="text-truncate">Pengguna</div>
+                </a>
+            </li>
+        @endhasrole
         <li class="menu-item {{ request()->routeIs('memberships.*') ? 'active' : '' }}">
             <a href="{{ route('memberships.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-id-card"></i>
@@ -55,30 +57,34 @@
                 <div class="text-truncate">Transaksi Membership</div>
             </a>
         </li>
-        <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
-            <a href="{{ route('products.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-package"></i>
-                <div class="text-truncate">Paket Layanan</div>
-            </a>
-        </li>
-        <li class="menu-item {{ request()->routeIs('trainers.*') ? 'active' : '' }}">
-            <a href="{{ route('trainers.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-run"></i>
-                <div class="text-truncate">Trainer</div>
-            </a>
-        </li>
+        @hasrole('Admin/Manager')
+            <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                <a href="{{ route('products.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-package"></i>
+                    <div class="text-truncate">Paket Layanan</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('trainers.*') ? 'active' : '' }}">
+                <a href="{{ route('trainers.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-run"></i>
+                    <div class="text-truncate">Trainer</div>
+                </a>
+            </li>
+        @endhasrole
         <li class="menu-item {{ request()->routeIs('trainer-bookings.*') ? 'active' : '' }}">
             <a href="{{ route('trainer-bookings.index') }}" class="menu-link">
                 <i class="menu-icon tf-icons bx bx-calendar-star"></i>
                 <div class="text-truncate">Sesi Trainer</div>
             </a>
         </li>
-        <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
-            <a href="{{ route('payment-methods.index') }}" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
-                <div class="text-truncate">Metode Pembayaran</div>
-            </a>
-        </li>
+        @hasrole('Admin/Manager')
+            <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
+                <a href="{{ route('payment-methods.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
+                    <div class="text-truncate">Metode Pembayaran</div>
+                </a>
+            </li>
+        @endhasrole
 
         <!-- 3. OPERASIONAL -->
         <li class="menu-header small text-uppercase">
@@ -104,15 +110,15 @@
                 <div class="text-truncate">Kunjungan</div>
             </a>
         </li>
-        @hasanyrole('Admin/Manager|Kasir')
+        @hasrole('Admin/Manager')
             <li class="menu-item {{ request()->routeIs('greedy.*') ? 'active' : '' }}">
                 <a href="{{ route('greedy.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-brain"></i>
                     <div class="text-truncate">Greedy</div>
                 </a>
             </li>
-        @endhasanyrole
-        @hasanyrole('Admin/Manager|Kasir|Trainer')
+        @endhasrole
+        @hasanyrole('Admin/Manager|Kasir')
             <li class="menu-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                 <a href="{{ route('attendances.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-barcode-reader"></i>

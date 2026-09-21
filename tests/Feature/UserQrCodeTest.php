@@ -176,7 +176,7 @@ test('member cannot view another member digital card and receives 403', function
     $response->assertStatus(403);
 });
 
-test('member dashboard displays digital member card and qr code modal', function () {
+test('member landing page displays digital member card and qr code modal', function () {
     $user = User::factory()->create(['name' => 'Member Aktif']);
     $user->assignRole('Member');
     Member::create([
@@ -185,7 +185,10 @@ test('member dashboard displays digital member card and qr code modal', function
         'phone' => '081233334444',
     ]);
 
-    $response = $this->actingAs($user)->get(route('dashboard'));
+    // Member visiting dashboard is redirected to home
+    $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('home'));
+
+    $response = $this->actingAs($user)->get(route('home'));
 
     $response->assertStatus(200);
     $response->assertSee('Kartu Member Digital');

@@ -66,8 +66,8 @@
                                     </td>
                                     <td>
                                         @if ($sch->status === 'attended')
-                                            <span class="badge bg-label-success"><i class="bx bx-check-double me-1"></i>
-                                                Hadir</span>
+                                            <span class="badge bg-label-success"><i class="bx bx-check-circle me-1"></i>
+                                                Check-in</span>
                                         @elseif ($sch->status === 'scheduled')
                                             <span class="badge bg-label-primary"><i class="bx bx-calendar me-1"></i>
                                                 Terjadwal</span>
@@ -87,9 +87,13 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-4 text-muted">
-                                        <i class="bx bx-calendar-x fs-2 mb-2 d-block"></i>
-                                        Belum ada jadwal kehadiran untuk akun Anda.
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <div class="d-flex flex-column align-items-center justify-content-center py-4">
+                                            <i class="bx bx-calendar-x text-muted mb-2"
+                                                style="font-size: 3rem; opacity: 0.5;"></i>
+                                            <h6 class="text-secondary fw-semibold mb-1">Belum Ada Jadwal Kehadiran</h6>
+                                            <p class="text-muted small mb-0">Belum ada jadwal kehadiran untuk akun Anda.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse
@@ -103,87 +107,151 @@
                 @endif
             </div>
         @else
-            <!-- 2 Card Sesi Layanan Dinamis -->
-            <div class="row g-4 mt-1">
-                @forelse ($slotData as $data)
-                    @php
-                        $slot = $data['slot'];
-                        $pct = $data['percentage'];
-                        $progressColor = $pct >= 100 ? 'bg-danger' : ($pct >= 70 ? 'bg-warning' : 'bg-success');
-                    @endphp
-                    <div class="col-12 col-lg-6">
-                        <div class="card h-100 border {{ $data['is_full'] ? 'border-danger' : 'border-light' }} shadow-sm">
-                            <!-- Slot Header -->
-                            <div class="card-header py-3 border-bottom">
-                                <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <div class="d-flex align-items-center text-primary">
-                                        <i class="bx bx-time-five me-2 fs-5 d-flex align-items-center" style="line-height: 1;"></i>
-                                        <h5 class="card-title fw-bold mb-0 text-primary" style="line-height: 1.2;">
-                                            {{ $slot->name }}
-                                        </h5>
-                                    </div>
-                                    <span class="badge bg-label-secondary d-inline-flex align-items-center" style="font-size: 0.8rem; font-weight: 500; height: 26px; line-height: 1;">
+            <!-- Filter Tanggal Kunjungan Operasional -->
+            <div class="card mb-3">
+                <div class="card-body py-2 px-3">
+                    <form method="GET" action="{{ route('schedules.index') }}"
+                        class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bx bx-calendar text-primary fs-4"></i>
+                            <div>
+                                <span class="fw-bold text-dark d-block" style="font-size: 0.9rem;">
+                                    Jadwal Kunjungan: {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}
+                                </span>
+                                <small class="text-muted">
+                                    {{ \Carbon\Carbon::parse($date)->isToday() ? '(Hari Ini)' : (\Carbon\Carbon::parse($date)->isTomorrow() ? '(Besok)' : '') }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="filterDate" class="form-label mb-0 small text-muted">Pilih Tanggal:</label>
+                            <input type="date" id="filterDate" name="date" class="form-control form-control-sm"
+                                value="{{ $date }}" onchange="this.form.submit()" style="width: 160px;">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bx bx-search-alt me-1"></i> Tampilkan
+                            </button>
+                            @if (!\Carbon\Carbon::parse($date)->isToday())
+                                <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-secondary">
+                                    Hari Ini
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Nav Tabs Sesi Layanan Dinamis Full Width -->
+            @if (count($slotData) > 0)
+                <div class="nav-align-top mt-2">
+                    <ul class="nav nav-tabs" role="tablist">
+                        @foreach ($slotData as $index => $data)
+                            @php
+                                $slot = $data['slot'];
+                                $pct = $data['percentage'];
+                                $badgeClass = $data['is_full']
+                                    ? 'bg-danger'
+                                    : ($pct >= 70
+                                        ? 'bg-warning'
+                                        : 'bg-primary');
+                            @endphp
+                            <li class="nav-item" role="presentation">
+                                <button type="button"
+                                    class="nav-link py-3 px-4 fw-bold {{ $index === 0 ? 'active' : '' }}" role="tab"
+                                    data-bs-toggle="tab" data-bs-target="#navs-slot-{{ $slot->id }}"
+                                    aria-controls="navs-slot-{{ $slot->id }}"
+                                    aria-selected="{{ $index === 0 ? 'true' : 'false' }}">
+                                    <i
+                                        class="bx {{ $slot->category === 'aerobic_zumba' ? 'bx-run' : 'bx-dumbbell' }} me-2 text-primary fs-5"></i>
+                                    <span>{{ $slot->name }}</span>
+                                    <span class="badge bg-label-secondary ms-2 fw-normal" style="font-size: 0.8rem;">
                                         {{ $slot->time_range }} WITA
                                     </span>
-                                </div>
-                            </div>
-
-                            <!-- Occupancy Progress Bar -->
-                            <div class="card-body py-3 border-bottom bg-lighter">
-                                <div class="d-flex justify-content-between align-items-center mb-1 small">
-                                    <span class="fw-semibold text-dark">Tingkat Kepadatan Sesi:</span>
-                                    <span class="fw-bold text-dark">{{ $data['occupied'] }} / {{ $slot->capacity }} Member
-                                        ({{ $pct }}%)</span>
-                                </div>
-                                <div class="progress" style="height: 9px;">
-                                    <div class="progress-bar {{ $progressColor }}" role="progressbar"
-                                        style="width: {{ min(100, $pct) }}%;" aria-valuenow="{{ $pct }}"
-                                        aria-valuemin="0" aria-valuemax="100">
+                                    <span class="badge rounded-pill {{ $badgeClass }} ms-2" style="font-size: 0.75rem;">
+                                        {{ $data['occupied'] }}/{{ $slot->capacity }}
+                                    </span>
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                    <div class="tab-content p-0 shadow-sm border-0">
+                        @foreach ($slotData as $index => $data)
+                            @php
+                                $slot = $data['slot'];
+                                $pct = $data['percentage'];
+                                $progressColor = $pct >= 100 ? 'bg-danger' : ($pct >= 70 ? 'bg-warning' : 'bg-success');
+                            @endphp
+                            <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}"
+                                id="navs-slot-{{ $slot->id }}" role="tabpanel">
+                                <!-- Tingkat Kepadatan Sesi Full Width Bar -->
+                                <div class="px-4 py-3 border-bottom bg-lighter">
+                                    <div
+                                        class="d-flex justify-content-between align-items-center mb-1 small flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-semibold text-dark">
+                                                <i class="bx bx-tachometer me-1 text-primary"></i> Tingkat Kepadatan Sesi:
+                                            </span>
+                                            <span class="badge bg-label-secondary">{{ $slot->days }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="fw-bold text-dark">
+                                                {{ $data['occupied'] }} / {{ $slot->capacity }} Member
+                                                ({{ $pct }}%)
+                                            </span>
+                                            <span class="mx-1 text-muted">&bull;</span>
+                                            <span
+                                                class="fw-semibold {{ $data['is_full'] ? 'text-danger' : 'text-success' }}">
+                                                Sisa {{ max(0, $slot->capacity - $data['occupied']) }} Slot
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar {{ $progressColor }}" role="progressbar"
+                                            style="width: {{ min(100, $pct) }}%;" aria-valuenow="{{ $pct }}"
+                                            aria-valuemin="0" aria-valuemax="100">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Member Attendance List in this Slot -->
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table table-sm table-hover mb-0">
+                                <!-- Tabel Kunjungan Full Width -->
+                                <div class="table-responsive text-nowrap">
+                                    <table class="table table-hover align-middle mb-0 w-100">
                                         <thead class="table-light">
                                             <tr>
-                                                <th style="width: 35px;">#</th>
+                                                <th style="width: 50px;">#</th>
                                                 <th>MEMBER</th>
                                                 <th>PAKET</th>
                                                 <th>STATUS</th>
-                                                <th class="text-center" style="width: 130px;">AKSI PRESENSI</th>
+                                                <th class="text-center" style="width: 150px;">AKSI PRESENSI</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
+                                        <tbody class="table-border-bottom-0">
                                             @forelse ($data['schedules'] as $idx => $s)
                                                 <tr>
-                                                    <td class="text-muted small">{{ $idx + 1 }}</td>
+                                                    <td class="text-muted">{{ $idx + 1 }}</td>
                                                     <td>
-                                                        <div class="fw-semibold text-dark small">
+                                                        <div class="fw-semibold text-dark">
                                                             {{ $s->member->user->name ?? '-' }}</div>
                                                         <small class="text-muted"
                                                             style="font-size: 0.75rem;">{{ $s->member->member_code ?? '-' }}</small>
                                                     </td>
                                                     <td>
-                                                        <span class="text-dark small">
+                                                        <span class="text-dark">
                                                             {{ $s->reservation->membership->product->name ?? 'Membership' }}
                                                         </span>
                                                     </td>
                                                     <td>
                                                         @if ($s->status === 'attended')
-                                                            <span class="badge bg-label-success"
-                                                                style="font-size: 0.72rem;">Hadir</span>
+                                                            <span class="badge bg-label-success"><i
+                                                                    class="bx bx-check-circle me-1"></i> Check-in</span>
                                                         @elseif ($s->status === 'scheduled')
-                                                            <span class="badge bg-label-primary"
-                                                                style="font-size: 0.72rem;">Terjadwal</span>
+                                                            <span class="badge bg-label-primary"><i
+                                                                    class="bx bx-calendar me-1"></i> Terjadwal</span>
                                                         @elseif ($s->status === 'no_show')
-                                                            <span class="badge bg-label-warning"
-                                                                style="font-size: 0.72rem;">No Show</span>
+                                                            <span class="badge bg-label-warning"><i
+                                                                    class="bx bx-user-x me-1"></i> No Show</span>
                                                         @else
-                                                            <span class="badge bg-label-danger"
-                                                                style="font-size: 0.72rem;">Batal</span>
+                                                            <span class="badge bg-label-danger"><i
+                                                                    class="bx bx-x me-1"></i> Batal</span>
                                                         @endif
                                                     </td>
                                                     <td class="text-center">
@@ -206,7 +274,7 @@
                                                                         <button type="submit"
                                                                             class="dropdown-item text-success small">
                                                                             <i class="bx bx-check-circle me-1"></i>
-                                                                            Check-in / Hadir
+                                                                            Check-in
                                                                         </button>
                                                                     </form>
                                                                 </li>
@@ -263,8 +331,14 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="5" class="text-center py-3 text-muted small">
-                                                        Belum ada kunjungan terjadwal di sesi ini.
+                                                    <td colspan="5" class="text-center py-5">
+                                                        <div
+                                                            class="d-flex flex-column align-items-center justify-content-center py-4">
+                                                            <i class="bx bx-calendar-x text-muted mb-2"
+                                                                style="font-size: 3rem; opacity: 0.5;"></i>
+                                                            <h6 class="text-secondary fw-semibold mb-1">Belum Ada Kunjungan Terjadwal</h6>
+                                                            <p class="text-muted small mb-0">Belum ada kunjungan terjadwal di sesi ini.</p>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endforelse
@@ -272,19 +346,19 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        @endforeach
                     </div>
-                @empty
-                    <div class="col-12">
-                        <div class="card p-5 text-center text-muted">
-                            <i class="bx bx-calendar-x fs-1 mb-2"></i>
-                            <h6>Belum Ada Sesi / Jadwal Layanan Aktif</h6>
-                            <p class="mb-3">Silakan kelola jadwal operasional pada menu Operasional &gt; Jadwal
-                                Operasional.</p>
-                        </div>
+                </div>
+            @else
+                <div class="card p-5 text-center text-muted mt-2">
+                    <div class="d-flex flex-column align-items-center justify-content-center py-3">
+                        <i class="bx bx-calendar-x fs-1 mb-2 text-secondary"></i>
+                        <h6 class="fw-bold text-secondary mb-1">Belum Ada Sesi / Jadwal Layanan Aktif</h6>
+                        <p class="text-muted small mb-0">Silakan kelola jadwal operasional pada menu Operasional &gt;
+                            Jadwal Operasional.</p>
                     </div>
-                @endforelse
-            </div>
+                </div>
+            @endif
         @endif
     </div>
 @endsection

@@ -39,13 +39,13 @@ test('admin can access greedy operational page', function () {
         ->assertSee('Cadangan Walk-in');
 });
 
-test('kasir can access greedy operational page', function () {
+test('kasir cannot access greedy operational page', function () {
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
     $this->actingAs($kasir)
         ->get(route('greedy.index'))
-        ->assertOk();
+        ->assertForbidden();
 });
 
 test('member cannot access greedy operational page', function () {

@@ -19,7 +19,7 @@ beforeEach(function () {
     Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
 });
 
-test('authorized Admin/Manager and Kasir can access /payment-methods without cards or penggunaan column', function () {
+test('authorized Admin/Manager can access /payment-methods without cards or penggunaan column', function () {
     $admin = User::factory()->create();
     $admin->assignRole('Admin/Manager');
 
@@ -36,7 +36,7 @@ test('authorized Admin/Manager and Kasir can access /payment-methods without car
         ->assertDontSee('Semua metode pembayaran')
         ->assertDontSee('Penggunaan');
 
-    $this->actingAs($kasir)->get(route('payment-methods.index'))->assertOk();
+    $this->actingAs($kasir)->get(route('payment-methods.index'))->assertForbidden();
 });
 
 test('unauthorized Member role receives 403 on /payment-methods', function () {
