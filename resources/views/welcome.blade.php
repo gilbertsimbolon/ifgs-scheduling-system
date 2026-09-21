@@ -167,8 +167,8 @@
                                 <div class="text-start">
                                     <span
                                         class="fw-semibold text-dark d-block lh-1 small">{{ auth()->user()->name }}</span>
-                                    <small class="badge bg-label-primary px-1 py-0 font-monospace"
-                                        style="font-size: 0.65rem;">
+                                    <small class="text-primary fw-semibold"
+                                        style="font-size: 0.72rem; font-family: Arial, Helvetica, sans-serif;">
                                         {{ auth()->user()->getRoleNames()->first() ?? 'Member' }}
                                     </small>
                                 </div>
@@ -382,28 +382,25 @@
             <div class="container-xl">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
                     <div>
-                        <span class="badge bg-label-primary font-monospace mb-1">PORTAL MEMBER IFGS</span>
-                        <h3 class="fw-bold text-dark mb-0">Halo, {{ auth()->user()->name }}! 👋</h3>
-                        <p class="text-muted small mb-0">Kelola status membership, reservasi kunjungan, dan absensi
+                        <p class="text-uppercase fw-semibold mb-1"
+                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
+                            PORTAL MEMBER IFGS
+                        </p>
+                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo,
+                            {{ auth()->user()->name }}! 👋</h3>
+                        <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
+                            status membership, reservasi kunjungan, dan absensi
                             Anda di sini.</p>
                     </div>
-                    <div class="d-flex flex-wrap gap-2">
-                        @if ($activeMembership)
+                    @if ($activeMembership)
+                        <div class="d-flex flex-wrap gap-2">
                             <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahReservasi">
+                                data-bs-target="#modalTambahReservasi"
+                                style="font-family: Arial, Helvetica, sans-serif;">
                                 <i class="bx bx-calendar-plus me-1"></i> Reservasi Kunjungan
                             </button>
-                        @endif
-                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#modalOrderMembership">
-                            <i class="bx bx-cart me-1"></i>
-                            {{ $activeMembership ? 'Perpanjang Membership' : 'Pesan Membership' }}
-                        </button>
-                        <button type="button" class="btn btn-light text-primary border" data-bs-toggle="modal"
-                            data-bs-target="#modalQrCodeMember">
-                            <i class="bx bx-qr-scan me-1"></i> QR Absensi
-                        </button>
-                    </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Notifikasi Pending jika ada -->
@@ -420,7 +417,7 @@
                                     {{ $pendingMembership->product?->name }} Sedang Diverifikasi</h6>
                                 <p class="small text-muted mb-0">
                                     No. Invoice: <strong
-                                        class="font-monospace text-dark">{{ $pendingMembership->transaction?->invoice_number }}</strong>
+                                        class="text-dark">{{ $pendingMembership->transaction?->invoice_number }}</strong>
                                     &bull;
                                     Nominal: <strong
                                         class="text-success">{{ $pendingMembership->formatted_price }}</strong> &bull;
@@ -444,7 +441,9 @@
                         <div class="card h-100 shadow-sm border-start border-primary border-4">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="badge bg-label-primary">Status Keanggotaan</span>
+                                    <span class="text-uppercase fw-semibold small text-muted"
+                                        style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px;">Status
+                                        Keanggotaan</span>
                                     @if ($activeMembership)
                                         <span class="badge bg-success">Aktif</span>
                                     @elseif (!empty($pendingMembership))
@@ -458,8 +457,8 @@
                                     {{ $activeMembership ? $activeMembership->product->name : 'Belum Ada Paket' }}
                                 </h4>
                                 <p class="text-muted small mb-3">
-                                    Kode Member: <strong
-                                        class="font-monospace text-primary">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                    Kode Member: <strong class="text-primary fw-semibold"
+                                        style="font-family: Arial, Helvetica, sans-serif;">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
                                 </p>
 
                                 @if ($activeMembership)
@@ -492,13 +491,19 @@
                             style="background: linear-gradient(135deg, #2b2c49 0%, #1e1e38 100%);">
                             <div class="card-body text-white d-flex align-items-center justify-content-between p-4">
                                 <div>
-                                    <span class="badge bg-label-primary font-monospace mb-2 text-uppercase">Kartu
-                                        Member Digital</span>
-                                    <h5 class="fw-bold text-white mb-1">{{ auth()->user()->name }}</h5>
-                                    <p class="text-white-50 small mb-3 font-monospace">{{ auth()->user()->qr_code }}
+                                    <div class="text-uppercase fw-semibold small mb-2"
+                                        style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px; color: #cbd5e1;">
+                                        Kartu Member Digital</div>
+                                    <h5 class="fw-bold text-white mb-1"
+                                        style="font-family: Arial, Helvetica, sans-serif;">{{ auth()->user()->name }}
+                                    </h5>
+                                    <p class="text-white-50 small mb-3 fw-semibold"
+                                        style="font-family: Arial, Helvetica, sans-serif;">
+                                        {{ auth()->user()->qr_code }}
                                     </p>
                                     <button type="button" class="btn btn-sm btn-primary shadow-sm"
-                                        data-bs-toggle="modal" data-bs-target="#modalQrCodeMember">
+                                        data-bs-toggle="modal" data-bs-target="#modalQrCodeMember"
+                                        style="font-family: Arial, Helvetica, sans-serif;">
                                         <i class="bx bx-fullscreen me-1"></i> Buka QR Absensi
                                     </button>
                                 </div>
@@ -514,8 +519,11 @@
                     <div class="col-lg-4 col-md-12">
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
-                                <span class="badge bg-label-info mb-2">Aktivitas Latihan</span>
-                                <h5 class="fw-bold text-dark mb-3">Jadwal & Riwayat</h5>
+                                <div class="text-uppercase fw-semibold small text-muted mb-2"
+                                    style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px;">Aktivitas
+                                    Latihan</div>
+                                <h5 class="fw-bold text-dark mb-3" style="font-family: Arial, Helvetica, sans-serif;">
+                                    Jadwal & Riwayat</h5>
                                 <div class="d-flex justify-content-around text-center py-2 bg-light rounded-3">
                                     <div>
                                         <h4 class="fw-bold text-primary mb-0">{{ $myUpcomingSchedules->count() }}</h4>
@@ -564,8 +572,8 @@
                             <tbody>
                                 @forelse ($myUpcomingSchedules as $sch)
                                     <tr>
-                                        <td><strong
-                                                class="font-monospace text-primary">{{ $sch->schedule_code }}</strong>
+                                        <td><strong class="text-primary fw-semibold"
+                                                style="font-family: Arial, Helvetica, sans-serif;">{{ $sch->schedule_code }}</strong>
                                         </td>
                                         <td>
                                             <span
@@ -615,9 +623,14 @@
             <div class="container-xl">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
                     <div>
-                        <span class="badge bg-label-primary font-monospace mb-1">PORTAL TRAINER IFGS</span>
-                        <h3 class="fw-bold text-dark mb-0">Coach {{ auth()->user()->name }} 🏋️</h3>
-                        <p class="text-muted small mb-0">Kelola permohonan sesi latihan personal dari member yang
+                        <p class="text-uppercase fw-semibold mb-1"
+                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
+                            PORTAL TRAINER IFGS
+                        </p>
+                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Coach
+                            {{ auth()->user()->name }} 🏋️</h3>
+                        <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
+                            permohonan sesi latihan personal dari member yang
                             memesan Anda.</p>
                     </div>
                     <span class="badge bg-success px-3 py-2 fs-6">
@@ -703,8 +716,8 @@
                             <tbody>
                                 @forelse ($trainerBookings as $b)
                                     <tr>
-                                        <td><strong
-                                                class="font-monospace text-primary">{{ $b->booking_code }}</strong>
+                                        <td><strong class="text-primary fw-semibold"
+                                                style="font-family: Arial, Helvetica, sans-serif;">{{ $b->booking_code }}</strong>
                                         </td>
                                         <td>
                                             <div class="fw-semibold text-dark">{{ $b->member->user->name ?? '-' }}
@@ -721,7 +734,8 @@
                                             <span
                                                 class="fw-semibold text-dark">{{ $b->session_date->format('d M Y') }}</span>
                                             <small class="d-block text-muted">{{ $b->timeSlot->name ?? '-' }}
-                                                ({{ $b->timeSlot->time_range ?? '-' }})</small>
+                                                ({{ $b->timeSlot->time_range ?? '-' }})
+                                            </small>
                                         </td>
                                         <td>
                                             <span class="text-heading fw-medium">{{ $b->training_focus }}</span>
@@ -803,10 +817,12 @@
     <section id="section-paket" class="py-5">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <span class="badge bg-label-primary px-3 py-2 rounded-pill mb-2 fw-semibold"
-                    style="letter-spacing: 0.5px;">PILIHAN KEANGGOTAAN</span>
-                <h2 class="fw-bold text-dark">Paket Layanan Gym & Kelas</h2>
-                <p class="text-muted mx-auto" style="max-width: 600px;">
+                <p class="text-uppercase fw-semibold mb-2 text-primary"
+                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">
+                    PILIHAN KEANGGOTAAN</p>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Paket Layanan Gym &
+                    Kelas</h2>
+                <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
                     Pilih paket yang sesuai dengan tujuan kebugaran Anda. Nikmati akses penuh ke area fitness dan kelas
                     aerobik zumba.
                 </p>
@@ -900,10 +916,12 @@
     <section id="section-jadwal" class="py-5 bg-white border-top border-bottom">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <span class="badge bg-label-primary px-3 py-2 rounded-pill mb-2 fw-semibold"
-                    style="letter-spacing: 0.5px;">WAKTU LATIHAN</span>
-                <h2 class="fw-bold text-dark">Jadwal Operasional Resmi IFGS</h2>
-                <p class="text-muted mx-auto" style="max-width: 600px;">
+                <p class="text-uppercase fw-semibold mb-2 text-primary"
+                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">WAKTU
+                    LATIHAN</p>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Jadwal Operasional
+                    Resmi IFGS</h2>
+                <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
                     Jadwal teratur memastikan kenyamanan seluruh member agar ruang gym tidak mengalami overkapasitas.
                 </p>
             </div>
@@ -940,10 +958,12 @@
     <section id="section-trainer" class="py-5">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <span class="badge bg-label-primary px-3 py-2 rounded-pill mb-2 fw-semibold"
-                    style="letter-spacing: 0.5px;">INSTRUKTUR RESMI</span>
-                <h2 class="fw-bold text-dark">Pelatih Profesional Kami</h2>
-                <p class="text-muted mx-auto" style="max-width: 600px;">
+                <p class="text-uppercase fw-semibold mb-2 text-primary"
+                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">
+                    INSTRUKTUR RESMI</p>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Pelatih Profesional
+                    Kami</h2>
+                <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
                     Didampingi instruktur bersertifikasi untuk memastikan setiap gerakan dan sesi latihan Anda berjalan
                     aman dan efektif.
                 </p>
@@ -1120,7 +1140,7 @@
                                         </div>
                                         <div id="orderBankDetails" class="small text-muted mb-2">
                                             Silakan transfer ke rekening: <strong id="orderAccountNumber"
-                                                class="text-dark font-monospace fs-6"></strong>
+                                                class="text-dark fw-bold fs-6"></strong>
                                             a/n <strong id="orderAccountName" class="text-dark"></strong>
                                         </div>
                                         <div id="orderQrDetails" class="text-center my-2 d-none">
@@ -1265,8 +1285,8 @@
                         </div>
 
                         <div class="mt-2">
-                            <span
-                                class="badge bg-label-secondary font-monospace">{{ auth()->user()->qr_code }}</span>
+                            <span class="badge bg-light text-dark border fw-semibold"
+                                style="font-family: Arial, Helvetica, sans-serif;">{{ auth()->user()->qr_code }}</span>
                         </div>
 
                         <div class="alert alert-info py-2 px-3 mt-3 mb-0 text-start small">
@@ -1314,7 +1334,7 @@
                             <p class="small text-muted mb-3">
                                 Anda akan menolak sesi latihan dari <strong id="rejectMemberName"
                                     class="text-dark"></strong> (<span id="rejectBookingCode"
-                                    class="font-monospace"></span>).
+                                    class="fw-semibold"></span>).
                             </p>
                             <div class="mb-3">
                                 <label for="rejectReason" class="form-label required fw-semibold">
