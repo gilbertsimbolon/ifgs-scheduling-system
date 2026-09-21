@@ -39,7 +39,7 @@ test('member can submit membership order with payment proof upload and status is
         'account_name' => 'IFGS Gym',
     ]);
 
-    $fakeFile = UploadedFile::fake()->image('bukti_transfer.jpg', 600, 800);
+    $fakeFile = UploadedFile::fake()->create('bukti_transfer.jpg', 500, 'image/jpeg');
 
     $response = $this->actingAs($user)->post(route('memberships.order'), [
         'product_id' => $product->id,

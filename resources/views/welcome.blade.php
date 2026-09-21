@@ -890,7 +890,10 @@
                                             <button type="button"
                                                 class="btn btn-primary w-100 fw-semibold btn-order-specific"
                                                 data-bs-toggle="modal" data-bs-target="#modalOrderMembership"
-                                                data-product-id="{{ $product->id }}">
+                                                data-product-id="{{ $product->id }}"
+                                                data-product-name="{{ $product->name }}"
+                                                data-product-price="{{ $product->formatted_price }}"
+                                                data-product-duration="{{ $product->duration_formatted }}">
                                                 <i class="bx bx-check-circle me-1"></i> Pilih Paket Ini
                                             </button>
                                         @else
@@ -1056,137 +1059,330 @@
     <!-- MODALS FOR MEMBER & TRAINER -->
 
     @if (auth()->check() && auth()->user()->hasRole('Member'))
-        <!-- Modal Order Membership Mandiri -->
+        <!-- Modal Order Membership Mandiri (3 Tahap / Screen Polos & Ramah Pengguna) -->
         <div class="modal fade" id="modalOrderMembership" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold text-dark">
-                            <i class="bx bx-cart-add me-1 text-primary"></i> Berlangganan / Perpanjang Membership
-                        </h5>
+                <div class="modal-content bg-white border-0 shadow-lg"
+                    style="font-family: Arial, Helvetica, sans-serif;">
+                    <!-- Modal Header -->
+                    <div class="modal-header bg-white border-bottom py-3 px-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <div
+                                class="avatar avatar-sm bg-primary rounded p-1 d-flex align-items-center justify-content-center text-white">
+                                <i class="bx bx-cart-add fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark mb-0" id="orderModalTitle">
+                                    Pembayaran Paket Membership
+                                </h5>
+                                <small class="text-muted" id="orderModalSubtitle">
+                                    Langkah 1 dari 3: Konfirmasi Paket & Pilihan Metode
+                                </small>
+                            </div>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                             aria-label="Close"></button>
                     </div>
+
+                    <!-- Step Progress Indicator (Polos Putih Bersih) -->
+                    <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-white border-bottom">
+                        <div class="d-flex align-items-center gap-2" id="indicatorStep1">
+                            <span
+                                class="badge rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                                style="width: 24px; height: 24px; font-size: 0.75rem;">1</span>
+                            <span class="small fw-bold text-primary">Paket & Metode</span>
+                        </div>
+                        <i class="bx bx-chevron-right text-muted fs-4"></i>
+                        <div class="d-flex align-items-center gap-2 opacity-50" id="indicatorStep2">
+                            <span
+                                class="badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center"
+                                style="width: 24px; height: 24px; font-size: 0.75rem;">2</span>
+                            <span class="small fw-semibold text-muted">Detail Rekening</span>
+                        </div>
+                        <i class="bx bx-chevron-right text-muted fs-4"></i>
+                        <div class="d-flex align-items-center gap-2 opacity-50" id="indicatorStep3">
+                            <span
+                                class="badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center"
+                                style="width: 24px; height: 24px; font-size: 0.75rem;">3</span>
+                            <span class="small fw-semibold text-muted">Upload Bukti</span>
+                        </div>
+                    </div>
+
                     <form action="{{ route('memberships.order') }}" method="POST" enctype="multipart/form-data"
                         id="formOrderMembership">
                         @csrf
-                        <div class="modal-body">
-                            <div class="row g-3">
-                                <!-- Pilihan Paket Layanan -->
-                                <div class="col-md-6">
-                                    <label for="orderProductId" class="form-label required fw-semibold">
-                                        Pilih Paket Layanan <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select @error('product_id') is-invalid @enderror"
-                                        id="orderProductId" name="product_id" required>
-                                        <option value="">-- Pilih Paket Gym --</option>
-                                        @foreach ($activeProducts as $prod)
-                                            <option value="{{ $prod->id }}"
-                                                data-price="{{ (float) $prod->price }}"
-                                                data-formatted-price="{{ $prod->formatted_price }}"
-                                                data-duration="{{ $prod->duration_formatted }}"
-                                                {{ old('product_id') == $prod->id ? 'selected' : '' }}>
-                                                {{ $prod->name }} &bull; {{ $prod->duration_formatted }}
-                                                ({{ $prod->formatted_price }})
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
+                        <input type="hidden" name="product_id" id="orderProductId"
+                            value="{{ $activeProducts->first()?->id }}">
+                        <input type="hidden" name="start_date" id="orderStartDate" value="{{ date('Y-m-d') }}">
 
-                                <!-- Tanggal Mulai -->
-                                <div class="col-md-6">
-                                    <label for="orderStartDate" class="form-label required fw-semibold">
-                                        Tanggal Mulai Latihan <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="date"
-                                        class="form-control @error('start_date') is-invalid @enderror"
-                                        id="orderStartDate" name="start_date"
-                                        value="{{ old('start_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}"
-                                        required>
-                                </div>
-
-                                <!-- Metode Pembayaran -->
-                                <div class="col-md-12">
-                                    <label for="orderPaymentMethodId" class="form-label required fw-semibold">
-                                        Metode Pembayaran Transfer / QRIS <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select @error('payment_method_id') is-invalid @enderror"
-                                        id="orderPaymentMethodId" name="payment_method_id" required>
-                                        <option value="">-- Pilih Rekening Pembayaran --</option>
-                                        @foreach ($activePaymentMethods as $pm)
-                                            <option value="{{ $pm->id }}" data-type="{{ $pm->type }}"
-                                                data-account-name="{{ $pm->account_name }}"
-                                                data-account-number="{{ $pm->account_number }}"
-                                                data-qr-image="{{ $pm->qr_image ? asset('storage/' . $pm->qr_image) : '' }}"
-                                                {{ old('payment_method_id') == $pm->id ? 'selected' : '' }}>
-                                                {{ ucwords(str_replace('_', ' ', $pm->name)) }}
-                                                @if ($pm->account_number)
-                                                    ({{ $pm->account_number }} a/n {{ $pm->account_name }})
-                                                @endif
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <!-- Petunjuk Pembayaran Dinamis -->
-                                <div class="col-md-12">
-                                    <div id="orderPaymentInstruction"
-                                        class="card bg-lighter border border-primary p-3 d-none">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="fw-bold text-primary"><i class="bx bx-info-circle me-1"></i>
-                                                Petunjuk Transfer</span>
-                                            <span class="badge bg-label-success fs-6" id="orderSummaryPrice">Rp
-                                                0</span>
+                        <!-- TAHAP 1: KONFIRMASI APA YANG DIBELI & PILIH METODE PEMBAYARAN -->
+                        <div id="orderScreen1">
+                            <div class="modal-body p-4 bg-white">
+                                <!-- Ringkasan Paket yang Dipilih (Polos Putih Border Halus) -->
+                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <span class="text-uppercase fw-semibold text-muted d-block small"
+                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Paket Yang
+                                                Dipilih</span>
+                                            <h5 class="fw-bold text-dark mb-1" id="orderModalProductName">
+                                                {{ $activeProducts->first()?->name ?? 'Paket Gym' }}
+                                            </h5>
+                                            <small class="text-muted" id="orderModalProductDuration">
+                                                Durasi:
+                                                {{ $activeProducts->first()?->duration_formatted ?? '1 Bulan' }} &bull;
+                                                Mulai: Hari Ini ({{ date('d/m/Y') }})
+                                            </small>
                                         </div>
-                                        <div id="orderBankDetails" class="small text-muted mb-2">
-                                            Silakan transfer ke rekening: <strong id="orderAccountNumber"
-                                                class="text-dark fw-bold fs-6"></strong>
-                                            a/n <strong id="orderAccountName" class="text-dark"></strong>
+                                        <div class="text-end">
+                                            <span class="text-uppercase fw-semibold text-muted d-block small"
+                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Total Tagihan</span>
+                                            <span class="fs-4 fw-bold text-primary" id="orderModalProductPrice">
+                                                {{ $activeProducts->first()?->formatted_price ?? 'Rp 0' }}
+                                            </span>
                                         </div>
-                                        <div id="orderQrDetails" class="text-center my-2 d-none">
-                                            <img id="orderQrImg" src="" alt="QRIS IFGS"
-                                                class="img-fluid rounded border shadow-sm p-1 bg-white"
-                                                style="max-height: 180px;">
-                                            <p class="small text-muted mt-1 mb-0">Scan kode QRIS di atas via m-Banking
-                                                atau E-Wallet Anda.</p>
-                                        </div>
-                                        <small class="text-muted fst-italic">Pastikan nominal transfer tepat sesuai
-                                            harga paket.</small>
                                     </div>
                                 </div>
 
-                                <!-- Upload Bukti Transfer -->
-                                <div class="col-md-12">
-                                    <label for="orderPaymentProof" class="form-label required fw-semibold">
-                                        Unggah Foto / Bukti Transfer <span class="text-danger">*</span>
+                                <!-- Pilihan Metode Pembayaran -->
+                                <div>
+                                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.95rem;">
+                                        <i class="bx bx-credit-card-front me-1 text-primary"></i> Pilih Metode
+                                        Pembayaran
+                                        <span class="text-danger">*</span>
                                     </label>
-                                    <input type="file" class="form-control" id="orderPaymentProof"
-                                        name="payment_proof" accept="image/png,image/jpeg,image/jpg,image/webp"
-                                        required>
-                                    <div class="form-text small">Format JPG, PNG, atau WEBP. Maks 5MB.</div>
+                                    <p class="small text-muted mb-3">Pilih salah satu metode di bawah ini. Rekening
+                                        tujuan dan instruksi lengkap akan tampil di langkah selanjutnya.</p>
 
+                                    <div class="payment-methods-list vstack gap-2" id="pgMethodsList">
+                                        @foreach ($activePaymentMethods as $index => $pm)
+                                            <label
+                                                class="payment-method-item card bg-white border rounded-3 p-3 mb-0 transition-all {{ $index === 0 ? 'border-primary shadow-sm' : 'border-light-subtle' }}"
+                                                for="pmRadio_{{ $pm->id }}" style="cursor: pointer;"
+                                                data-type="{{ $pm->type }}"
+                                                data-name="{{ ucwords(str_replace('_', ' ', $pm->name)) }}"
+                                                data-account-name="{{ $pm->account_name }}"
+                                                data-account-number="{{ $pm->account_number }}"
+                                                data-qr-image="{{ $pm->qr_image ? asset('storage/' . $pm->qr_image) : '' }}">
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <div class="d-flex align-items-center gap-3">
+                                                        <input class="form-check-input mt-0 payment-radio"
+                                                            type="radio" name="payment_method_id"
+                                                            id="pmRadio_{{ $pm->id }}"
+                                                            value="{{ $pm->id }}"
+                                                            {{ $index === 0 ? 'checked' : '' }} required>
+                                                        <div
+                                                            class="avatar avatar-sm rounded p-1 d-flex align-items-center justify-content-center bg-white border">
+                                                            @if ($pm->type === 'qris')
+                                                                <i class="bx bx-qr-scan fs-4 text-dark"></i>
+                                                            @elseif ($pm->type === 'bank_transfer')
+                                                                <i class="bx bx-credit-card fs-4 text-primary"></i>
+                                                            @elseif ($pm->type === 'ewallet')
+                                                                <i class="bx bx-mobile-alt fs-4 text-success"></i>
+                                                            @else
+                                                                <i class="bx bx-wallet fs-4 text-info"></i>
+                                                            @endif
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-bold text-dark mb-0">
+                                                                {{ ucwords(str_replace('_', ' ', $pm->name)) }}
+                                                            </div>
+                                                            <small class="text-muted d-block">
+                                                                @if ($pm->type === 'qris')
+                                                                    Scan QRIS (BCA, Mandiri, GoPay, OVO, Dana,
+                                                                    ShopeePay)
+                                                                @elseif ($pm->type === 'bank_transfer')
+                                                                    Transfer Bank / ATM / m-Banking
+                                                                @elseif ($pm->type === 'ewallet')
+                                                                    E-Wallet Transfer
+                                                                @else
+                                                                    Bayar Langsung di Kasir Gym
+                                                                @endif
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span
+                                                            class="fw-bold text-dark pm-price-tag">{{ $activeProducts->first()?->formatted_price ?? 'Rp 0' }}</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal">Batal</button>
+                                <button type="button" class="btn btn-primary shadow-sm fw-semibold"
+                                    id="btnGoToScreen2">
+                                    Lanjut ke Detail Pembayaran <i class="bx bx-right-arrow-alt ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAHAP 2: DETAIL TUJUAN TRANSFER / BAYAR KE MANA -->
+                        <div id="orderScreen2" class="d-none">
+                            <div class="modal-body p-4 bg-white">
+                                <!-- Ringkasan Pembayaran & Total Tagihan -->
+                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <span class="text-uppercase fw-semibold text-muted d-block small"
+                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Metode Yang
+                                                Dipilih</span>
+                                            <h6 class="fw-bold text-dark mb-0" id="screen2MethodName">Transfer Bank
+                                            </h6>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="text-uppercase fw-semibold text-muted d-block small"
+                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Nominal Yang Harus
+                                                Ditransfer</span>
+                                            <span class="fs-4 fw-bold text-primary" id="screen2Price">Rp 0</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Box Detail Tujuan Transfer -->
+                                <div class="card bg-white border rounded-3 p-4 mb-3">
+                                    <!-- Kontainer Transfer Bank & E-Wallet -->
+                                    <div id="screen2BankContainer">
+                                        <div class="text-center mb-3">
+                                            <span class="text-muted small d-block mb-1">Silakan lakukan transfer tepat
+                                                sesuai nominal ke nomor rekening berikut:</span>
+                                        </div>
+                                        <div class="border rounded-3 p-3 bg-white text-center mb-3">
+                                            <div class="small text-muted mb-1">Nomor Rekening Tujuan:</div>
+                                            <div
+                                                class="d-flex align-items-center justify-content-center gap-2 flex-wrap my-2">
+                                                <span id="screen2AccountNumber"
+                                                    class="text-dark fw-bold fs-3 font-monospace px-2 py-1"
+                                                    style="letter-spacing: 1px;">-</span>
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    id="btnCopyAccount" title="Salin Nomor Rekening">
+                                                    <i class="bx bx-copy me-1"></i> <span
+                                                        id="btnCopyText">Salin</span>
+                                                </button>
+                                            </div>
+                                            <div class="small text-muted mt-2">
+                                                Atas Nama: <strong id="screen2AccountName"
+                                                    class="text-dark fs-6">-</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Kontainer QRIS -->
+                                    <div id="screen2QrContainer" class="text-center d-none">
+                                        <div class="small text-muted mb-3">Scan kode QRIS di bawah ini melalui aplikasi
+                                            m-Banking atau E-Wallet:</div>
+                                        <div class="d-inline-block p-2 border rounded-3 bg-white shadow-sm mb-3">
+                                            <img id="screen2QrImg" src="" alt="QRIS IFGS" class="img-fluid"
+                                                style="max-height: 220px;">
+                                        </div>
+                                        <p class="small text-muted mb-0">Mendukung BCA, Mandiri, BRI, BNI, GoPay, OVO,
+                                            Dana, ShopeePay, dan aplikasi QRIS lainnya.</p>
+                                    </div>
+
+                                    <!-- Kontainer Tunai -->
+                                    <div id="screen2CashContainer" class="text-center py-2 d-none">
+                                        <div
+                                            class="avatar avatar-md bg-info text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center">
+                                            <i class="bx bx-wallet fs-2"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark mb-1">Pembayaran Tunai di Meja Kasir</h6>
+                                        <p class="small text-muted mb-0">Silakan lakukan pembayaran langsung di kasir
+                                            gym saat kunjungan pertama Anda untuk verifikasi instan.</p>
+                                    </div>
+
+                                    <div class="border-top pt-3 mt-3 text-center">
+                                        <small class="text-muted">
+                                            <i class="bx bx-info-circle text-primary me-1"></i> Simpan bukti transfer
+                                            (struk/screenshot) setelah transfer berhasil untuk diunggah pada tahap
+                                            berikutnya.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="btnBackToScreen1">
+                                    <i class="bx bx-left-arrow-alt me-1"></i> Kembali ke Pilihan Metode
+                                </button>
+                                <button type="button" class="btn btn-primary shadow-sm fw-semibold"
+                                    id="btnGoToScreen3">
+                                    Lanjut ke Unggah Bukti <i class="bx bx-right-arrow-alt ms-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TAHAP 3: UPLOAD BUKTI PEMBAYARAN -->
+                        <div id="orderScreen3" class="d-none">
+                            <div class="modal-body p-4 bg-white">
+                                <!-- Ringkasan 1 Baris -->
+                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div>
+                                            <span class="text-muted small">Metode:</span>
+                                            <strong class="text-dark ms-1" id="screen3MethodName">Transfer
+                                                Bank</strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted small">Total Tagihan:</span>
+                                            <strong class="text-primary fs-5 ms-1" id="screen3Price">Rp 0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Upload Bukti -->
+                                <div class="mb-4">
+                                    <label for="orderPaymentProof" class="form-label fw-bold text-dark mb-1"
+                                        style="font-size: 0.95rem;">
+                                        <i class="bx bx-cloud-upload me-1 text-primary"></i> Unggah Bukti Transfer /
+                                        Pembayaran <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="file"
+                                        class="form-control @error('payment_proof') is-invalid @enderror"
+                                        id="orderPaymentProof" name="payment_proof"
+                                        accept="image/png,image/jpeg,image/jpg,image/webp" required>
+                                    <div class="form-text small">Format file: JPG, PNG, atau WEBP. Ukuran maksimal 5MB.
+                                    </div>
+
+                                    <!-- Preview Gambar Bukti (Polos Putih) -->
                                     <div id="orderProofPreviewContainer"
-                                        class="mt-2 d-none text-center p-2 border rounded bg-light">
+                                        class="mt-3 d-none text-center p-3 border rounded-3 bg-white">
                                         <img id="orderProofPreviewImg" src="" alt="Preview Bukti Transfer"
-                                            class="img-thumbnail" style="max-height: 160px;">
+                                            class="img-thumbnail border shadow-sm mb-2" style="max-height: 180px;">
+                                        <p class="small text-success fw-semibold mb-0">
+                                            <i class="bx bx-check-circle me-1"></i> File gambar siap dikirimkan
+                                        </p>
                                     </div>
                                 </div>
 
                                 <!-- Catatan Tambahan -->
-                                <div class="col-md-12">
-                                    <label for="orderNotes" class="form-label fw-semibold">Catatan Tambahan
-                                        (Opsional)</label>
-                                    <textarea class="form-control" id="orderNotes" name="notes" rows="2"
-                                        placeholder="Nama rekening pengirim atau catatan lainnya...">{{ old('notes') }}</textarea>
+                                <div class="mb-2">
+                                    <label for="orderNotes" class="form-label fw-semibold text-dark small mb-1">
+                                        Catatan Tambahan (Opsional)
+                                    </label>
+                                    <input type="text" class="form-control" id="orderNotes" name="notes"
+                                        placeholder="Misal: Transfer atas nama Budi Santoso / No. referensi transfer..."
+                                        value="{{ old('notes') }}">
+                                </div>
+
+                                <div class="mt-3 text-center">
+                                    <small class="text-muted">
+                                        <i class="bx bx-shield-quarter text-success me-1"></i> Data dan bukti Anda
+                                        terlindungi. Kasir gym kami akan segera memverifikasi pesanan Anda.
+                                    </small>
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary shadow-sm">
-                                <i class="bx bx-send me-1"></i> Kirim Bukti Pembayaran
-                            </button>
+                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
+                                <button type="button" class="btn btn-outline-secondary" id="btnBackToScreen2">
+                                    <i class="bx bx-left-arrow-alt me-1"></i> Kembali ke Detail Rekening
+                                </button>
+                                <button type="submit" class="btn btn-primary shadow-sm fw-semibold"
+                                    id="btnSubmitOrder">
+                                    <i class="bx bx-send me-1"></i> Kirim Bukti Pembayaran
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -1365,68 +1561,275 @@
     <!-- Page Specific Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Auto select product in modal when clicking "Pilih Paket Ini"
-            const selectOrderProduct = document.getElementById('orderProductId');
-            const selectOrderPayment = document.getElementById('orderPaymentMethodId');
-            const instructionBox = document.getElementById('orderPaymentInstruction');
-            const priceSummary = document.getElementById('orderSummaryPrice');
-            const bankDetails = document.getElementById('orderBankDetails');
-            const accountNumberEl = document.getElementById('orderAccountNumber');
-            const accountNameEl = document.getElementById('orderAccountName');
-            const qrDetails = document.getElementById('orderQrDetails');
-            const qrImg = document.getElementById('orderQrImg');
+            // 3-Stage Modal Elements
+            const orderScreen1 = document.getElementById('orderScreen1');
+            const orderScreen2 = document.getElementById('orderScreen2');
+            const orderScreen3 = document.getElementById('orderScreen3');
+
+            const btnGoToScreen2 = document.getElementById('btnGoToScreen2');
+            const btnBackToScreen1 = document.getElementById('btnBackToScreen1');
+            const btnGoToScreen3 = document.getElementById('btnGoToScreen3');
+            const btnBackToScreen2 = document.getElementById('btnBackToScreen2');
+
+            const indicatorStep1 = document.getElementById('indicatorStep1');
+            const indicatorStep2 = document.getElementById('indicatorStep2');
+            const indicatorStep3 = document.getElementById('indicatorStep3');
+            const modalSubtitle = document.getElementById('orderModalSubtitle');
+            const modalOrderEl = document.getElementById('modalOrderMembership');
+
+            // Screen 2 elements
+            const screen2MethodName = document.getElementById('screen2MethodName');
+            const screen2Price = document.getElementById('screen2Price');
+            const screen2BankContainer = document.getElementById('screen2BankContainer');
+            const screen2AccountNumber = document.getElementById('screen2AccountNumber');
+            const screen2AccountName = document.getElementById('screen2AccountName');
+            const btnCopyAccount = document.getElementById('btnCopyAccount');
+            const btnCopyText = document.getElementById('btnCopyText');
+            const screen2QrContainer = document.getElementById('screen2QrContainer');
+            const screen2QrImg = document.getElementById('screen2QrImg');
+            const screen2CashContainer = document.getElementById('screen2CashContainer');
+
+            // Screen 3 elements
+            const screen3MethodName = document.getElementById('screen3MethodName');
+            const screen3Price = document.getElementById('screen3Price');
             const fileProofInput = document.getElementById('orderPaymentProof');
             const proofPreviewBox = document.getElementById('orderProofPreviewContainer');
             const proofPreviewImg = document.getElementById('orderProofPreviewImg');
 
-            document.querySelectorAll('.btn-order-specific').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const prodId = this.getAttribute('data-product-id');
-                    if (selectOrderProduct && prodId) {
-                        selectOrderProduct.value = prodId;
-                        updatePaymentInstruction();
+            // Products & pricing
+            const inputOrderProduct = document.getElementById('orderProductId');
+            const modalProductName = document.getElementById('orderModalProductName');
+            const modalProductPrice = document.getElementById('orderModalProductPrice');
+            const modalProductDuration = document.getElementById('orderModalProductDuration');
+            const pmPriceTags = document.querySelectorAll('.pm-price-tag');
+            const methodItems = document.querySelectorAll('.payment-method-item');
+
+            function setIndicator(element, state, number, textLabel) {
+                if (!element) return;
+                const badge = element.querySelector('.badge');
+                const label = element.querySelector('span:last-child');
+
+                if (state === 'active') {
+                    element.classList.remove('opacity-50');
+                    if (badge) {
+                        badge.className =
+                            'badge rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center';
+                        badge.innerHTML = number;
+                    }
+                    if (label) {
+                        label.className = 'small fw-bold text-primary';
+                        label.textContent = textLabel;
+                    }
+                } else if (state === 'done') {
+                    element.classList.remove('opacity-50');
+                    if (badge) {
+                        badge.className =
+                            'badge rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center';
+                        badge.innerHTML = '<i class="bx bx-check"></i>';
+                    }
+                    if (label) {
+                        label.className = 'small text-muted';
+                        label.textContent = textLabel;
+                    }
+                } else {
+                    element.classList.add('opacity-50');
+                    if (badge) {
+                        badge.className =
+                            'badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center';
+                        badge.innerHTML = number;
+                    }
+                    if (label) {
+                        label.className = 'small fw-semibold text-muted';
+                        label.textContent = textLabel;
+                    }
+                }
+            }
+
+            function showScreen(step) {
+                if (orderScreen1) orderScreen1.classList.add('d-none');
+                if (orderScreen2) orderScreen2.classList.add('d-none');
+                if (orderScreen3) orderScreen3.classList.add('d-none');
+
+                const currentPrice = modalProductPrice ? modalProductPrice.textContent.trim() : 'Rp 0';
+                const selectedRadio = document.querySelector('.payment-method-item .payment-radio:checked');
+                const selectedItem = selectedRadio ? selectedRadio.closest('.payment-method-item') : null;
+
+                let type = '';
+                let name = 'Transfer Bank';
+                let accName = '';
+                let accNum = '';
+                let qrImage = '';
+
+                if (selectedItem) {
+                    type = selectedItem.getAttribute('data-type') || '';
+                    name = selectedItem.getAttribute('data-name') || 'Transfer Bank';
+                    accName = selectedItem.getAttribute('data-account-name') || '';
+                    accNum = selectedItem.getAttribute('data-account-number') || '';
+                    qrImage = selectedItem.getAttribute('data-qr-image') || '';
+                }
+
+                if (step === 1) {
+                    if (orderScreen1) orderScreen1.classList.remove('d-none');
+                    if (modalSubtitle) modalSubtitle.textContent =
+                        'Langkah 1 dari 3: Konfirmasi Paket & Pilihan Metode';
+                    setIndicator(indicatorStep1, 'active', '1', 'Paket & Metode');
+                    setIndicator(indicatorStep2, 'inactive', '2', 'Detail Rekening');
+                    setIndicator(indicatorStep3, 'inactive', '3', 'Upload Bukti');
+                } else if (step === 2) {
+                    if (orderScreen2) orderScreen2.classList.remove('d-none');
+                    if (modalSubtitle) modalSubtitle.textContent =
+                        'Langkah 2 dari 3: Detail Rekening & Instruksi Transfer';
+
+                    if (screen2MethodName) screen2MethodName.textContent = name;
+                    if (screen2Price) screen2Price.textContent = currentPrice;
+
+                    if (screen2BankContainer) screen2BankContainer.classList.add('d-none');
+                    if (screen2QrContainer) screen2QrContainer.classList.add('d-none');
+                    if (screen2CashContainer) screen2CashContainer.classList.add('d-none');
+
+                    if (type === 'qris' && qrImage) {
+                        if (screen2QrContainer) screen2QrContainer.classList.remove('d-none');
+                        if (screen2QrImg) screen2QrImg.src = qrImage;
+                    } else if (type === 'cash' || (!accNum && type !== 'bank_transfer' && type !== 'ewallet')) {
+                        if (screen2CashContainer) screen2CashContainer.classList.remove('d-none');
+                    } else {
+                        if (screen2BankContainer) screen2BankContainer.classList.remove('d-none');
+                        if (screen2AccountNumber) screen2AccountNumber.textContent = accNum || '-';
+                        if (screen2AccountName) screen2AccountName.textContent = accName || 'IFGS Gym';
+                    }
+
+                    setIndicator(indicatorStep1, 'done', '1', 'Paket & Metode');
+                    setIndicator(indicatorStep2, 'active', '2', 'Detail Rekening');
+                    setIndicator(indicatorStep3, 'inactive', '3', 'Upload Bukti');
+                } else if (step === 3) {
+                    if (orderScreen3) orderScreen3.classList.remove('d-none');
+                    if (modalSubtitle) modalSubtitle.textContent =
+                        'Langkah 3 dari 3: Unggah Bukti Pembayaran';
+
+                    if (screen3MethodName) screen3MethodName.textContent = name;
+                    if (screen3Price) screen3Price.textContent = currentPrice;
+
+                    setIndicator(indicatorStep1, 'done', '1', 'Paket & Metode');
+                    setIndicator(indicatorStep2, 'done', '2', 'Detail Rekening');
+                    setIndicator(indicatorStep3, 'active', '3', 'Upload Bukti');
+                }
+            }
+
+            if (btnGoToScreen2) {
+                btnGoToScreen2.addEventListener('click', function() {
+                    showScreen(2);
+                });
+            }
+            if (btnBackToScreen1) {
+                btnBackToScreen1.addEventListener('click', function() {
+                    showScreen(1);
+                });
+            }
+            if (btnGoToScreen3) {
+                btnGoToScreen3.addEventListener('click', function() {
+                    showScreen(3);
+                });
+            }
+            if (btnBackToScreen2) {
+                btnBackToScreen2.addEventListener('click', function() {
+                    showScreen(2);
+                });
+            }
+            if (modalOrderEl) {
+                modalOrderEl.addEventListener('hidden.bs.modal', function() {
+                    showScreen(1);
+                });
+            }
+
+            // Payment method item selection (polos putih, border primary)
+            methodItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    methodItems.forEach(i => {
+                        i.classList.remove('border-primary', 'shadow-sm');
+                        i.classList.add('border-light-subtle');
+                    });
+                    this.classList.add('border-primary', 'shadow-sm');
+                    this.classList.remove('border-light-subtle');
+
+                    const radio = this.querySelector('.payment-radio');
+                    if (radio) {
+                        radio.checked = true;
                     }
                 });
             });
 
-            function updatePaymentInstruction() {
-                if (!selectOrderProduct || !selectOrderPayment || !instructionBox) return;
+            // Copy Account Number button
+            if (btnCopyAccount) {
+                btnCopyAccount.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (!screen2AccountNumber) return;
+                    const textToCopy = screen2AccountNumber.textContent.trim();
+                    if (!textToCopy || textToCopy === '-') return;
 
-                const selectedProd = selectOrderProduct.options[selectOrderProduct.selectedIndex];
-                const selectedPm = selectOrderPayment.options[selectOrderPayment.selectedIndex];
+                    const setCopied = () => {
+                        if (btnCopyText) btnCopyText.textContent = 'Tersalin!';
+                        setTimeout(() => {
+                            if (btnCopyText) btnCopyText.textContent = 'Salin';
+                        }, 2000);
+                    };
 
-                if (!selectedProd || !selectedProd.value || !selectedPm || !selectedPm.value) {
-                    instructionBox.classList.add('d-none');
-                    return;
-                }
-
-                instructionBox.classList.remove('d-none');
-                if (priceSummary) priceSummary.textContent = selectedProd.getAttribute('data-formatted-price') ||
-                    'Rp 0';
-
-                const accNumber = selectedPm.getAttribute('data-account-number') || '';
-                const accName = selectedPm.getAttribute('data-account-name') || '';
-                const qrImage = selectedPm.getAttribute('data-qr-image') || '';
-
-                if (accNumber) {
-                    if (accountNumberEl) accountNumberEl.textContent = accNumber;
-                    if (accountNameEl) accountNameEl.textContent = accName;
-                    if (bankDetails) bankDetails.classList.remove('d-none');
-                } else {
-                    if (bankDetails) bankDetails.classList.add('d-none');
-                }
-
-                if (qrImage) {
-                    if (qrImg) qrImg.src = qrImage;
-                    if (qrDetails) qrDetails.classList.remove('d-none');
-                } else {
-                    if (qrDetails) qrDetails.classList.add('d-none');
-                }
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(textToCopy).then(setCopied).catch(() => {
+                            const tempInput = document.createElement('input');
+                            tempInput.value = textToCopy;
+                            document.body.appendChild(tempInput);
+                            tempInput.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(tempInput);
+                            setCopied();
+                        });
+                    } else {
+                        const tempInput = document.createElement('input');
+                        tempInput.value = textToCopy;
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(tempInput);
+                        setCopied();
+                    }
+                });
             }
 
-            if (selectOrderProduct) selectOrderProduct.addEventListener('change', updatePaymentInstruction);
-            if (selectOrderPayment) selectOrderPayment.addEventListener('change', updatePaymentInstruction);
+            // Auto select product in modal when clicking "Pilih Paket Ini"
+            document.querySelectorAll('.btn-order-specific').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showScreen(1);
+                    const prodId = this.getAttribute('data-product-id');
+                    const prodName = this.getAttribute('data-product-name');
+                    const prodPrice = this.getAttribute('data-product-price');
+                    const prodDuration = this.getAttribute('data-product-duration');
 
+                    if (inputOrderProduct && prodId) {
+                        inputOrderProduct.value = prodId;
+                    }
+                    if (modalProductName && prodName) {
+                        modalProductName.textContent = prodName;
+                    }
+                    if (modalProductPrice && prodPrice) {
+                        modalProductPrice.textContent = prodPrice;
+                    }
+                    if (modalProductDuration && prodDuration) {
+                        const today = new Date();
+                        const day = String(today.getDate()).padStart(2, '0');
+                        const month = String(today.getMonth() + 1).padStart(2, '0');
+                        const year = today.getFullYear();
+                        modalProductDuration.innerHTML =
+                            `Durasi: ${prodDuration} &bull; Mulai: Hari Ini (${day}/${month}/${year})`;
+                    }
+                    pmPriceTags.forEach(tag => {
+                        if (prodPrice) {
+                            tag.textContent = prodPrice;
+                        }
+                    });
+                });
+            });
+
+            // Upload Proof Preview
             if (fileProofInput) {
                 fileProofInput.addEventListener('change', function() {
                     const file = this.files[0];

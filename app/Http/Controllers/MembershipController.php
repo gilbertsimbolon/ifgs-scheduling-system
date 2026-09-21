@@ -280,6 +280,7 @@ class MembershipController extends Controller
             'product_id' => ['required', 'exists:products,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'start_date' => ['required', 'date'],
+            'start_date' => ['nullable', 'date'],
             'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:500'],
         ], [
@@ -294,6 +295,8 @@ class MembershipController extends Controller
             'payment_proof.max' => 'Ukuran file gambar maksimal 5MB.',
         ]);
 
+        $startDate = ! empty($validated['start_date']) ? $validated['start_date'] : now()->toDateString();
+
         $user = $request->user();
         $member = $user->member;
         if (! $member) {
@@ -305,12 +308,12 @@ class MembershipController extends Controller
         }
 
         $product = Product::findOrFail($validated['product_id']);
-        $endDate = $product->calculateEndDate($validated['start_date'])->format('Y-m-d');
+        $endDate = $product->calculateEndDate($startDate)->format('Y-m-d');
         $price = (float) $product->price;
 
         $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
-        DB::transaction(function () use ($validated, $member, $product, $endDate, $price, $proofPath) {
+        DB::transaction(function () use ($validated, $member, $product, $startDate, $endDate, $price, $proofPath) {
             $transaction = Transaction::create([
                 'invoice_number' => Transaction::generateInvoiceNumber(),
                 'member_id' => $member->id,
@@ -337,7 +340,7 @@ class MembershipController extends Controller
                 'member_id' => $member->id,
                 'product_id' => $product->id,
                 'payment_method_id' => $validated['payment_method_id'],
-                'start_date' => $validated['start_date'],
+                'start_date' => $startDate,
                 'end_date' => $endDate,
                 'price' => $price,
                 'status' => Membership::STATUS_PENDING,
