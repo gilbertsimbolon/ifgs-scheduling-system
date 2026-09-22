@@ -19,10 +19,16 @@ class ProfileController extends Controller
      * Tampilkan halaman profil pengguna lengkap dengan QR Code, data diri, dan form ganti password.
      * Tampilkan halaman profil pengguna lengkap dengan QR Code, data diri, aktivitas absensi, dan form ganti password.
      */
-    public function show(Request $request): View
+    public function show(Request $request): View|RedirectResponse
     {
         $user = $request->user()->load(['roles', 'member.memberships.product', 'trainer']);
         $isMember = $user->hasRole('Member');
+
+        // Pengguna dengan peran Member tidak masuk ke backoffice / dashboard admin
+        if ($isMember && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+            return redirect()->route('home')->with('info', 'Pengaturan profil Anda dapat diakses langsung melalui menu profil di halaman utama.');
+        }
+
         $activeMembership = $user->member ? $user->member->activeMembership() : null;
         $roleName = $user->roles->first()?->name ?? 'Pengguna';
 
@@ -197,6 +203,12 @@ class ProfileController extends Controller
             }
         });
 
+        if ($user->hasRole('Member') && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+            return redirect()
+                ->route('home')
+                ->with('profile_success', 'Data diri Anda berhasil diperbarui.');
+        }
+
         return redirect()
             ->route('profile.show')
             ->with('profile_success', 'Data diri Anda berhasil diperbarui.');
@@ -223,6 +235,12 @@ class ProfileController extends Controller
         $user->update([
             'password' => Hash::make($validated['password']),
         ]);
+
+        if ($user->hasRole('Member') && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+            return redirect()
+                ->route('home')
+                ->with('password_success', 'Password akun Anda berhasil diperbarui.');
+        }
 
         return redirect()
             ->route('profile.show')

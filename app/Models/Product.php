@@ -101,8 +101,6 @@ class Product extends Model
     public function getFormattedPriceAttribute(): string
     {
         return 'Rp '.number_format((float) $this->price, 0, ',', '.');
-
-        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
     }
 
     /**
@@ -122,6 +120,15 @@ class Product extends Model
             'year' => $start->copy()->addYears($this->duration_value),
             default => $start->copy()->addMonths($this->duration_value),
         };
+    }
+
+    /**
+     * Memeriksa apakah paket produk merupakan paket visit harian (24 jam / 1 hari).
+     */
+    public function isDailyVisit(): bool
+    {
+        return ($this->duration_unit === self::DURATION_DAY && $this->duration_value <= 1)
+            || str_contains(strtolower($this->name), 'visit');
     }
 
     /**

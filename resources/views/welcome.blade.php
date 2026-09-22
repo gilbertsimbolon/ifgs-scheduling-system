@@ -188,7 +188,9 @@
                                     </li>
                                 @endif
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('profile.show') }}">
+                                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal"
+                                        data-bs-target="#modalPengaturanProfil"
+                                        style="font-family: Arial, Helvetica, sans-serif;">
                                         <i class="bx bx-user me-2"></i> Pengaturan Profil
                                     </a>
                                 </li>
@@ -245,6 +247,36 @@
                 <div class="d-flex align-items-center">
                     <i class="bx bx-alarm-exclamation fs-4 me-2"></i>
                     <div>{{ session('warning') }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if (session('info'))
+            <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bx bx-info-circle fs-4 me-2"></i>
+                    <div>{{ session('info') }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if (session('profile_success'))
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bx bx-check-circle fs-4 me-2"></i>
+                    <div><strong>Berhasil!</strong> {{ session('profile_success') }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if (session('password_success'))
+            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bx bx-check-shield fs-4 me-2"></i>
+                    <div><strong>Berhasil!</strong> {{ session('password_success') }}</div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -468,11 +500,15 @@
                                             <strong
                                                 class="text-dark">{{ $activeMembership->end_date->format('d M Y') }}</strong>
                                         </div>
-                                        <div class="d-flex justify-content-between">
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <span class="text-muted">Sisa Durasi:</span>
-                                            <span
-                                                class="badge bg-label-success">{{ $activeMembership->days_remaining }}
-                                                Hari Lagi</span>
+                                            <span class="badge bg-label-success">
+                                                @if ($activeMembership->end_date->isToday())
+                                                    1 Hari (Hari Ini)
+                                                @else
+                                                    {{ $activeMembership->days_remaining }} Hari Lagi
+                                                @endif
+                                            </span>
                                         </div>
                                     </div>
                                 @else
@@ -1130,7 +1166,8 @@
                                             </h5>
                                             <small class="text-muted" id="orderModalProductDuration">
                                                 Durasi:
-                                                {{ $activeProducts->first()?->duration_formatted ?? '1 Bulan' }} &bull;
+                                                {{ $activeProducts->first()?->duration_formatted ?? '1 Bulan' }}
+                                                &bull;
                                                 Mulai: Hari Ini ({{ date('d/m/Y') }})
                                             </small>
                                         </div>
@@ -1510,6 +1547,163 @@
         </div>
     @endif
 
+    @if (auth()->check())
+        <!-- Modal Pengaturan Profil Pengguna / Member -->
+        <div class="modal fade" id="modalPengaturanProfil" tabindex="-1"
+            aria-labelledby="modalPengaturanProfilLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content border-0 shadow" style="font-family: Arial, Helvetica, sans-serif;">
+                    <div class="modal-header bg-white border-bottom px-4 py-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center"
+                                style="width: 42px; height: 42px;">
+                                <i class="bx bx-user text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark mb-0" id="modalPengaturanProfilLabel">
+                                    Pengaturan Profil
+                                </h5>
+                                <p class="text-muted small mb-0">Kelola data diri, kontak, dan keamanan kata sandi akun
+                                    Anda</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body p-4">
+                        <!-- Nav Tabs Polos & Ramah Pengguna -->
+                        <ul class="nav nav-pills nav-fill mb-4 border-bottom pb-3" id="profileModalTabs"
+                            role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active fw-semibold" id="tab-modal-datadiri-btn"
+                                    data-bs-toggle="pill" data-bs-target="#tab-modal-datadiri" type="button"
+                                    role="tab" aria-controls="tab-modal-datadiri" aria-selected="true"
+                                    style="border-radius: 8px;">
+                                    <i class="bx bx-user me-1"></i> Data Diri & Kontak
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link fw-semibold" id="tab-modal-keamanan-btn"
+                                    data-bs-toggle="pill" data-bs-target="#tab-modal-keamanan" type="button"
+                                    role="tab" aria-controls="tab-modal-keamanan" aria-selected="false"
+                                    style="border-radius: 8px;">
+                                    <i class="bx bx-shield-quarter me-1"></i> Keamanan & Password
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content" id="profileModalTabContent">
+                            <!-- TAB 1: DATA DIRI -->
+                            <div class="tab-pane fade show active" id="tab-modal-datadiri" role="tabpanel"
+                                aria-labelledby="tab-modal-datadiri-btn">
+                                <form action="{{ route('profile.update') }}" method="POST"
+                                    enctype="multipart/form-data">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="d-flex align-items-center gap-3 mb-4 p-3 border rounded-3 bg-white">
+                                        <div class="position-relative">
+                                            @if (auth()->user()->avatar_url)
+                                                <img src="{{ auth()->user()->avatar_url }}"
+                                                    alt="{{ auth()->user()->name }}"
+                                                    class="rounded-circle object-fit-cover shadow-sm"
+                                                    style="width: 72px; height: 72px;" id="modalAvatarPreview" />
+                                            @else
+                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center shadow-sm"
+                                                    style="width: 72px; height: 72px; font-size: 1.6rem;"
+                                                    id="modalAvatarPreview">
+                                                    {{ auth()->user()->initials }}
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <label class="form-label fw-bold mb-1 text-dark">Foto Profil</label>
+                                            <input type="file" name="avatar" id="modalAvatarInput"
+                                                class="form-control form-control-sm"
+                                                accept="image/jpeg,image/png,image/jpg,image/webp">
+                                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                Format: JPG, JPEG, PNG, atau WEBP. Maksimal 2MB.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-dark">Nama Lengkap <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="name" class="form-control"
+                                            value="{{ old('name', auth()->user()->name) }}" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-dark">Alamat Email <span
+                                                class="text-danger">*</span></label>
+                                        <input type="email" name="email" class="form-control"
+                                            value="{{ old('email', auth()->user()->email) }}" required>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold text-dark">Nomor Handphone /
+                                            WhatsApp</label>
+                                        <input type="text" name="phone" class="form-control"
+                                            value="{{ old('phone', auth()->user()->phone ?? auth()->user()->member?->phone) }}"
+                                            placeholder="Contoh: 081234567890">
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                                        <button type="button" class="btn btn-light border"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                            <i class="bx bx-save me-1"></i> Simpan Data Diri
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- TAB 2: KEAMANAN & PASSWORD -->
+                            <div class="tab-pane fade" id="tab-modal-keamanan" role="tabpanel"
+                                aria-labelledby="tab-modal-keamanan-btn">
+                                <form action="{{ route('profile.password.update') }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-dark">Password Saat Ini <span
+                                                class="text-danger">*</span></label>
+                                        <input type="password" name="current_password" class="form-control"
+                                            placeholder="Masukkan password saat ini" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold text-dark">Password Baru <span
+                                                class="text-danger">*</span></label>
+                                        <input type="password" name="password" class="form-control"
+                                            placeholder="Minimal 8 karakter" required>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold text-dark">Konfirmasi Password Baru <span
+                                                class="text-danger">*</span></label>
+                                        <input type="password" name="password_confirmation" class="form-control"
+                                            placeholder="Ulangi password baru" required>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                                        <button type="button" class="btn btn-light border"
+                                            data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                            <i class="bx bx-lock-alt me-1"></i> Perbarui Password
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if (auth()->check() && auth()->user()->hasRole('Trainer'))
         <!-- Modal Tolak Sesi Latihan Trainer -->
         <div class="modal fade" id="modalRejectSession" tabindex="-1" aria-hidden="true">
@@ -1863,6 +2057,26 @@
                     }
                 });
             });
+            // Modal Avatar Preview
+            const modalAvatarInput = document.getElementById('modalAvatarInput');
+            const modalAvatarPreview = document.getElementById('modalAvatarPreview');
+            if (modalAvatarInput && modalAvatarPreview) {
+                modalAvatarInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            if (modalAvatarPreview.tagName === 'IMG') {
+                                modalAvatarPreview.src = e.target.result;
+                            } else {
+                                modalAvatarPreview.outerHTML =
+                                    `<img src="${e.target.result}" class="rounded-circle object-fit-cover shadow-sm" style="width: 72px; height: 72px;" id="modalAvatarPreview" />`;
+                            }
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
         });
     </script>
 </body>

@@ -145,6 +145,28 @@ class Membership extends Model
     }
 
     /**
+     * Menghitung sisa hari masa berlaku membership (inklusif hari ini).
+     */
+    public function getDaysRemainingAttribute(): int
+    {
+        if (! $this->end_date) {
+            return 0;
+        }
+
+        $today = now()->startOfDay();
+        $endDate = $this->end_date->copy()->startOfDay();
+
+        if ($endDate->lt($today)) {
+            return 0;
+        }
+
+        $diff = (int) $today->diffInDays($endDate);
+
+        // Jika hari terakhir / hari ini (diff = 0), sisa masa berlaku aktif adalah 1 hari (hari ini).
+        return max(1, $diff);
+    }
+
+    /**
      * Status badge CSS class for Sneat / Bootstrap 5.
      */
     public function getStatusBadgeClassAttribute(): string
@@ -215,5 +237,22 @@ class Membership extends Model
         return $this->paymentMethod->type === PaymentMethod::TYPE_CASH
             || strtolower($this->paymentMethod->name) === 'tunai'
             || strtolower($this->paymentMethod->name) === 'cash';
+    }
+
+    /**
+     * Memeriksa apakah membership merupakan paket visit harian (24 jam).
+     */
+    public function isDailyVisit(): bool
+    {
+        return $this->product?->isDailyVisit() ?? false;
+    }
+
+    /**
+     * Mengetahui apakah membership memerlukan reservasi jadwal kunjungan.
+     * Paket visit (24 jam) tidak memerlukan reservasi karena langsung aktif di hari pembelian.
+     */
+    public function requiresReservation(): bool
+    {
+        return ! $this->isDailyVisit();
     }
 }

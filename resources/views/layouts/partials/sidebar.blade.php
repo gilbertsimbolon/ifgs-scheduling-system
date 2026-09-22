@@ -57,6 +57,20 @@
                 <div class="text-truncate">Transaksi Membership</div>
             </a>
         </li>
+        @hasanyrole('Admin/Manager|Kasir')
+            <li class="menu-item {{ request()->routeIs('memberships.*') ? 'active' : '' }}">
+                <a href="{{ route('memberships.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-id-card"></i>
+                    <div class="text-truncate">Membership</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->routeIs('membership-transactions.*') ? 'active' : '' }}">
+                <a href="{{ route('membership-transactions.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-receipt"></i>
+                    <div class="text-truncate">Transaksi Membership</div>
+                </a>
+            </li>
+        @endhasanyrole
         @hasrole('Admin/Manager')
             <li class="menu-item {{ request()->routeIs('products.*') ? 'active' : '' }}">
                 <a href="{{ route('products.index') }}" class="menu-link">

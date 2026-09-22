@@ -410,3 +410,21 @@ test('memberships index displays split columns for mulai, akhir, biaya, and meto
         ->assertDontSee('Transaksi Baru (POS)')
         ->assertDontSee('POS Kasir');
 });
+
+test('membership days_remaining calculates correct remaining days', function () {
+    // 1. Visit package or ending today: 1 day (today)
+    $todayMembership = new Membership(['end_date' => now()->toDateString()]);
+    expect($todayMembership->days_remaining)->toBe(1);
+
+    // 2. Ending 7 days from now: 7 days
+    $sevenDaysMembership = new Membership(['end_date' => now()->addDays(7)->toDateString()]);
+    expect($sevenDaysMembership->days_remaining)->toBe(7);
+
+    // 3. Past/expired: 0 days
+    $expiredMembership = new Membership(['end_date' => now()->subDay()->toDateString()]);
+    expect($expiredMembership->days_remaining)->toBe(0);
+
+    // 4. Null end_date: 0 days
+    $nullMembership = new Membership(['end_date' => null]);
+    expect($nullMembership->days_remaining)->toBe(0);
+});

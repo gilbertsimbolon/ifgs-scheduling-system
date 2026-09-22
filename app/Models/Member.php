@@ -110,6 +110,45 @@ class Member extends Model
     }
 
     /**
+     * Memeriksa apakah seluruh paket membership aktif member hanyalah paket visit (24 jam).
+     */
+    public function hasOnlyDailyVisitMembership(): bool
+    {
+        $activeMemberships = $this->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->with('product')
+            ->get();
+
+        if ($activeMemberships->isEmpty()) {
+            return false;
+        }
+
+        return $activeMemberships->every(fn (Membership $m) => $m->isDailyVisit());
+    }
+
+    /**
+     * Memeriksa apakah member memenuhi syarat untuk membuat reservasi kunjungan.
+     * Member yang hanya memiliki paket visit (24 jam) tidak perlu melakukan reservasi.
+     */
+    public function canMakeReservation(): bool
+    {
+        $activeMemberships = $this->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->with('product')
+            ->get();
+
+        if ($activeMemberships->isEmpty()) {
+            return false;
+        }
+
+        return $activeMemberships->contains(fn (Membership $m) => $m->requiresReservation());
+    }
+
+    /**
      * Generate a unique member code for gym identification.
      * Format: IFGS-YYYYMM-XXXX (e.g. IFGS-202609-0001)
      */

@@ -35,6 +35,8 @@ class HomeController extends Controller
         $myUpcomingSchedules = collect();
         $myRecentVisits = collect();
         $myReservations = collect();
+        $canMakeReservation = false;
+        $isDailyVisitOnly = false;
 
         $trainer = null;
         $trainerBookings = collect();
@@ -52,6 +54,8 @@ class HomeController extends Controller
                 $member = $user->member;
                 if ($member) {
                     $activeMembership = $member->activeMembership();
+                    $canMakeReservation = $member->canMakeReservation();
+                    $isDailyVisitOnly = $member->hasOnlyDailyVisitMembership();
                     $pendingMembership = Membership::with(['product', 'paymentMethod', 'transaction'])
                         ->where('member_id', $member->id)
                         ->where('status', Membership::STATUS_PENDING)
@@ -112,6 +116,8 @@ class HomeController extends Controller
             'myUpcomingSchedules',
             'myRecentVisits',
             'myReservations',
+            'canMakeReservation',
+            'isDailyVisitOnly',
             'trainer',
             'trainerBookings',
             'trainerMetrics'

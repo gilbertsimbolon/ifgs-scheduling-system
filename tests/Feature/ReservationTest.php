@@ -178,7 +178,11 @@ test('member cannot make reservation on Sunday because gym is closed', function 
     $user->assignRole('Member');
     $member = Member::factory()->create(['user_id' => $user->id]);
 
-    $product = Product::factory()->create();
+    $product = Product::factory()->create([
+        'name' => 'Paket Gym 1 Bulan',
+        'duration_value' => 1,
+        'duration_unit' => Product::DURATION_MONTH,
+    ]);
     Membership::factory()->create([
         'member_id' => $member->id,
         'product_id' => $product->id,
@@ -259,6 +263,8 @@ test('reservation is rejected if chosen time slot does not match member active m
 
     $fitnessProduct = Product::factory()->create([
         'name' => 'Fitness 1 Bulan',
+        'duration_value' => 1,
+        'duration_unit' => Product::DURATION_MONTH,
     ]);
 
     $membership = Membership::factory()->create([
@@ -308,4 +314,43 @@ test('reservation is rejected if chosen time slot does not match member active m
     $successResponse->assertSessionHas('success');
     expect(Reservation::count())->toBe(1);
     expect(Reservation::first()->time_slot_id)->toBe($fitnessSlot->id);
+});
+
+test('member with only 24-hour visit membership does not need and cannot make a reservation', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $visitProduct = Product::factory()->create([
+        'name' => 'Fitness Visit',
+        'duration_value' => 1,
+        'duration_unit' => Product::DURATION_DAY,
+    ]);
+
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $visitProduct->id,
+        'status' => Membership::STATUS_ACTIVE,
+        'start_date' => Carbon::today()->format('Y-m-d'),
+        'end_date' => Carbon::today()->format('Y-m-d'),
+    ]);
+
+    expect($visitProduct->isDailyVisit())->toBeTrue();
+    expect($member->hasOnlyDailyVisitMembership())->toBeTrue();
+    expect($member->canMakeReservation())->toBeFalse();
+
+    $slot = TimeSlot::factory()->create([
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'status' => 'active',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => Carbon::today()->format('Y-m-d'),
+            'time_slot_id' => $slot->id,
+        ]);
+
+    $response->assertRedirect();
+    $response->assertSessionHas('info');
+    expect(Reservation::count())->toBe(0);
 });

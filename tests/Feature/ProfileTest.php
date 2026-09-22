@@ -24,7 +24,7 @@ test('unauthenticated guest cannot access /profile and is redirected to login', 
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated member can access profile page and see QR Code, personal data, and password forms', function () {
+test('authenticated member cannot access backoffice profile and is redirected to landing page', function () {
     $user = User::factory()->create([
         'name' => 'Gilbert Simbolon',
         'email' => 'gilbert@ifgs.test',
@@ -38,20 +38,17 @@ test('authenticated member can access profile page and see QR Code, personal dat
 
     $response = $this->actingAs($user)->get(route('profile.show'));
 
-    $response->assertStatus(200);
-    $response->assertSee('Profil Saya');
-    $response->assertSee('Gilbert Simbolon');
-    $response->assertSee('gilbert@ifgs.test');
-    $response->assertSee('081234567890');
-    $response->assertSee($user->qr_code);
-    $response->assertSee('MBR-998877');
-    $response->assertSee('modalQrCodeProfile');
-    $response->assertSee('Log Aktivitas');
-    $response->assertSee('Check-In Kunjungan Gym');
-    $response->assertSee('Check-Out Kunjungan Gym');
-    $response->assertSee('Berhasil melakukan check-in pada hari ini');
-    $response->assertSee('Perbarui Password');
-    $response->assertSee('Simpan Data Diri');
+    $response->assertRedirect(route('home'));
+
+    // Member manages profile via landing page modal
+    $homeResponse = $this->actingAs($user)->get(route('home'));
+    $homeResponse->assertOk();
+    $homeResponse->assertSee('modalPengaturanProfil');
+    $homeResponse->assertSee('Gilbert Simbolon');
+    $homeResponse->assertSee('gilbert@ifgs.test');
+    $homeResponse->assertSee('081234567890');
+    $homeResponse->assertSee('Perbarui Password');
+    $homeResponse->assertSee('Simpan Data Diri');
 });
 
 test('authenticated admin can access profile page and see role badge and QR Code', function () {
@@ -87,7 +84,7 @@ test('user can update personal data successfully and slug is regenerated if name
         'phone' => '0822222222',
     ]);
 
-    $response->assertRedirect(route('profile.show'));
+    $response->assertRedirect(route('home'));
     $response->assertSessionHas('profile_success');
 
     $user->refresh();
@@ -147,7 +144,7 @@ test('user can update password with valid current password and matching confirma
         'password_confirmation' => 'newsecretpassword456',
     ]);
 
-    $response->assertRedirect(route('profile.show'));
+    $response->assertRedirect(route('home'));
     $response->assertSessionHas('password_success');
 
     $user->refresh();
@@ -215,7 +212,7 @@ test('user can upload avatar and view it on profile', function () {
         'avatar' => $file,
     ]);
 
-    $response->assertRedirect(route('profile.show'));
+    $response->assertRedirect(route('home'));
     $response->assertSessionHas('profile_success');
 
     $user->refresh();
@@ -223,10 +220,10 @@ test('user can upload avatar and view it on profile', function () {
     Storage::disk('public')->assertExists($user->avatar);
     expect($user->avatar_url)->not->toBeNull();
 
-    // Verify avatar renders on profile page
-    $profileRes = $this->actingAs($user)->get(route('profile.show'));
-    $profileRes->assertStatus(200);
-    $profileRes->assertSee($user->avatar_url);
+    // Verify avatar renders on landing page
+    $homeRes = $this->actingAs($user)->get(route('home'));
+    $homeRes->assertOk();
+    $homeRes->assertSee($user->avatar_url);
 });
 
 test('user can remove avatar', function () {
@@ -246,7 +243,7 @@ test('user can remove avatar', function () {
         'remove_avatar' => 1,
     ]);
 
-    $response->assertRedirect(route('profile.show'));
+    $response->assertRedirect(route('home'));
     $user->refresh();
     expect($user->avatar)->toBeNull();
     Storage::disk('public')->assertMissing($fakePath);
