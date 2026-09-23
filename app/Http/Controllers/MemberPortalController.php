@@ -270,7 +270,6 @@ class MemberPortalController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
@@ -286,7 +285,6 @@ class MemberPortalController extends Controller
             'avatar.max' => 'Ukuran file foto profil maksimal 2MB.',
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $validated, $user) {
         DB::transaction(function () use ($request, $validated, $user) {
             if ($validated['name'] !== $user->name) {
                 $user->slug = User::generateUniqueSlug($validated['name'], $user->id);
@@ -296,8 +294,6 @@ class MemberPortalController extends Controller
             $user->email = $validated['email'];
 
             if ($request->hasFile('avatar')) {
-                if ($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
                 if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
                     Storage::disk('public')->delete($user->avatar);
                 }
@@ -398,11 +394,9 @@ class MemberPortalController extends Controller
         ]);
 
         $user->update([
-            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
             'password' => Hash::make($validated['password']),
         ]);
 
         return redirect()->route('member.profil')->with('success', 'Password Anda berhasil diperbarui.');
     }
 }
-
