@@ -175,7 +175,8 @@
                     </div>
                     <div class="text-start">
                         <div class="fw-semibold text-dark small">Edit Data Profil</div>
-                        <small class="text-muted" style="font-size: 0.72rem;">Ubah nama lengkap, email, dan nomor WhatsApp</small>
+                        <small class="text-muted" style="font-size: 0.72rem;">Ubah nama lengkap, email, dan nomor
+                            WhatsApp</small>
                     </div>
                 </div>
                 <i class="bx bx-chevron-right text-muted fs-5"></i>
@@ -191,7 +192,8 @@
                     </div>
                     <div class="text-start">
                         <div class="fw-semibold text-dark small">Ganti Kata Sandi</div>
-                        <small class="text-muted" style="font-size: 0.72rem;">Perbarui kata sandi akun keamanan Anda</small>
+                        <small class="text-muted" style="font-size: 0.72rem;">Perbarui kata sandi akun keamanan
+                            Anda</small>
                     </div>
                 </div>
                 <i class="bx bx-chevron-right text-muted fs-5"></i>
@@ -234,23 +236,6 @@
                             <input type="tel" class="form-control form-control-sm" id="prof_phone" name="phone"
                                 value="{{ old('phone', $member?->phone ?? $user->phone) }}"
                                 placeholder="Contoh: 08123456789">
-                        </div>
-
-                        <div class="mb-2">
-                            <label for="prof_avatar" class="form-label small fw-bold text-dark">Foto Profil
-                                (Opsional)</label>
-                            <input type="file" class="form-control form-control-sm" id="prof_avatar" name="avatar"
-                                accept="image/*">
-                            <small class="text-muted" style="font-size: 0.7rem;">Maksimal 2MB (JPG, PNG, WEBP).</small>
-                            @if ($user->avatar_url)
-                                <div class="form-check mt-2">
-                                    <input class="form-check-input" type="checkbox" id="remove_avatar"
-                                        name="remove_avatar" value="1">
-                                    <label class="form-check-label small text-danger" for="remove_avatar">
-                                        <i class="bx bx-trash me-1"></i> Hapus foto profil saat ini
-                                    </label>
-                                </div>
-                            @endif
                         </div>
                     </div>
                     <div class="modal-footer border-top py-2 px-3">
