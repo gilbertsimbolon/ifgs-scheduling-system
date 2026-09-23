@@ -15,7 +15,7 @@
     </title>
 
     <meta name="description"
-        content="Member Portal Sistem Informasi Penjadwalan & Layanan Gym Indo Fitness Gym Sport Tondano" />
+        content="Sistem Informasi Penjadwalan & Layanan Gym Indo Fitness Gym Sport Tondano" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('img/logo-ifgs.jpg') }}" />
@@ -134,69 +134,39 @@
     <div class="member-viewport-wrapper">
         <!-- Top App Bar Khusus Member -->
         <header class="member-top-bar d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-2">
-                <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="IFGS" width="34" height="34"
+            <a href="{{ route('member.index') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+                <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="Indo Fitness Gym Sport®" width="34" height="34"
                     class="rounded-circle shadow-sm object-fit-cover" />
-                <div>
-                    <h6 class="mb-0 fw-bold text-dark lh-1" style="font-size: 0.95rem; letter-spacing: -0.2px;">
-                        IFGS Sport
-                    </h6>
-                    <small class="text-muted" style="font-size: 0.7rem;">Member Portal</small>
-                </div>
-            </div>
+                <h6 class="mb-0 fw-bold text-dark lh-1" style="font-size: 0.95rem; letter-spacing: -0.2px;">
+                    Indo Fitness Gym Sport®
+                </h6>
+            </a>
 
             <div class="d-flex align-items-center gap-2">
                 @if (auth()->check())
-                    <div class="dropdown">
-                        <button
-                            class="btn btn-light btn-sm border p-1 rounded-circle d-flex align-items-center justify-content-center shadow-none"
-                            type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Pengguna"
-                            style="width: 36px; height: 36px;">
+                    <!-- Avatar Profil Member (Inisial seperti di panel admin) -->
+                    <a href="{{ route('member.profil') }}" class="d-inline-flex text-decoration-none" title="Profil Saya">
+                        <div class="avatar avatar-sm" style="width: 36px; height: 36px;">
                             @if (auth()->user()->avatar_url)
                                 <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}"
-                                    class="rounded-circle object-fit-cover" width="32" height="32">
+                                    class="rounded-circle object-fit-cover border" width="36" height="36">
                             @else
-                                <span
-                                    class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center"
-                                    style="width: 32px; height: 32px; font-size: 0.78rem;">
+                                <span class="avatar-initial rounded-circle bg-label-primary fw-bold"
+                                    style="width: 36px; height: 36px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
                                     {{ auth()->user()->initials }}
                                 </span>
                             @endif
+                        </div>
+                    </a>
+
+                    <!-- Icon Logout Langsung di Samping Avatar (Tanpa Dropdown) -->
+                    <form action="{{ route('logout') }}" method="POST" class="m-0 d-inline" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari akun?');">
+                        @csrf
+                        <button type="submit" class="btn btn-icon btn-sm btn-outline-danger rounded-circle border-0 shadow-none d-flex align-items-center justify-content-center"
+                            style="width: 36px; height: 36px; background-color: rgba(255, 62, 29, 0.08);" title="Keluar (Logout)">
+                            <i class="bx bx-power-off fs-5 text-danger"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
-                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; min-width: 200px;">
-                            <li>
-                                <h6 class="dropdown-header">Akun Saya</h6>
-                                <div class="px-3 py-2 border-bottom">
-                                    <div class="fw-bold text-dark text-truncate" style="max-width: 180px;">
-                                        {{ auth()->user()->name }}</div>
-                                    <small class="text-muted text-truncate d-block"
-                                        style="font-size: 0.75rem;">{{ auth()->user()->email }}</small>
-                                </div>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2" href="{{ route('member.profil') }}">
-                                    <i class="bx bx-user me-2 text-primary"></i> Profil & Akun
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item py-2" href="{{ route('home') }}">
-                                    <i class="bx bx-globe me-2 text-info"></i> Landing Page Publik
-                                </a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider my-1">
-                            </li>
-                            <li>
-                                <form action="{{ route('logout') }}" method="POST" class="m-0">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item py-2 text-danger">
-                                        <i class="bx bx-log-out me-2"></i> Keluar (Logout)
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    </form>
                 @endif
             </div>
         </header>

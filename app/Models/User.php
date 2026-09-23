@@ -194,6 +194,24 @@ class User extends Authenticatable
     }
 
     /**
+     * Get user initials (uppercase 1-2 letters from name).
+     */
+    public function getInitialsAttribute(): string
+    {
+        $name = trim($this->name ?? '');
+        if (empty($name)) {
+            return 'U';
+        }
+
+        $parts = preg_split('/\s+/', $name);
+        if (count($parts) >= 2 && ! empty($parts[1])) {
+            return strtoupper(mb_substr($parts[0], 0, 1).mb_substr($parts[1], 0, 1));
+        }
+
+        return strtoupper(mb_substr($name, 0, 2));
+    }
+
+    /**
      * Kirim notifikasi reset kata sandi kustom bertema Indo Fitness Gym Sport®.
      *
      * @param  string  $token

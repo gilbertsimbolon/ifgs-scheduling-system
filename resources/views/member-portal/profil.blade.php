@@ -15,13 +15,13 @@
 
     <!-- 1. Card Identitas Utama Member -->
     <div class="card p-3 mb-3 bg-white border text-center position-relative">
-        <div class="mb-2">
+        <div class="mb-2 d-flex justify-content-center">
             @if ($user->avatar_url)
                 <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
                     class="rounded-circle shadow-sm object-fit-cover border border-2 border-primary" width="76" height="76">
             @else
-                <div class="mx-auto rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center border border-2 border-primary"
-                    style="width: 76px; height: 76px; font-size: 1.6rem;">
+                <div class="avatar avatar-xl rounded-circle bg-label-primary d-flex align-items-center justify-content-center fw-bold fs-2 text-primary shadow-sm border border-2 border-light"
+                    style="width: 76px; height: 76px;">
                     {{ $user->initials }}
                 </div>
             @endif

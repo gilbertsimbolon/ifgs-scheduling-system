@@ -197,13 +197,19 @@ test('member can access /member/profil and view digital qr code and account info
         'phone' => '08987654321',
     ]);
 
+    expect($user->initials)->toBe('SR');
+
     $response = $this->actingAs($user)->get(route('member.profil'));
 
     $response->assertStatus(200);
+    $response->assertSee('Indo Fitness Gym Sport®');
+    $response->assertDontSee('Member Portal');
+    $response->assertSee('SR');
     $response->assertSee('Profil Saya');
     $response->assertSee('Siti Rahma');
     $response->assertSee('siti@ifgs.test');
     $response->assertSee('QR Code Presensi Gym');
+    $response->assertSee(route('logout'));
 });
 
 test('member can update profile via portal and is redirected back to member profil', function () {
