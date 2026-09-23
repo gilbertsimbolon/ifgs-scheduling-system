@@ -1,7 +1,5 @@
 <?php
 
-test('example', function () {
-    $response = $this->get('/');
 use App\Models\Member;
 use App\Models\Product;
 use App\Models\User;

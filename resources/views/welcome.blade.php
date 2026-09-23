@@ -418,6 +418,8 @@
                             style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
                             PORTAL MEMBER IFGS
                         </p>
+                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo,
+                            {{ auth()->user()->name }}! 👋</h3>
                         <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo, {{ auth()->user()->name }}! 👋</h3>
                         <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
                             status membership, reservasi kunjungan, dan absensi

@@ -34,7 +34,6 @@ test('authenticated admin can view gym dashboard with kpi metrics and time slots
         ->assertSee('Sesi Pagi Utama');
 });
 
-test('authenticated member is redirected to landing page from /dashboard', function () {
 test('authenticated member is redirected to member portal from /dashboard', function () {
     $user = User::factory()->create(['name' => 'Gilbert Simbolon']);
     $user->assignRole('Member');
@@ -42,7 +41,6 @@ test('authenticated member is redirected to member portal from /dashboard', func
 
     $this->actingAs($user)
         ->get(route('dashboard'))
-        ->assertRedirect(route('home'));
         ->assertRedirect(route('member.index'));
 });
 

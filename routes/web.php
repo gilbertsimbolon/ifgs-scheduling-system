@@ -115,9 +115,6 @@ Route::middleware('auth')->group(function () {
             Route::patch('/checkin-checkout/{attendance}/checkout', [AttendanceController::class, 'checkout'])->name('checkout');
             Route::delete('/checkin-checkout/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
         });
-
-        // Manajemen Member
-        Route::prefix('member')->name('member.')->group(function () {
         // Manajemen Member (Admin / Kasir)
         Route::prefix('operasional/member')->name('admin-members.')->group(function () {
             Route::get('/', [MemberController::class, 'index'])->name('index');

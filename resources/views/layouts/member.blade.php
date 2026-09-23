@@ -11,12 +11,10 @@
     <title>
         @hasSection('title')
             @yield('title') |
-        @endif{{ 'Indo Fitness Gym Sport®' }}
         @endif{{ 'Member IFGS - Indo Fitness Gym Sport®' }}
     </title>
 
     <meta name="description"
-        content="Sistem Informasi Penjadwalan & Layanan Member Indo Fitness Gym Sport Tondano" />
         content="Member Portal Sistem Informasi Penjadwalan & Layanan Gym Indo Fitness Gym Sport Tondano" />
 
     <!-- Favicon -->

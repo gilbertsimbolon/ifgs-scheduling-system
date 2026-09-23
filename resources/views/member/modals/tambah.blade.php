@@ -5,7 +5,6 @@
                 <h5 class="modal-title">Tambah Member</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('member.store') }}" method="POST">
             <form action="{{ route('admin-members.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="_modal" value="create_member">
