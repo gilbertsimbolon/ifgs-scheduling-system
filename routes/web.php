@@ -100,6 +100,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/paket-layanan', [MemberPortalController::class, 'paketLayanan'])->name('paket-layanan');
         Route::get('/profil', [MemberPortalController::class, 'profil'])->name('profil');
         Route::put('/profil', [MemberPortalController::class, 'updateProfil'])->name('profil.update');
+        Route::put('/profil/avatar', [MemberPortalController::class, 'updateAvatar'])->name('profil.avatar');
+        Route::delete('/profil/avatar', [MemberPortalController::class, 'deleteAvatar'])->name('profil.avatar.delete');
         Route::put('/profil/password', [MemberPortalController::class, 'updatePassword'])->name('profil.password');
     });
 

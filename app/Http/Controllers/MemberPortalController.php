@@ -12,6 +12,10 @@ use App\Models\TimeSlot;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class MemberPortalController extends Controller
@@ -267,8 +271,10 @@ class MemberPortalController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:20'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'remove_avatar' => ['nullable', 'boolean'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'name.max' => 'Nama lengkap maksimal 255 karakter.',
@@ -281,6 +287,7 @@ class MemberPortalController extends Controller
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($request, $validated, $user) {
+        DB::transaction(function () use ($request, $validated, $user) {
             if ($validated['name'] !== $user->name) {
                 $user->slug = User::generateUniqueSlug($validated['name'], $user->id);
             }
@@ -291,8 +298,15 @@ class MemberPortalController extends Controller
             if ($request->hasFile('avatar')) {
                 if ($user->avatar && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->avatar)) {
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($user->avatar);
+                if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
                 }
                 $user->avatar = $request->file('avatar')->store('avatars', 'public');
+            } elseif ($request->boolean('remove_avatar')) {
+                if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+                $user->avatar = null;
             }
 
             $user->save();
@@ -308,6 +322,57 @@ class MemberPortalController extends Controller
         });
 
         return redirect()->route('member.profil')->with('success', 'Profil Anda berhasil diperbarui.');
+    }
+
+    /**
+     * Upload / perbarui foto profil member secara langsung.
+     */
+    public function updateAvatar(Request $request): RedirectResponse
+    {
+        if ($redirect = $this->ensureMember($request)) {
+            return $redirect;
+        }
+
+        $request->validate([
+            'avatar' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+        ], [
+            'avatar.required' => 'Silakan pilih file foto terlebih dahulu.',
+            'avatar.image' => 'File foto profil harus berupa gambar.',
+            'avatar.mimes' => 'Format foto profil harus jpeg, png, jpg, atau webp.',
+            'avatar.max' => 'Ukuran file foto profil maksimal 2MB.',
+        ]);
+
+        $user = $request->user();
+
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $user->avatar = $request->file('avatar')->store('avatars', 'public');
+        $user->save();
+
+        return redirect()->route('member.profil')->with('success', 'Foto profil berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus foto profil member dan kembalikan ke inisial nama.
+     */
+    public function deleteAvatar(Request $request): RedirectResponse
+    {
+        if ($redirect = $this->ensureMember($request)) {
+            return $redirect;
+        }
+
+        $user = $request->user();
+
+        if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $user->avatar = null;
+        $user->save();
+
+        return redirect()->route('member.profil')->with('success', 'Foto profil berhasil dihapus.');
     }
 
     /**
@@ -334,6 +399,7 @@ class MemberPortalController extends Controller
 
         $user->update([
             'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'password' => Hash::make($validated['password']),
         ]);
 
         return redirect()->route('member.profil')->with('success', 'Password Anda berhasil diperbarui.');

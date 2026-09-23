@@ -4,7 +4,9 @@ use App\Models\Member;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
@@ -262,4 +264,52 @@ test('member can update password via portal and is redirected back to member pro
 
     $user->refresh();
     expect(Hash::check('newsecretpassword456', $user->password))->toBeTrue();
+});
+
+test('member can directly upload avatar and then delete avatar with x button', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'name' => 'Maca Test',
+        'email' => 'maca@ifgs.test',
+    ]);
+    $user->assignRole('Member');
+    Member::create([
+        'user_id' => $user->id,
+        'member_code' => 'IFGS-2026-0009',
+    ]);
+
+    expect($user->initials)->toBe('MT');
+
+    // 1. Upload Avatar
+    $file = UploadedFile::fake()->image('avatar.jpg', 300, 300);
+
+    $uploadResponse = $this->actingAs($user)->put(route('member.profil.avatar'), [
+        'avatar' => $file,
+    ]);
+
+    $uploadResponse->assertRedirect(route('member.profil'));
+    $uploadResponse->assertSessionHas('success', 'Foto profil berhasil diperbarui.');
+
+    $user->refresh();
+    expect($user->avatar)->not->toBeNull();
+    Storage::disk('public')->assertExists($user->avatar);
+
+    // Profil page shows delete button when avatar exists
+    $pageResponse = $this->actingAs($user)->get(route('member.profil'));
+    $pageResponse->assertStatus(200);
+    $pageResponse->assertSee(route('member.profil.avatar.delete'));
+    $pageResponse->assertSee('bx-x');
+
+    // 2. Delete Avatar
+    $deleteResponse = $this->actingAs($user)->delete(route('member.profil.avatar.delete'));
+    $deleteResponse->assertRedirect(route('member.profil'));
+    $deleteResponse->assertSessionHas('success', 'Foto profil berhasil dihapus.');
+
+    $user->refresh();
+    expect($user->avatar)->toBeNull();
+
+    // Profil page shows initials again
+    $pageAfterDelete = $this->actingAs($user)->get(route('member.profil'));
+    $pageAfterDelete->assertSee('MT');
 });

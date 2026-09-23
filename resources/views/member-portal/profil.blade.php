@@ -25,6 +25,50 @@
                     {{ $user->initials }}
                 </div>
             @endif
+        <div class="mb-3 d-flex justify-content-center">
+            <div class="position-relative d-inline-block">
+                <!-- Avatar (Klik langsung untuk memilih foto) -->
+                <label for="memberAvatarInput" class="m-0 p-0 rounded-circle d-block cursor-pointer position-relative shadow-sm"
+                    title="Klik untuk memilih atau mengubah foto profil" style="cursor: pointer;">
+                    @if ($user->avatar_url)
+                        <img src="{{ $user->avatar_url }}" alt="{{ $user->name }}"
+                            class="rounded-circle object-fit-cover border border-2 border-primary" width="82" height="82">
+                    @else
+                        <div class="avatar avatar-xl rounded-circle bg-label-primary d-flex align-items-center justify-content-center fw-bold fs-2 text-primary border border-2 border-light"
+                            style="width: 82px; height: 82px;">
+                            {{ $user->initials }}
+                        </div>
+                    @endif
+
+                    <!-- Badge Icon Kamera Kecil di Pojok Bawah Avatar -->
+                    <span class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                        style="width: 26px; height: 26px; font-size: 0.82rem; border: 2px solid #ffffff;">
+                        <i class="bx bx-camera"></i>
+                    </span>
+                </label>
+
+                <!-- Icon X untuk Menghapus Foto Profil (Hanya tampil jika ada foto) -->
+                @if ($user->avatar_url)
+                    <form action="{{ route('member.profil.avatar.delete') }}" method="POST" class="position-absolute top-0 end-0 m-0"
+                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus foto profil ini?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center shadow"
+                            style="width: 24px; height: 24px; margin-top: -4px; margin-right: -4px; border: 2px solid #ffffff;"
+                            title="Hapus foto profil">
+                            <i class="bx bx-x fs-6"></i>
+                        </button>
+                    </form>
+                @endif
+
+                <!-- Form Upload Avatar Otomatis saat Foto Dipilih -->
+                <form id="formUploadAvatar" action="{{ route('member.profil.avatar') }}" method="POST" enctype="multipart/form-data" class="d-none">
+                    @csrf
+                    @method('PUT')
+                    <input type="file" id="memberAvatarInput" name="avatar" accept="image/jpeg,image/png,image/jpg,image/webp"
+                        onchange="if(this.files && this.files[0]) { document.getElementById('formUploadAvatar').submit(); }">
+                </form>
+            </div>
         </div>
 
         <h6 class="fw-bold text-dark mb-0" style="font-size: 1.05rem;">{{ $user->name }}</h6>
@@ -161,6 +205,14 @@
                             <label for="prof_avatar" class="form-label small fw-bold text-dark">Foto Profil (Opsional)</label>
                             <input type="file" class="form-control form-control-sm" id="prof_avatar" name="avatar" accept="image/*">
                             <small class="text-muted" style="font-size: 0.7rem;">Maksimal 2MB (JPG, PNG, WEBP).</small>
+                            @if ($user->avatar_url)
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="remove_avatar" name="remove_avatar" value="1">
+                                    <label class="form-check-label small text-danger" for="remove_avatar">
+                                        <i class="bx bx-trash me-1"></i> Hapus foto profil saat ini
+                                    </label>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="modal-footer border-top py-2 px-3">
