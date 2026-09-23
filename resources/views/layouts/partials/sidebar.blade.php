@@ -58,6 +58,12 @@
             </a>
         </li>
         @hasanyrole('Admin/Manager|Kasir')
+            <li class="menu-item {{ request()->routeIs('admin-members.*') ? 'active' : '' }}">
+                <a href="{{ route('admin-members.index') }}" class="menu-link">
+                    <i class="menu-icon tf-icons bx bx-group"></i>
+                    <div class="text-truncate">Data Member</div>
+                </a>
+            </li>
             <li class="menu-item {{ request()->routeIs('memberships.*') ? 'active' : '' }}">
                 <a href="{{ route('memberships.index') }}" class="menu-link">
                     <i class="menu-icon tf-icons bx bx-id-card"></i>

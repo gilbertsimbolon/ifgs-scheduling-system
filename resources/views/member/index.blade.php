@@ -52,6 +52,8 @@
             <!-- Search and Filter Form -->
             <div class="card-body border-bottom">
                 <form action="{{ route('member.index') }}" method="GET" class="row g-3 align-items-end">
+                <form action="{{ route('admin-members.index') }}" method="GET" class="row g-3 align-items-end">
+                <form action="{{ route('admin-members.index') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-6">
                         <label class="form-label" for="search">Cari Member</label>
                         <div class="input-group input-group-merge">
@@ -80,6 +82,8 @@
                         </button>
                         @if (request()->hasAny(['search', 'status']))
                             <a href="{{ route('member.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <a href="{{ route('admin-members.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <a href="{{ route('admin-members.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
                                 <i class="bx bx-reset"></i>
                             </a>
                         @endif
@@ -134,6 +138,8 @@
                                             <input class="form-check-input cursor-pointer toggle-status-switch"
                                                 type="checkbox" role="switch" id="switchStatus{{ $member->id }}"
                                                 data-action="{{ route('member.toggle-status', $member) }}"
+                                                data-action="{{ route('admin-members.toggle-status', $member) }}"
+                                                data-action="{{ route('admin-members.toggle-status', $member) }}"
                                                 title="Klik untuk on/off status akun"
                                                 {{ ($member->user?->status ?? '') === \App\Models\User::STATUS_ACTIVE ? 'checked' : '' }}>
                                         </div>
@@ -191,6 +197,8 @@
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
                                             title="Edit Member" data-bs-toggle="modal" data-bs-target="#modalEditMember"
                                             data-action="{{ route('member.update', $member) }}"
+                                            data-action="{{ route('admin-members.update', $member) }}"
+                                            data-action="{{ route('admin-members.update', $member) }}"
                                             data-code="{{ $member->member_code }}"
                                             data-name="{{ $member->user?->name ?? '' }}"
                                             data-email="{{ $member->user?->email ?? '' }}"
@@ -204,6 +212,8 @@
                                             title="Hapus Member" data-bs-toggle="modal"
                                             data-bs-target="#modalHapusMember"
                                             data-action="{{ route('member.destroy', $member) }}"
+                                            data-action="{{ route('admin-members.destroy', $member) }}"
+                                            data-action="{{ route('admin-members.destroy', $member) }}"
                                             data-name="{{ $member->user?->name ?? '-' }}"
                                             data-code="{{ $member->member_code }}">
                                             <i class="bx bx-trash"></i>

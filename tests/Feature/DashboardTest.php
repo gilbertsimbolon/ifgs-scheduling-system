@@ -35,6 +35,7 @@ test('authenticated admin can view gym dashboard with kpi metrics and time slots
 });
 
 test('authenticated member is redirected to landing page from /dashboard', function () {
+test('authenticated member is redirected to member portal from /dashboard', function () {
     $user = User::factory()->create(['name' => 'Gilbert Simbolon']);
     $user->assignRole('Member');
     $member = Member::factory()->create(['user_id' => $user->id]);
@@ -42,6 +43,7 @@ test('authenticated member is redirected to landing page from /dashboard', funct
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertRedirect(route('home'));
+        ->assertRedirect(route('member.index'));
 });
 
 test('authenticated user accessing root url sees welcome page with link to dashboard', function () {

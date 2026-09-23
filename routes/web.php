@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GreedyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
+use App\Http\Controllers\MemberPortalController;
 use App\Http\Controllers\MembershipController;
 use App\Http\Controllers\MembershipTransactionController;
 use App\Http\Controllers\PaymentMethodController;
@@ -91,6 +92,18 @@ Route::middleware('auth')->group(function () {
     });
 
     // Dashboard Gym (Diakses Staf Admin & Kasir; dialihkan ke home jika Member/Trainer)
+    // Member Portal (Khusus Role Member - Mobile First Portal)
+    Route::prefix('member')->name('member.')->group(function () {
+        Route::get('/', [MemberPortalController::class, 'index'])->name('index');
+        Route::get('/reservasi', [MemberPortalController::class, 'reservasi'])->name('reservasi');
+        Route::get('/riwayat', [MemberPortalController::class, 'riwayat'])->name('riwayat');
+        Route::get('/paket-layanan', [MemberPortalController::class, 'paketLayanan'])->name('paket-layanan');
+        Route::get('/profil', [MemberPortalController::class, 'profil'])->name('profil');
+        Route::put('/profil', [MemberPortalController::class, 'updateProfil'])->name('profil.update');
+        Route::put('/profil/password', [MemberPortalController::class, 'updatePassword'])->name('profil.password');
+    });
+
+    // Dashboard Gym (Diakses Staf Admin & Kasir; dialihkan ke member portal jika Member)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Operasional Kasir & Admin (Membership, Presensi Check-in/out, Transaksi)
@@ -105,6 +118,8 @@ Route::middleware('auth')->group(function () {
 
         // Manajemen Member
         Route::prefix('member')->name('member.')->group(function () {
+        // Manajemen Member (Admin / Kasir)
+        Route::prefix('operasional/member')->name('admin-members.')->group(function () {
             Route::get('/', [MemberController::class, 'index'])->name('index');
             Route::post('/', [MemberController::class, 'store'])->name('store');
             Route::put('/{member}', [MemberController::class, 'update'])->name('update');

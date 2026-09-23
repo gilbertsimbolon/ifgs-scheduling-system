@@ -24,7 +24,7 @@ test('unauthenticated guest cannot access /profile and is redirected to login', 
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated member cannot access backoffice profile and is redirected to landing page', function () {
+test('authenticated member can access profile page without backoffice sidebar and sees activity log', function () {
     $user = User::factory()->create([
         'name' => 'Gilbert Simbolon',
         'email' => 'gilbert@ifgs.test',
@@ -38,17 +38,14 @@ test('authenticated member cannot access backoffice profile and is redirected to
 
     $response = $this->actingAs($user)->get(route('profile.show'));
 
-    $response->assertRedirect(route('home'));
-
-    // Member manages profile via landing page modal
-    $homeResponse = $this->actingAs($user)->get(route('home'));
-    $homeResponse->assertOk();
-    $homeResponse->assertSee('modalPengaturanProfil');
-    $homeResponse->assertSee('Gilbert Simbolon');
-    $homeResponse->assertSee('gilbert@ifgs.test');
-    $homeResponse->assertSee('081234567890');
-    $homeResponse->assertSee('Perbarui Password');
-    $homeResponse->assertSee('Simpan Data Diri');
+    $response->assertOk();
+    $response->assertSee('Profil Saya');
+    $response->assertSee('Gilbert Simbolon');
+    $response->assertSee('MBR-998877');
+    $response->assertSee('Riwayat Log Aktivitas');
+    $response->assertSee('Kembali ke Beranda');
+    // Does not have backoffice sidebar items
+    $response->assertDontSee('Kelola Transaksi');
 });
 
 test('authenticated admin can access profile page and see role badge and QR Code', function () {
@@ -84,7 +81,7 @@ test('user can update personal data successfully and slug is regenerated if name
         'phone' => '0822222222',
     ]);
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('profile.show'));
     $response->assertSessionHas('profile_success');
 
     $user->refresh();
@@ -144,7 +141,7 @@ test('user can update password with valid current password and matching confirma
         'password_confirmation' => 'newsecretpassword456',
     ]);
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('profile.show'));
     $response->assertSessionHas('password_success');
 
     $user->refresh();
@@ -212,7 +209,7 @@ test('user can upload avatar and view it on profile', function () {
         'avatar' => $file,
     ]);
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('profile.show'));
     $response->assertSessionHas('profile_success');
 
     $user->refresh();
@@ -220,7 +217,11 @@ test('user can upload avatar and view it on profile', function () {
     Storage::disk('public')->assertExists($user->avatar);
     expect($user->avatar_url)->not->toBeNull();
 
-    // Verify avatar renders on landing page
+    // Verify avatar renders on profile page and landing page
+    $profileRes = $this->actingAs($user)->get(route('profile.show'));
+    $profileRes->assertOk();
+    $profileRes->assertSee($user->avatar_url);
+
     $homeRes = $this->actingAs($user)->get(route('home'));
     $homeRes->assertOk();
     $homeRes->assertSee($user->avatar_url);
@@ -243,7 +244,7 @@ test('user can remove avatar', function () {
         'remove_avatar' => 1,
     ]);
 
-    $response->assertRedirect(route('home'));
+    $response->assertRedirect(route('profile.show'));
     $user->refresh();
     expect($user->avatar)->toBeNull();
     Storage::disk('public')->assertMissing($fakePath);

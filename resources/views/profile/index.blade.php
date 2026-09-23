@@ -1,9 +1,26 @@
 @extends('layouts.app')
+@extends(auth()->check() && auth()->user()->hasRole('Member') && !auth()->user()->hasAnyRole(['Admin/Manager', 'Kasir']) ? 'layouts.member' : 'layouts.app')
 
 @section('title', 'Profil Saya - Indo Fitness Gym Sport')
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+    <div class="container-xxl flex-grow-1 container-p-y" style="font-family: Arial, Helvetica, sans-serif;">
+        <!-- Breadcrumb & Header Navigasi -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small" style="font-family: Arial, Helvetica, sans-serif;">
+                        <li class="breadcrumb-item"><a href="{{ route('home') }}"><i class="bx bx-home me-1"></i>Beranda</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Profil Saya</li>
+                    </ol>
+                </nav>
+                <h4 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Profil Saya</h4>
+            </div>
+            <a href="{{ route('home') }}" class="btn btn-outline-primary btn-sm shadow-sm" style="font-family: Arial, Helvetica, sans-serif;">
+                <i class="bx bx-arrow-back me-1"></i> Kembali ke Beranda
+            </a>
+        </div>
         <!-- Alert Notifikasi -->
         @if (session('profile_success'))
             <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
@@ -291,6 +308,7 @@
                         <div class="d-flex align-items-center">
                             <i class="bx bx-history me-2 text-primary fs-4"></i>
                             <h5 class="card-title fw-bold mb-0 text-heading">Log Aktivitas</h5>
+                            <h5 class="card-title fw-bold mb-0 text-heading">Riwayat Log Aktivitas</h5>
                         </div>
                         <span class="badge bg-label-info">Log Kehadiran</span>
                     </div>

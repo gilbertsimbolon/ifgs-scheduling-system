@@ -19,6 +19,7 @@ test('authorized user with Admin/Manager role can access /member', function () {
     $admin->assignRole('Admin/Manager');
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Manajemen /');
@@ -31,6 +32,7 @@ test('authorized user with Kasir role can access /member', function () {
     $kasir->assignRole('Kasir');
 
     $response = $this->actingAs($kasir)->get(route('member.index'));
+    $response = $this->actingAs($kasir)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Kelola data member yang terdaftar pada sistem.');
@@ -41,12 +43,14 @@ test('unauthorized user with Member role cannot access /member and receives 403'
     $memberUser->assignRole('Member');
 
     $response = $this->actingAs($memberUser)->get(route('member.index'));
+    $response = $this->actingAs($memberUser)->get(route('admin-members.index'));
 
     $response->assertStatus(403);
 });
 
 test('unauthenticated guest cannot access /member and is redirected to login', function () {
     $response = $this->get(route('member.index'));
+    $response = $this->get(route('admin-members.index'));
 
     $response->assertRedirect(route('login'));
 });
@@ -68,6 +72,7 @@ test('member list displays member_code, user name, email, phone, and status', fu
     ]);
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('IFGS-202609-0001');
@@ -90,6 +95,7 @@ test('member name is retrieved from user relationship and rendered correctly', f
     ]);
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee($user->name);
@@ -112,6 +118,7 @@ test('member with null phone displays dash and does not cause error', function (
     ]);
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Siti Rahma');
@@ -133,6 +140,7 @@ test('member with inactive status displays Tidak Aktif badge', function () {
     ]);
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Tidak Aktif');
@@ -143,6 +151,7 @@ test('member list with no data displays clean empty state without error', functi
     $admin->assignRole('Admin/Manager');
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Belum ada member');
@@ -158,12 +167,14 @@ test('pagination works properly when members exceed per page limit', function ()
     Member::factory()->count(15)->create();
 
     $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('Menampilkan 1–10 dari 15 member');
 
     // Page 2
     $responsePage2 = $this->actingAs($admin)->get(route('member.index', ['page' => 2]));
+    $responsePage2 = $this->actingAs($admin)->get(route('admin-members.index', ['page' => 2]));
     $responsePage2->assertStatus(200);
     $responsePage2->assertSee('Menampilkan 11–15 dari 15 member');
 });
@@ -173,6 +184,7 @@ test('admin can store a new member with user and role Member', function () {
     $admin->assignRole('Admin/Manager');
 
     $response = $this->actingAs($admin)->post(route('member.store'), [
+    $response = $this->actingAs($admin)->post(route('admin-members.store'), [
         'name' => 'Michael Jordan',
         'email' => 'michael@ifgs.test',
         'phone' => '081299887766',
@@ -181,6 +193,7 @@ test('admin can store a new member with user and role Member', function () {
     ]);
 
     $response->assertRedirect(route('member.index'));
+    $response->assertRedirect(route('admin-members.index'));
     $response->assertSessionHas('success', 'Pengguna baru berhasil dibuat dan didaftarkan sebagai Member.');
 
     $user = User::where('email', 'michael@ifgs.test')->first();
@@ -205,11 +218,13 @@ test('admin can store member from existing user', function () {
     ]);
 
     $response = $this->actingAs($admin)->post(route('member.store'), [
+    $response = $this->actingAs($admin)->post(route('admin-members.store'), [
         'user_id' => $existingUser->id,
         'phone' => '081233445566',
     ]);
 
     $response->assertRedirect(route('member.index'));
+    $response->assertRedirect(route('admin-members.index'));
     $response->assertSessionHas('success', 'Member berhasil ditambahkan dari akun pengguna terdaftar.');
 
     $member = Member::where('user_id', $existingUser->id)->first();
@@ -225,6 +240,7 @@ test('store member fails with validation errors when inputs are invalid', functi
     $existingUser = User::factory()->create(['email' => 'existing@ifgs.test']);
 
     $response = $this->actingAs($admin)->post(route('member.store'), [
+    $response = $this->actingAs($admin)->post(route('admin-members.store'), [
         'name' => '',
         'email' => 'existing@ifgs.test',
         'phone' => '0812345678901234567890123', // exceeds 20 chars
@@ -253,6 +269,7 @@ test('admin can update member details and user account', function () {
     ]);
 
     $response = $this->actingAs($admin)->put(route('member.update', $member), [
+    $response = $this->actingAs($admin)->put(route('admin-members.update', $member), [
         'name' => 'New Name',
         'email' => 'new@ifgs.test',
         'phone' => '0822222222',
@@ -261,6 +278,7 @@ test('admin can update member details and user account', function () {
     ]);
 
     $response->assertRedirect(route('member.index'));
+    $response->assertRedirect(route('admin-members.index'));
     $response->assertSessionHas('success', 'Data member berhasil diperbarui.');
 
     $user->refresh();
@@ -287,6 +305,7 @@ test('admin can toggle member status via ajax request', function () {
     ]);
 
     $response = $this->actingAs($admin)->patchJson(route('member.toggle-status', $member));
+    $response = $this->actingAs($admin)->patchJson(route('admin-members.toggle-status', $member));
 
     $response->assertStatus(200);
     $response->assertJson([
@@ -299,6 +318,7 @@ test('admin can toggle member status via ajax request', function () {
 
     // Toggle back to Active
     $response2 = $this->actingAs($admin)->patchJson(route('member.toggle-status', $member));
+    $response2 = $this->actingAs($admin)->patchJson(route('admin-members.toggle-status', $member));
     $response2->assertStatus(200);
     $response2->assertJson([
         'success' => true,
@@ -321,8 +341,10 @@ test('admin can delete a member and user is also deleted', function () {
     ]);
 
     $response = $this->actingAs($admin)->delete(route('member.destroy', $member));
+    $response = $this->actingAs($admin)->delete(route('admin-members.destroy', $member));
 
     $response->assertRedirect(route('member.index'));
+    $response->assertRedirect(route('admin-members.index'));
     $response->assertSessionHas('success', 'Member Delete Me berhasil dihapus.');
 
     expect(User::find($user->id))->toBeNull();
@@ -351,24 +373,28 @@ test('member list can be filtered by search term matching name, email, member_co
 
     // Search by name
     $resName = $this->actingAs($admin)->get(route('member.index', ['search' => 'Budi']));
+    $resName = $this->actingAs($admin)->get(route('admin-members.index', ['search' => 'Budi']));
     $resName->assertStatus(200);
     $resName->assertSee('Budi Santoso');
     $resName->assertDontSee('Siti Nurhaliza');
 
     // Search by email
     $resEmail = $this->actingAs($admin)->get(route('member.index', ['search' => 'siti@ifgs.test']));
+    $resEmail = $this->actingAs($admin)->get(route('admin-members.index', ['search' => 'siti@ifgs.test']));
     $resEmail->assertStatus(200);
     $resEmail->assertSee('Siti Nurhaliza');
     $resEmail->assertDontSee('Budi Santoso');
 
     // Search by member_code
     $resCode = $this->actingAs($admin)->get(route('member.index', ['search' => '0101']));
+    $resCode = $this->actingAs($admin)->get(route('admin-members.index', ['search' => '0101']));
     $resCode->assertStatus(200);
     $resCode->assertSee('IFGS-202609-0101');
     $resCode->assertDontSee('IFGS-202609-0202');
 
     // Search by phone
     $resPhone = $this->actingAs($admin)->get(route('member.index', ['search' => '089876543210']));
+    $resPhone = $this->actingAs($admin)->get(route('admin-members.index', ['search' => '089876543210']));
     $resPhone->assertStatus(200);
     $resPhone->assertSee('Siti Nurhaliza');
     $resPhone->assertDontSee('Budi Santoso');
@@ -394,12 +420,14 @@ test('member list can be filtered by status', function () {
 
     // Filter Active
     $resActive = $this->actingAs($admin)->get(route('member.index', ['status' => User::STATUS_ACTIVE]));
+    $resActive = $this->actingAs($admin)->get(route('admin-members.index', ['status' => User::STATUS_ACTIVE]));
     $resActive->assertStatus(200);
     $resActive->assertSee('Member Aktif');
     $resActive->assertDontSee('Member Nonaktif');
 
     // Filter Inactive
     $resInactive = $this->actingAs($admin)->get(route('member.index', ['status' => User::STATUS_INACTIVE]));
+    $resInactive = $this->actingAs($admin)->get(route('admin-members.index', ['status' => User::STATUS_INACTIVE]));
     $resInactive->assertStatus(200);
     $resInactive->assertSee('Member Nonaktif');
     $resInactive->assertDontSee('Member Aktif');
@@ -414,6 +442,7 @@ test('member list displays filtered empty state when search returns no match', f
     Member::factory()->create(['user_id' => $user->id]);
 
     $response = $this->actingAs($admin)->get(route('member.index', ['search' => 'KeywordTidakAda']));
+    $response = $this->actingAs($admin)->get(route('admin-members.index', ['search' => 'KeywordTidakAda']));
     $response->assertStatus(200);
     $response->assertSee('Tidak ada data member yang ditemukan');
     $response->assertSee('Coba ubah kata kunci pencarian atau bersihkan filter.');

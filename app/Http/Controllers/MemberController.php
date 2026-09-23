@@ -75,6 +75,7 @@ class MemberController extends Controller
             });
 
             return redirect()->route('member.index')
+            return redirect()->route('admin-members.index')
                 ->with('success', 'Member berhasil ditambahkan dari akun pengguna terdaftar.');
         }
 
@@ -114,6 +115,7 @@ class MemberController extends Controller
         });
 
         return redirect()->route('member.index')
+        return redirect()->route('admin-members.index')
             ->with('success', 'Pengguna baru berhasil dibuat dan didaftarkan sebagai Member.');
     }
 
@@ -162,6 +164,7 @@ class MemberController extends Controller
         });
 
         return redirect()->route('member.index')
+        return redirect()->route('admin-members.index')
             ->with('success', 'Data member berhasil diperbarui.');
     }
 
@@ -190,6 +193,7 @@ class MemberController extends Controller
         }
 
         return redirect()->route('member.index')
+        return redirect()->route('admin-members.index')
             ->with('success', "Status member {$user->name} berhasil diubah menjadi {$label}.");
     }
 
@@ -208,6 +212,7 @@ class MemberController extends Controller
         }
 
         return redirect()->route('member.index')
+        return redirect()->route('admin-members.index')
             ->with('success', "Member {$memberName} berhasil dihapus.");
     }
 }

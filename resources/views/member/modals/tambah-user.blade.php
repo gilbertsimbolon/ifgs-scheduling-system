@@ -1,4 +1,4 @@
-﻿<div class="modal fade" id="modalTambahUser" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalTambahUser" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -6,6 +6,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="{{ route('member.store') }}" method="POST">
+            <form action="{{ route('admin-members.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="_modal" value="create_user">
 
