@@ -40,7 +40,6 @@
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif !important;
-            background-color: #f8fafc;
             background-color: #f1f5f9;
             color: #334155;
             margin: 0;
@@ -73,7 +72,8 @@
         .member-content {
             flex: 1;
             padding: 16px;
-            padding-bottom: 95px; /* Memberikan ruang aman agar tidak tertutup bottom nav */
+            padding-bottom: 95px;
+            /* Memberikan ruang aman agar tidak tertutup bottom nav */
         }
 
         i.bx,
@@ -89,7 +89,6 @@
             align-items: center;
             justify-content: center;
             vertical-align: middle;
-            font-family: Arial, Helvetica, sans-serif;
             border-radius: 8px;
             font-weight: 600;
         }
@@ -100,7 +99,6 @@
 
         .card {
             border: 1px solid #e2e8f0 !important;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
             border-radius: 12px;
             font-family: Arial, Helvetica, sans-serif;
@@ -123,6 +121,7 @@
             .member-viewport-wrapper {
                 box-shadow: none;
             }
+
             .member-content {
                 padding: 14px 12px 95px 12px;
             }
@@ -132,86 +131,55 @@
 </head>
 
 <body>
-    <!-- Top Navbar Khusus Member (Bersih, Tanpa Sidebar Backoffice Admin) -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm sticky-top py-2">
-        <div class="container-xl d-flex align-items-center justify-content-between">
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
-                <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="IFGS" width="40" height="40"
     <div class="member-viewport-wrapper">
         <!-- Top App Bar Khusus Member -->
         <header class="member-top-bar d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
                 <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="IFGS" width="34" height="34"
                     class="rounded-circle shadow-sm object-fit-cover" />
-                <div class="d-flex flex-column">
-                    <span class="fw-bold text-dark fs-6 mb-0"
-                        style="font-family: Arial, Helvetica, sans-serif; letter-spacing: -0.2px;">
-                        Indo Fitness Gym Sport®
-                    </span>
-                    <small class="text-muted" style="font-size: 0.72rem; font-family: Arial, Helvetica, sans-serif;">
-                        Portal Profil Member
-                    </small>
                 <div>
                     <h6 class="mb-0 fw-bold text-dark lh-1" style="font-size: 0.95rem; letter-spacing: -0.2px;">
                         IFGS Sport
                     </h6>
                     <small class="text-muted" style="font-size: 0.7rem;">Member Portal</small>
                 </div>
-            </a>
             </div>
-
-            <div class="d-flex align-items-center gap-2 gap-sm-3">
-                <a href="{{ route('home') }}"
-                    class="btn btn-outline-primary btn-sm d-inline-flex align-items-center shadow-sm"
-                    style="font-family: Arial, Helvetica, sans-serif;">
-                    <i class="bx bx-home-alt me-1"></i> Kembali ke Beranda
-                </a>
 
             <div class="d-flex align-items-center gap-2">
                 @if (auth()->check())
                     <div class="dropdown">
                         <button
-                            class="btn btn-light border btn-sm d-flex align-items-center gap-2 shadow-sm rounded-pill px-3 py-1"
-                            type="button" data-bs-toggle="dropdown" aria-expanded="false"
-                            style="font-family: Arial, Helvetica, sans-serif;">
-                        <button class="btn btn-light btn-sm border-0 p-1 rounded-circle" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false" title="Menu Pengguna">
+                            class="btn btn-light btn-sm border p-1 rounded-circle d-flex align-items-center justify-content-center shadow-none"
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Menu Pengguna"
+                            style="width: 36px; height: 36px;">
                             @if (auth()->user()->avatar_url)
                                 <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}"
-                                    class="rounded-circle object-fit-cover" width="28" height="28">
-                                    class="rounded-circle object-fit-cover" width="30" height="30">
+                                    class="rounded-circle object-fit-cover" width="32" height="32">
                             @else
                                 <span
                                     class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center"
-                                    style="width: 28px; height: 28px; font-size: 0.75rem;">
-                                <span class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center"
-                                    style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                    style="width: 32px; height: 32px; font-size: 0.78rem;">
                                     {{ auth()->user()->initials }}
                                 </span>
                             @endif
-                            <span
-                                class="fw-semibold text-dark small d-none d-sm-inline">{{ auth()->user()->name }}</span>
-                            <i class="bx bx-chevron-down text-muted small"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
-                            style="font-family: Arial, Helvetica, sans-serif;">
-                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem;">
+                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; min-width: 200px;">
                             <li>
                                 <h6 class="dropdown-header">Akun Saya</h6>
                                 <div class="px-3 py-2 border-bottom">
-                                    <div class="fw-bold text-dark text-truncate" style="max-width: 180px;">{{ auth()->user()->name }}</div>
-                                    <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">{{ auth()->user()->email }}</small>
+                                    <div class="fw-bold text-dark text-truncate" style="max-width: 180px;">
+                                        {{ auth()->user()->name }}</div>
+                                    <small class="text-muted text-truncate d-block"
+                                        style="font-size: 0.75rem;">{{ auth()->user()->email }}</small>
                                 </div>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="{{ route('home') }}">
-                                    <i class="bx bx-home-alt me-2 text-primary"></i> Beranda Utama
                                 <a class="dropdown-item py-2" href="{{ route('member.profil') }}">
-                                    <i class="bx bx-user me-2 text-primary"></i> Pengaturan Profil
+                                    <i class="bx bx-user me-2 text-primary"></i> Profil & Akun
                                 </a>
                             </li>
                             <li>
-                                <hr class="dropdown-divider">
                                 <a class="dropdown-item py-2" href="{{ route('home') }}">
                                     <i class="bx bx-globe me-2 text-info"></i> Landing Page Publik
                                 </a>
@@ -222,7 +190,6 @@
                             <li>
                                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                                     @csrf
-                                    <button type="submit" class="dropdown-item text-danger">
                                     <button type="submit" class="dropdown-item py-2 text-danger">
                                         <i class="bx bx-log-out me-2"></i> Keluar (Logout)
                                     </button>
@@ -232,34 +199,23 @@
                     </div>
                 @endif
             </div>
-        </div>
-    </nav>
         </header>
 
-    <!-- Main Content Area -->
-    <main class="py-4" style="min-height: calc(100vh - 130px);">
-        @yield('content')
-    </main>
         <!-- Main Content Area -->
         <main class="member-content">
             <!-- Alert Session Notifications -->
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3" role="alert" style="font-size: 0.85rem;">
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3"
+                    role="alert" style="font-size: 0.85rem;">
                     <i class="bx bx-check-circle fs-5 me-2 flex-shrink-0"></i>
                     <div>{{ session('success') }}</div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
 
-    <!-- Footer -->
-    <footer class="bg-white border-top py-3 text-center text-muted small"
-        style="font-family: Arial, Helvetica, sans-serif;">
-        <div class="container-xl">
-            &copy; {{ date('Y') }} Indo Fitness Gym Sport®. Sistem Informasi Manajemen & Penjadwalan Gym.
-        </div>
-    </footer>
             @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3" role="alert" style="font-size: 0.85rem;">
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3"
+                    role="alert" style="font-size: 0.85rem;">
                     <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
                     <div>{{ session('error') }}</div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -267,7 +223,8 @@
             @endif
 
             @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert" style="font-size: 0.85rem;">
+                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert"
+                    style="font-size: 0.85rem;">
                     <div class="d-flex align-items-center mb-1">
                         <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
                         <strong>Perhatian:</strong>
@@ -297,4 +254,3 @@
 </body>
 
 </html>
-

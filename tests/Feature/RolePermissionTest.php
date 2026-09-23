@@ -30,7 +30,7 @@ test('admin can access everything and perform CRUD operations', function () {
     $this->actingAs($admin)->get(route('reservations.index'))->assertOk();
     $this->actingAs($admin)->get(route('schedules.index'))->assertOk();
     $this->actingAs($admin)->get(route('attendances.index'))->assertOk();
-    $this->actingAs($admin)->get(route('member.index'))->assertOk();
+    $this->actingAs($admin)->get(route('admin-members.index'))->assertOk();
     $this->actingAs($admin)->get(route('transactions.index'))->assertOk();
 });
 
@@ -45,7 +45,7 @@ test('kasir can access membership, transactions, trainer bookings, reservations,
     $this->actingAs($kasir)->get(route('reservations.index'))->assertOk();
     $this->actingAs($kasir)->get(route('schedules.index'))->assertOk();
     $this->actingAs($kasir)->get(route('attendances.index'))->assertOk();
-    $this->actingAs($kasir)->get(route('member.index'))->assertOk();
+    $this->actingAs($kasir)->get(route('admin-members.index'))->assertOk();
     $this->actingAs($kasir)->get(route('transactions.index'))->assertOk();
 });
 
@@ -113,10 +113,10 @@ test('trainer can only approve or reject their own assigned sessions', function 
     expect($bookingTrainer2->fresh()->status)->toBe(TrainerBooking::STATUS_PENDING);
 });
 
-test('member cannot access admin dashboard and is redirected to landing page', function () {
+test('member cannot access admin dashboard and is redirected to member portal', function () {
     $memberUser = User::factory()->create();
     $memberUser->assignRole('Member');
     Member::factory()->create(['user_id' => $memberUser->id]);
 
-    $this->actingAs($memberUser)->get(route('dashboard'))->assertRedirect(route('home'));
+    $this->actingAs($memberUser)->get(route('dashboard'))->assertRedirect(route('member.index'));
 });

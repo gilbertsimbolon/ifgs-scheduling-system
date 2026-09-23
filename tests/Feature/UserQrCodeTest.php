@@ -185,8 +185,8 @@ test('member landing page displays digital member card and qr code modal', funct
         'phone' => '081233334444',
     ]);
 
-    // Member visiting dashboard is redirected to home
-    $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('home'));
+    // Member visiting dashboard is redirected to member portal
+    $this->actingAs($user)->get(route('dashboard'))->assertRedirect(route('member.index'));
 
     $response = $this->actingAs($user)->get(route('home'));
 
@@ -210,7 +210,7 @@ test('member list table displays QR code action button for staff', function () {
         'phone' => '081288889999',
     ]);
 
-    $response = $this->actingAs($admin)->get(route('member.index'));
+    $response = $this->actingAs($admin)->get(route('admin-members.index'));
 
     $response->assertStatus(200);
     $response->assertSee('modalQrCodeAdmin');

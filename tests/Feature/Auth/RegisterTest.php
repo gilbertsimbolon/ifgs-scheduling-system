@@ -110,7 +110,7 @@ test('newly registered user can immediately login through the login flow', funct
     ]);
 
     $this->assertAuthenticatedAs($user);
-    $loginResponse->assertRedirect(url('/'));
+    $loginResponse->assertRedirect(route('member.index'));
 });
 
 test('name is required for register', function () {

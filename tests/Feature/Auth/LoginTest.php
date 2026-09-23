@@ -72,7 +72,7 @@ test('member role users are redirected appropriately upon authentication', funct
     ]);
 
     $this->assertAuthenticatedAs($user);
-    $response->assertRedirect(url('/'));
+    $response->assertRedirect(route('member.index'));
 });
 
 test('users can authenticate with remember me option', function () {

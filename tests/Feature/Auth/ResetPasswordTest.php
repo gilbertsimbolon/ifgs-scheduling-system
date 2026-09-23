@@ -82,7 +82,7 @@ test('password can be reset with valid token and user can login with new passwor
         'password' => 'newpassword123',
     ]);
 
-    $loginResponse->assertRedirect('/');
+    $loginResponse->assertRedirect(route('member.index'));
     $this->assertAuthenticatedAs($user);
 });
 
