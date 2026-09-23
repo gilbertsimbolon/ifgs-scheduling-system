@@ -16,19 +16,12 @@ use Illuminate\View\View;
 class ProfileController extends Controller
 {
     /**
-     * Tampilkan halaman profil pengguna lengkap dengan QR Code, data diri, dan form ganti password.
      * Tampilkan halaman profil pengguna lengkap dengan QR Code, data diri, aktivitas absensi, dan form ganti password.
      */
-    public function show(Request $request): View|RedirectResponse
+    public function show(Request $request): View
     {
         $user = $request->user()->load(['roles', 'member.memberships.product', 'trainer']);
         $isMember = $user->hasRole('Member');
-
-        // Pengguna dengan peran Member tidak masuk ke backoffice / dashboard admin
-        if ($isMember && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()->route('home')->with('info', 'Pengaturan profil Anda dapat diakses langsung melalui menu profil di halaman utama.');
-        }
-
         $activeMembership = $user->member ? $user->member->activeMembership() : null;
         $roleName = $user->roles->first()?->name ?? 'Pengguna';
 
@@ -36,39 +29,81 @@ class ProfileController extends Controller
         $visitActivities = collect();
 
         if ($user->member) {
-            $attendedSchedules = $user->member->schedules()
-                ->with('timeSlot')
-                ->where('status', 'attended')
-                ->orderByDesc('scheduled_date')
-                ->take(3)
+            // 1. Ambil data presensi kehadiran aktual dari attendance
+            $attendances = $user->member->attendances()
+                ->orderByDesc('date')
+                ->orderByDesc('check_in_at')
+                ->take(10)
                 ->get();
 
-            foreach ($attendedSchedules as $sched) {
-                $dateFormatted = $sched->scheduled_date->translatedFormat('l, d F Y');
-                $slotTime = $sched->timeSlot ? substr($sched->timeSlot->start_time, 0, 5) : '08:30';
-                $slotEndTime = $sched->timeSlot ? substr($sched->timeSlot->end_time, 0, 5) : '11:00';
+            foreach ($attendances as $att) {
+                $dateFormatted = $att->date ? $att->date->translatedFormat('l, d F Y') : now()->translatedFormat('l, d F Y');
 
-                $visitActivities->push([
-                    'type' => 'check_out',
-                    'badge_class' => 'bg-label-info',
-                    'icon' => 'bx bx-log-out-circle',
-                    'color' => 'info',
-                    'title' => 'Check-Out Kunjungan Gym',
-                    'description' => "Berhasil melakukan check-out pada {$dateFormatted} pukul {$slotEndTime} WITA.",
-                    'time' => "{$slotEndTime} WITA",
-                    'date' => $dateFormatted,
-                ]);
+                if ($att->check_out_at) {
+                    $outTime = $att->check_out_at->format('H:i');
+                    $visitActivities->push([
+                        'type' => 'check_out',
+                        'badge_class' => 'bg-label-info',
+                        'icon' => 'bx bx-log-out-circle',
+                        'color' => 'info',
+                        'title' => 'Check-Out Kunjungan Gym',
+                        'description' => "Berhasil melakukan check-out pada {$dateFormatted} pukul {$outTime} WITA.",
+                        'time' => "{$outTime} WITA",
+                        'date' => $dateFormatted,
+                    ]);
+                }
 
-                $visitActivities->push([
-                    'type' => 'check_in',
-                    'badge_class' => 'bg-label-success',
-                    'icon' => 'bx bx-log-in-circle',
-                    'color' => 'success',
-                    'title' => 'Check-In Kunjungan Gym',
-                    'description' => "Berhasil melakukan check-in pada {$dateFormatted} pukul {$slotTime} WITA.",
-                    'time' => "{$slotTime} WITA",
-                    'date' => $dateFormatted,
-                ]);
+                if ($att->check_in_at) {
+                    $inTime = $att->check_in_at->format('H:i');
+                    $visitActivities->push([
+                        'type' => 'check_in',
+                        'badge_class' => 'bg-label-success',
+                        'icon' => 'bx bx-log-in-circle',
+                        'color' => 'success',
+                        'title' => 'Check-In Kunjungan Gym',
+                        'description' => "Berhasil melakukan check-in pada {$dateFormatted} pukul {$inTime} WITA.",
+                        'time' => "{$inTime} WITA",
+                        'date' => $dateFormatted,
+                    ]);
+                }
+            }
+
+            // 2. Jika belum ada di attendance, cek jadwal attended sebagai pelengkap
+            if ($visitActivities->isEmpty()) {
+                $attendedSchedules = $user->member->schedules()
+                    ->with('timeSlot')
+                    ->where('status', 'attended')
+                    ->orderByDesc('scheduled_date')
+                    ->take(3)
+                    ->get();
+
+                foreach ($attendedSchedules as $sched) {
+                    $dateFormatted = $sched->scheduled_date->translatedFormat('l, d F Y');
+                    $slotTime = $sched->timeSlot ? substr($sched->timeSlot->start_time, 0, 5) : '08:30';
+                    $slotEndTime = $sched->timeSlot ? substr($sched->timeSlot->end_time, 0, 5) : '11:00';
+
+                    $visitActivities->push([
+                        'type' => 'check_out',
+                        'badge_class' => 'bg-label-info',
+                        'icon' => 'bx bx-log-out-circle',
+                        'color' => 'info',
+                        'title' => 'Check-Out Kunjungan Gym',
+                        'description' => "Berhasil melakukan check-out pada {$dateFormatted} pukul {$slotEndTime} WITA.",
+                        'time' => "{$slotEndTime} WITA",
+                        'date' => $dateFormatted,
+                    ]);
+
+                    $visitActivities->push([
+                        'type' => 'check_in',
+                        'badge_class' => 'bg-label-success',
+                        'icon' => 'bx bx-log-in-circle',
+                        'color' => 'success',
+                        'title' => 'Check-In Kunjungan Gym',
+                        'description' => "Berhasil melakukan check-in pada {$dateFormatted} pukul {$slotTime} WITA.",
+                        'time' => "{$slotTime} WITA",
+                        'date' => $dateFormatted,
+                    ]);
+                }
             }
         }
 
@@ -203,14 +238,9 @@ class ProfileController extends Controller
             }
         });
 
-        if ($user->hasRole('Member') && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()
-                ->route('home')
-                ->with('profile_success', 'Data diri Anda berhasil diperbarui.');
-        }
-
         return redirect()
             ->route('profile.show')
+            ->with('success', 'Data diri Anda berhasil diperbarui.')
             ->with('profile_success', 'Data diri Anda berhasil diperbarui.');
     }
 
@@ -236,14 +266,9 @@ class ProfileController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        if ($user->hasRole('Member') && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()
-                ->route('home')
-                ->with('password_success', 'Password akun Anda berhasil diperbarui.');
-        }
-
         return redirect()
             ->route('profile.show')
+            ->with('success', 'Password akun Anda berhasil diperbarui.')
             ->with('password_success', 'Password akun Anda berhasil diperbarui.');
     }
 }
