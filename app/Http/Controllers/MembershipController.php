@@ -274,12 +274,11 @@ class MembershipController extends Controller
     /**
      * Memproses pemesanan paket membership mandiri oleh member (dengan upload bukti transfer).
      */
-    public function order(Request $request): RedirectResponse
+    public function order(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
-            'start_date' => ['required', 'date'],
             'start_date' => ['nullable', 'date'],
             'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:500'],
@@ -346,6 +345,13 @@ class MembershipController extends Controller
                 'status' => Membership::STATUS_PENDING,
             ]);
         });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Pesanan membership berhasil dikirim! Bukti transfer Anda sedang menunggu validasi oleh kasir.',
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Pesanan membership berhasil dikirim! Bukti transfer Anda sedang menunggu validasi oleh kasir.');
