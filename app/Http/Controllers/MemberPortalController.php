@@ -170,6 +170,11 @@ class MemberPortalController extends Controller
         $user = $request->user()->load(['member']);
         $member = $user->member;
 
+        $myMemberships = $member ? $member->memberships()
+            ->with(['product', 'paymentMethod', 'transaction'])
+            ->latest()
+            ->get() : collect();
+
         $attendances = $member ? $member->attendances()
             ->orderByDesc('date')
             ->orderByDesc('check_in_at')
@@ -188,6 +193,7 @@ class MemberPortalController extends Controller
         return view('member-portal.riwayat', compact(
             'user',
             'member',
+            'myMemberships',
             'attendances',
             'pastSchedules'
         ));
@@ -211,6 +217,8 @@ class MemberPortalController extends Controller
             ->get();
 
         $paymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)
+            ->where('type', '!=', PaymentMethod::TYPE_CASH)
+            ->orderBy('name')
             ->get();
 
         $activeMembership = $member?->activeMembership();
@@ -220,19 +228,13 @@ class MemberPortalController extends Controller
             ->latest()
             ->first() : null;
 
-        $myMemberships = $member ? $member->memberships()
-            ->with(['product', 'paymentMethod', 'transaction'])
-            ->latest()
-            ->get() : collect();
-
         return view('member-portal.paket-layanan', compact(
             'user',
             'member',
             'products',
             'paymentMethods',
             'activeMembership',
-            'pendingMembership',
-            'myMemberships'
+            'pendingMembership'
         ));
     }
 

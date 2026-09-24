@@ -84,6 +84,20 @@ class Product extends Model
     }
 
     /**
+     * Get duration in total days based on duration_value and duration_unit.
+     */
+    public function getDurationDaysAttribute(): int
+    {
+        return match ($this->duration_unit) {
+            self::DURATION_DAY => (int) $this->duration_value,
+            self::DURATION_WEEK => (int) ($this->duration_value * 7),
+            self::DURATION_MONTH => (int) ($this->duration_value * 30),
+            self::DURATION_YEAR => (int) ($this->duration_value * 365),
+            default => (int) ($this->duration_value * 30),
+        };
+    }
+
+    /**
      * Format duration label (e.g. "1 Bulan", "1 Hari (Visit)").
      */
     public function getDurationFormattedAttribute(): string
@@ -93,6 +107,34 @@ class Product extends Model
         }
 
         return "{$this->duration_value} {$this->duration_unit_label}";
+    }
+
+    /**
+     * Calculate end date specifically for active range display.
+     * Untuk paket 1 hari, rentang aktif ditampilkan sampai hari berikutnya (e.g. 24 September 2026 - 25 September 2026).
+     */
+    public function calculateDisplayEndDate(string|CarbonInterface|null $startDate = null): Carbon
+    {
+        $start = $startDate ? Carbon::parse($startDate) : now();
+
+        return match ($this->duration_unit) {
+            self::DURATION_DAY => $start->copy()->addDays($this->duration_value),
+            self::DURATION_WEEK => $start->copy()->addWeeks($this->duration_value),
+            self::DURATION_MONTH => $start->copy()->addMonths($this->duration_value),
+            self::DURATION_YEAR => $start->copy()->addYears($this->duration_value),
+            default => $start->copy()->addDays($this->duration_days),
+        };
+    }
+
+    /**
+     * Format active duration range text (e.g. "1 Hari (28 September 2026 - 29 September 2026)").
+     */
+    public function getDurationRangeFormattedAttribute(): string
+    {
+        $start = now();
+        $end = $this->calculateDisplayEndDate($start);
+
+        return "{$this->duration_days} Hari ({$start->translatedFormat('d F Y')} - {$end->translatedFormat('d F Y')})";
     }
 
     /**
