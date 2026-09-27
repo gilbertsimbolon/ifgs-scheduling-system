@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('time_slot_id')->nullable()->constrained('time_slots')->nullOnDelete();
             $table->date('session_date');
             $table->string('status', 30)->default('pending');
-            $table->string('training_focus', 255)->default('Latihan Beban & Kardio');
+            $table->string('training_focus', 255)->nullable()->default(null);
             $table->text('notes')->nullable();
             $table->text('rejection_reason')->nullable();
             $table->timestamp('approved_at')->nullable();

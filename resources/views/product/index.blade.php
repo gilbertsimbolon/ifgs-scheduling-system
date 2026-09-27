@@ -55,10 +55,9 @@
                             <th style="width: 50px;">No</th>
                             <th>Nama Paket</th>
                             <th>Durasi</th>
-                            <th>Harga</th>
                             <th>Status</th>
                             <th class="text-center">Total Member</th>
-                            <th class="text-center" style="width: 120px;">Aksi</th>
+                            <th class="text-center" style="width: 140px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -69,7 +68,7 @@
                                     <div class="d-flex flex-column">
                                         <span class="fw-semibold text-heading">{{ $product->name }}</span>
                                         @if ($product->description)
-                                            <small class="text-muted text-truncate" style="max-width: 280px;">
+                                            <small class="text-muted text-truncate" style="max-width: 320px;">
                                                 {{ $product->description }}
                                             </small>
                                         @endif
@@ -79,9 +78,6 @@
                                     <span class="badge bg-label-info">
                                         <i class="bx bx-time me-1 small"></i>{{ $product->duration_formatted }}
                                     </span>
-                                </td>
-                                <td>
-                                    <strong class="text-success">{{ $product->formatted_price }}</strong>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -97,7 +93,7 @@
                                             @if ($product->status === \App\Models\Product::STATUS_ACTIVE)
                                                 <span class="badge bg-label-success status-badge">Aktif</span>
                                             @else
-                                                <span class="badge bg-label-secondary status-badge">Non-Aktif</span>
+                                                <span class="badge bg-label-secondary status-badge">Nonaktif</span>
                                             @endif
                                         </label>
                                     </div>
@@ -110,17 +106,37 @@
                                     </a>
                                 </td>
                                 <td class="text-center">
+                                    @php
+                                        $productPayload = [
+                                            'id' => $product->id,
+                                            'name' => $product->name,
+                                            'description' => $product->description,
+                                            'status' => $product->status,
+                                            'status_label' => $product->status === \App\Models\Product::STATUS_ACTIVE ? 'Aktif' : 'Nonaktif',
+                                            'durations' => $product->durations->map(fn($d) => [
+                                                'id' => $d->id,
+                                                'duration_value' => $d->duration_value,
+                                                'duration_unit' => $d->duration_unit,
+                                                'duration_unit_label' => $d->duration_unit_label,
+                                                'duration_formatted' => $d->duration_formatted,
+                                                'price' => (float) $d->price,
+                                                'formatted_price' => $d->formatted_price,
+                                            ]),
+                                        ];
+                                    @endphp
                                     <div class="d-inline-flex gap-1">
+                                        <!-- Detail Button -->
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-info btn-detail-product"
+                                            title="Detail Paket" data-bs-toggle="modal" data-bs-target="#modalDetailProduct"
+                                            data-product="{{ json_encode($productPayload) }}">
+                                            <i class="bx bx-show"></i>
+                                        </button>
+
                                         <!-- Edit Button -->
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-warning btn-edit-product"
                                             title="Edit Paket" data-bs-toggle="modal" data-bs-target="#modalEditProduct"
                                             data-action="{{ route('products.update', $product) }}"
-                                            data-name="{{ $product->name }}"
-                                            data-description="{{ $product->description }}"
-                                            data-price="{{ (int) $product->price }}"
-                                            data-duration-value="{{ $product->duration_value }}"
-                                            data-duration-unit="{{ $product->duration_unit }}"
-                                            data-status="{{ $product->status }}">
+                                            data-product="{{ json_encode($productPayload) }}">
                                             <i class="bx bx-edit-alt"></i>
                                         </button>
 
@@ -136,7 +152,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="6" class="text-center py-5">
                                     <div class="d-flex flex-column align-items-center justify-content-center w-100 py-3">
                                         <div class="mb-2">
                                             <i class="bx bx-package fs-1 text-secondary"></i>
@@ -169,6 +185,7 @@
     </div>
 
     <!-- Modals -->
+    @include('product.modals.detail')
     @include('product.modals.tambah')
     @include('product.modals.edit')
     @include('product.modals.hapus')
@@ -177,7 +194,169 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Edit Modal Populate
+            const durationUnits = [
+                { value: 'day', label: 'Hari' },
+                { value: 'week', label: 'Minggu' },
+                { value: 'month', label: 'Bulan' },
+                { value: 'year', label: 'Tahun' },
+                { value: 'lifetime', label: 'Seumur Hidup' },
+            ];
+
+            let tambahRowCounter = 0;
+            let editRowCounter = 0;
+
+            function buildDurationRowHtml(prefix, index, data = {}) {
+                const val = (data.duration_value !== undefined && data.duration_value !== null) ? data.duration_value : 1;
+                const unit = data.duration_unit || 'month';
+                const price = (data.price !== undefined && data.price !== null) ? data.price : '';
+                const id = data.id || '';
+                const isLifetime = unit === 'lifetime';
+
+                let unitOptions = '';
+                durationUnits.forEach(u => {
+                    const selected = u.value === unit ? 'selected' : '';
+                    unitOptions += `<option value="${u.value}" ${selected}>${u.label}</option>`;
+                });
+
+                const idInput = id ? `<input type="hidden" name="durations[${index}][id]" value="${id}">` : '';
+
+                return `
+                    <tr class="duration-row align-middle" data-index="${index}">
+                        ${idInput}
+                        <td>
+                            <input type="number" min="0" max="365"
+                                class="form-control form-control-sm duration-value-input ${isLifetime ? 'bg-light' : ''}"
+                                name="durations[${index}][duration_value]"
+                                value="${isLifetime ? 0 : val}"
+                                ${isLifetime ? 'readonly tabindex="-1"' : 'required'}>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm duration-unit-select"
+                                name="durations[${index}][duration_unit]" required>
+                                ${unitOptions}
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" step="1000" min="0"
+                                    class="form-control form-control-sm duration-price-input"
+                                    name="durations[${index}][price]"
+                                    value="${price}" placeholder="150000" required>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-remove-duration"
+                                title="Hapus Pilihan">
+                                <i class="bx bx-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            function attachRowListeners(row) {
+                const unitSelect = row.querySelector('.duration-unit-select');
+                const valInput = row.querySelector('.duration-value-input');
+                const removeBtn = row.querySelector('.btn-remove-duration');
+
+                if (unitSelect && valInput) {
+                    unitSelect.addEventListener('change', function() {
+                        if (this.value === 'lifetime') {
+                            valInput.value = 0;
+                            valInput.readOnly = true;
+                            valInput.setAttribute('tabindex', '-1');
+                            valInput.classList.add('bg-light');
+                        } else {
+                            valInput.readOnly = false;
+                            valInput.removeAttribute('tabindex');
+                            valInput.classList.remove('bg-light');
+                            if (parseInt(valInput.value, 10) === 0 || !valInput.value) {
+                                valInput.value = 1;
+                            }
+                        }
+                    });
+                }
+
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function() {
+                        const tbody = row.closest('tbody');
+                        const rows = tbody.querySelectorAll('.duration-row');
+                        if (rows.length <= 1) {
+                            alert('Minimal harus ada 1 pilihan durasi dan harga.');
+                            return;
+                        }
+                        row.remove();
+                    });
+                }
+            }
+
+            // MODAL TAMBAH: Container & Add Button
+            const tambahContainer = document.getElementById('tambahDurationsContainer');
+            const btnTambahRow = document.getElementById('btnTambahDurationRow');
+
+            function addRowToTambah(data = {}) {
+                if (!tambahContainer) return;
+                const html = buildDurationRowHtml('tambah', tambahRowCounter++, data);
+                tambahContainer.insertAdjacentHTML('beforeend', html);
+                const newRow = tambahContainer.lastElementChild;
+                attachRowListeners(newRow);
+            }
+
+            if (btnTambahRow) {
+                btnTambahRow.addEventListener('click', function() {
+                    addRowToTambah({ duration_value: 1, duration_unit: 'month', price: '' });
+                });
+            }
+
+            const modalTambahEl = document.getElementById('modalTambahProduct');
+            if (modalTambahEl) {
+                modalTambahEl.addEventListener('show.bs.modal', function() {
+                    // Pastikan ada minimal 1 baris default saat modal dibuka jika belum ada
+                    if (tambahContainer && tambahContainer.querySelectorAll('.duration-row').length === 0) {
+                        tambahRowCounter = 0;
+                        addRowToTambah({ duration_value: 1, duration_unit: 'month', price: '' });
+                    }
+                });
+            }
+
+            // Inisialisasi awal modal Tambah jika ada old input
+            @php
+                $oldTambahDurations = (old('_modal') === 'create_product' && is_array(old('durations'))) ? old('durations') : null;
+            @endphp
+            @if ($oldTambahDurations)
+                const oldTambahData = {!! json_encode($oldTambahDurations) !!};
+                if (tambahContainer) {
+                    tambahContainer.innerHTML = '';
+                    tambahRowCounter = 0;
+                    Object.values(oldTambahData).forEach(item => {
+                        addRowToTambah(item);
+                    });
+                }
+            @else
+                if (tambahContainer && tambahContainer.querySelectorAll('.duration-row').length === 0) {
+                    addRowToTambah({ duration_value: 1, duration_unit: 'month', price: '' });
+                }
+            @endif
+
+            // MODAL EDIT: Container & Add Button
+            const editContainer = document.getElementById('editDurationsContainer');
+            const btnEditRow = document.getElementById('btnEditAddDurationRow');
+
+            function addRowToEdit(data = {}) {
+                if (!editContainer) return;
+                const html = buildDurationRowHtml('edit', editRowCounter++, data);
+                editContainer.insertAdjacentHTML('beforeend', html);
+                const newRow = editContainer.lastElementChild;
+                attachRowListeners(newRow);
+            }
+
+            if (btnEditRow) {
+                btnEditRow.addEventListener('click', function() {
+                    addRowToEdit({ duration_value: 1, duration_unit: 'month', price: '' });
+                });
+            }
+
             const modalEdit = document.getElementById('modalEditProduct');
             if (modalEdit) {
                 modalEdit.addEventListener('show.bs.modal', function(event) {
@@ -185,12 +364,7 @@
                     if (!btn) return;
 
                     const action = btn.getAttribute('data-action') || '';
-                    const name = btn.getAttribute('data-name') || '';
-                    const desc = btn.getAttribute('data-description') || '';
-                    const price = btn.getAttribute('data-price') || '';
-                    const durationVal = btn.getAttribute('data-duration-value') || '1';
-                    const durationUnit = btn.getAttribute('data-duration-unit') || 'month';
-                    const status = btn.getAttribute('data-status') || 'active';
+                    const rawProduct = btn.getAttribute('data-product');
 
                     const form = document.getElementById('formEditProduct');
                     if (form) form.action = action;
@@ -198,16 +372,98 @@
                     const actionInput = document.getElementById('editProductActionInput');
                     if (actionInput) actionInput.value = action;
 
-                    document.getElementById('editProductName').value = name;
-                    document.getElementById('editProductDesc').value = desc;
-                    document.getElementById('editProductPrice').value = price;
-                    document.getElementById('editProductDurationValue').value = durationVal;
-                    document.getElementById('editProductDurationUnit').value = durationUnit;
-                    document.getElementById('editProductStatus').value = status;
+                    if (!rawProduct) return;
+                    try {
+                        const product = JSON.parse(rawProduct);
+                        document.getElementById('editProductName').value = product.name || '';
+                        document.getElementById('editProductDesc').value = product.description || '';
+                        document.getElementById('editProductStatus').value = product.status || 'active';
+
+                        if (editContainer) {
+                            editContainer.innerHTML = '';
+                            editRowCounter = 0;
+                            if (product.durations && product.durations.length > 0) {
+                                product.durations.forEach(d => {
+                                    addRowToEdit({
+                                        id: d.id,
+                                        duration_value: d.duration_value,
+                                        duration_unit: d.duration_unit,
+                                        price: d.price
+                                    });
+                                });
+                            } else {
+                                addRowToEdit({ duration_value: 1, duration_unit: 'month', price: '' });
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing product data for edit modal', e);
+                    }
                 });
             }
 
-            // Hapus Modal Populate
+            // MODAL DETAIL: Read-Only Populate
+            const modalDetail = document.getElementById('modalDetailProduct');
+            if (modalDetail) {
+                modalDetail.addEventListener('show.bs.modal', function(event) {
+                    const btn = event.relatedTarget;
+                    if (!btn) return;
+
+                    const rawProduct = btn.getAttribute('data-product');
+                    if (!rawProduct) return;
+
+                    try {
+                        const product = JSON.parse(rawProduct);
+                        const nameEl = document.getElementById('detailProductName');
+                        const descEl = document.getElementById('detailProductDesc');
+                        const statusEl = document.getElementById('detailProductStatus');
+                        const countEl = document.getElementById('detailProductDurationCount');
+                        const tableBody = document.getElementById('detailDurationsTableBody');
+
+                        if (nameEl) nameEl.textContent = product.name || '-';
+                        if (descEl) descEl.textContent = product.description || 'Tidak ada deskripsi fasilitas tambahan.';
+                        if (statusEl) {
+                            const isAktif = (product.status === 'active');
+                            statusEl.innerHTML = isAktif
+                                ? '<span class="badge bg-label-success">Aktif</span>'
+                                : '<span class="badge bg-label-secondary">Nonaktif</span>';
+                        }
+
+                        const durationCount = (product.durations && product.durations.length) ? product.durations.length : 0;
+                        if (countEl) {
+                            countEl.textContent = `${durationCount} Pilihan Durasi`;
+                        }
+
+                        if (tableBody) {
+                            tableBody.innerHTML = '';
+                            if (durationCount > 0) {
+                                product.durations.forEach(d => {
+                                    const durText = d.duration_formatted || `${d.duration_value} ${d.duration_unit}`;
+                                    const priceText = d.formatted_price || `Rp ${Number(d.price).toLocaleString('id-ID')}`;
+                                    const row = `
+                                        <tr>
+                                            <td class="fw-semibold text-dark">
+                                                <i class="bx bx-check-circle text-primary me-1"></i> ${durText}
+                                            </td>
+                                            <td class="fw-bold text-success">${priceText}</td>
+                                        </tr>
+                                    `;
+                                    tableBody.insertAdjacentHTML('beforeend', row);
+                                });
+                            } else {
+                                tableBody.innerHTML = `
+                                    <tr>
+                                        <td colspan="2" class="text-center text-muted py-3">Belum ada pilihan durasi & harga</td>
+                                    </tr>
+                                `;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing product data for detail modal', e);
+                    }
+                });
+            }
+
+            // MODAL HAPUS: Populate on show
             const modalHapus = document.getElementById('modalHapusProduct');
             if (modalHapus) {
                 modalHapus.addEventListener('show.bs.modal', function(event) {
@@ -224,7 +480,7 @@
                 });
             }
 
-            // Toggle Status Switch
+            // TOGGLE STATUS SWITCH
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             document.querySelectorAll('.toggle-product-switch').forEach(function(switchEl) {
                 switchEl.addEventListener('change', function() {
@@ -268,12 +524,12 @@
                 });
             });
 
-            // Reopen modal if validation failed
+            // REOPEN MODAL IF VALIDATION FAILED
             @if ($errors->any())
                 @if (old('_modal') === 'create_product')
-                    const modalTambahEl = document.getElementById('modalTambahProduct');
-                    if (modalTambahEl && typeof bootstrap !== 'undefined') {
-                        new bootstrap.Modal(modalTambahEl).show();
+                    const modalTambah = document.getElementById('modalTambahProduct');
+                    if (modalTambah && typeof bootstrap !== 'undefined') {
+                        new bootstrap.Modal(modalTambah).show();
                     }
                 @elseif (old('_modal') === 'edit_product')
                     const prevAction = '{{ old('_action') }}';

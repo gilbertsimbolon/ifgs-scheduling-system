@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
-#[Fillable(['name', 'description', 'price', 'duration_value', 'duration_unit', 'status'])]
+#[Fillable(['name', 'description', 'status'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -25,32 +26,32 @@ class Product extends Model
         self::STATUS_INACTIVE,
     ];
 
-    public const DURATION_DAY = 'day';
+    public const DURATION_DAY = ProductDuration::DURATION_DAY;
 
-    public const DURATION_WEEK = 'week';
+    public const DURATION_WEEK = ProductDuration::DURATION_WEEK;
 
-    public const DURATION_MONTH = 'month';
+    public const DURATION_MONTH = ProductDuration::DURATION_MONTH;
 
-    public const DURATION_YEAR = 'year';
+    public const DURATION_YEAR = ProductDuration::DURATION_YEAR;
 
-    public const DURATION_UNITS = [
-        self::DURATION_DAY,
-        self::DURATION_WEEK,
-        self::DURATION_MONTH,
-        self::DURATION_YEAR,
-    ];
+    public const DURATION_LIFETIME = ProductDuration::DURATION_LIFETIME;
+
+    public const DURATION_UNITS = ProductDuration::DURATION_UNITS;
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Get all duration and price options for this product package.
      */
-    protected function casts(): array
+    public function durations(): HasMany
     {
-        return [
-            'price' => 'decimal:2',
-            'duration_value' => 'integer',
-        ];
+        return $this->hasMany(ProductDuration::class, 'product_id');
+    }
+
+    /**
+     * Get only active duration options for this product package.
+     */
+    public function activeDurations(): HasMany
+    {
+        return $this->hasMany(ProductDuration::class, 'product_id')->where('is_active', true);
     }
 
     /**
@@ -70,98 +71,94 @@ class Product extends Model
     }
 
     /**
-     * Format unit label in Indonesian.
+     * Get lowest price among active durations.
      */
-    public function getDurationUnitLabelAttribute(): string
+    public function getMinPriceAttribute(): float
     {
-        return match ($this->duration_unit) {
-            'day' => 'Hari',
-            'week' => 'Minggu',
-            'month' => 'Bulan',
-            'year' => 'Tahun',
-            default => ucfirst($this->duration_unit),
-        };
+        $min = $this->relationLoaded('durations')
+            ? $this->durations->min('price')
+            : $this->durations()->min('price');
+
+        return $min !== null ? (float) $min : 0.0;
     }
 
     /**
-     * Get duration in total days based on duration_value and duration_unit.
+     * Get highest price among active durations.
      */
-    public function getDurationDaysAttribute(): int
+    public function getMaxPriceAttribute(): float
     {
-        return match ($this->duration_unit) {
-            self::DURATION_DAY => (int) $this->duration_value,
-            self::DURATION_WEEK => (int) ($this->duration_value * 7),
-            self::DURATION_MONTH => (int) ($this->duration_value * 30),
-            self::DURATION_YEAR => (int) ($this->duration_value * 365),
-            default => (int) ($this->duration_value * 30),
-        };
+        $max = $this->relationLoaded('durations')
+            ? $this->durations->max('price')
+            : $this->durations()->max('price');
+
+        return $max !== null ? (float) $max : 0.0;
     }
 
     /**
-     * Format duration label (e.g. "1 Bulan", "1 Hari (Visit)").
+     * Get fallback price from primary duration.
      */
-    public function getDurationFormattedAttribute(): string
+    public function getPriceAttribute(): float
     {
-        if ($this->duration_unit === 'day' && $this->duration_value === 1) {
-            return '1 Hari (Visit)';
-        }
-
-        return "{$this->duration_value} {$this->duration_unit_label}";
+        return $this->min_price;
     }
 
     /**
-     * Calculate end date specifically for active range display.
-     * Untuk paket 1 hari, rentang aktif ditampilkan sampai hari berikutnya (e.g. 24 September 2026 - 25 September 2026).
+     * Get duration value fallback from primary duration.
      */
-    public function calculateDisplayEndDate(string|CarbonInterface|null $startDate = null): Carbon
+    public function getDurationValueAttribute(): ?int
     {
-        $start = $startDate ? Carbon::parse($startDate) : now();
+        $duration = $this->relationLoaded('durations')
+            ? $this->durations->first()
+            : $this->durations()->first();
 
-        return match ($this->duration_unit) {
-            self::DURATION_DAY => $start->copy()->addDays($this->duration_value),
-            self::DURATION_WEEK => $start->copy()->addWeeks($this->duration_value),
-            self::DURATION_MONTH => $start->copy()->addMonths($this->duration_value),
-            self::DURATION_YEAR => $start->copy()->addYears($this->duration_value),
-            default => $start->copy()->addDays($this->duration_days),
-        };
+        return $duration ? (int) $duration->duration_value : null;
     }
 
     /**
-     * Format active duration range text (e.g. "1 Hari (28 September 2026 - 29 September 2026)").
+     * Get duration unit fallback from primary duration.
      */
-    public function getDurationRangeFormattedAttribute(): string
+    public function getDurationUnitAttribute(): ?string
     {
-        $start = now();
-        $end = $this->calculateDisplayEndDate($start);
+        $duration = $this->relationLoaded('durations')
+            ? $this->durations->first()
+            : $this->durations()->first();
 
-        return "{$this->duration_days} Hari ({$start->translatedFormat('d F Y')} - {$end->translatedFormat('d F Y')})";
+        return $duration ? (string) $duration->duration_unit : null;
     }
 
     /**
-     * Format price to Rupiah currency string.
+     * Format starting price to Rupiah currency string.
      */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
+        return 'Rp '.number_format($this->min_price, 0, ',', '.');
+    }
+
+    /**
+     * Format duration summary text.
+     */
+    public function getDurationFormattedAttribute(): string
+    {
+        $count = $this->relationLoaded('durations')
+            ? $this->durations->count()
+            : $this->durations()->count();
+
+        return $count > 0 ? "{$count} Pilihan Durasi" : '-';
     }
 
     /**
      * Calculate end date given a start date and product duration.
-     * Untuk paket visit (1 hari), durasi berlaku sampai jam tutup gym pada hari yang sama (end_date = start_date).
+     * Delegates to the primary/first active duration if called on product model directly.
      */
     public function calculateEndDate(string|CarbonInterface $startDate): Carbon
     {
-        $start = Carbon::parse($startDate);
+        $duration = $this->activeDurations()->first() ?? $this->durations()->first();
 
-        return match ($this->duration_unit) {
-            'day' => $this->duration_value <= 1
-                ? $start->copy()
-                : $start->copy()->addDays($this->duration_value - 1),
-            'week' => $start->copy()->addWeeks($this->duration_value),
-            'month' => $start->copy()->addMonths($this->duration_value),
-            'year' => $start->copy()->addYears($this->duration_value),
-            default => $start->copy()->addMonths($this->duration_value),
-        };
+        if ($duration) {
+            return $duration->calculateEndDate($startDate);
+        }
+
+        return Carbon::parse($startDate)->addMonth();
     }
 
     /**
@@ -169,8 +166,8 @@ class Product extends Model
      */
     public function isDailyVisit(): bool
     {
-        return ($this->duration_unit === self::DURATION_DAY && $this->duration_value <= 1)
-            || str_contains(strtolower($this->name), 'visit');
+        return str_contains(strtolower($this->name), 'visit')
+            || $this->durations->contains(fn ($d) => $d->duration_unit === ProductDuration::DURATION_DAY && $d->duration_value <= 1);
     }
 
     /**
@@ -222,5 +219,96 @@ class Product extends Model
         }
 
         return $categories;
+    }
+
+    /**
+     * Kelompokkan produk aktif menjadi layanan utama (Services) dengan opsi durasi.
+     *
+     * @return Collection<int, object>
+     */
+    public static function groupedServices(?string $status = self::STATUS_ACTIVE): Collection
+    {
+        $query = static::with(['durations' => fn ($q) => $q->orderBy('duration_value')]);
+        if ($status !== null) {
+            $query->where('status', $status);
+        }
+
+        $products = $query->get();
+
+        return $products->map(function ($product) {
+            $nameLower = strtolower($product->name);
+
+            $key = 'other';
+            if ((str_contains($nameLower, 'aerobic') || str_contains($nameLower, 'zumba'))
+                && (str_contains($nameLower, 'fitness') || str_contains($nameLower, 'gym') || str_contains($nameLower, '+'))
+            ) {
+                $key = 'combo';
+            } elseif (str_contains($nameLower, 'aerobic') || str_contains($nameLower, 'zumba')) {
+                $key = 'aerobic';
+            } elseif (str_contains($nameLower, 'fitness') || str_contains($nameLower, 'gym')) {
+                $key = 'fitness';
+            }
+
+            $badge = match ($key) {
+                'fitness' => 'Gym & Beban',
+                'aerobic' => 'Kelas Studio',
+                'combo' => 'Paket Lengkap',
+                default => 'Layanan Gym',
+            };
+
+            $icon = match ($key) {
+                'fitness' => 'bx-dumbbell',
+                'aerobic' => 'bx-run',
+                'combo' => 'bx-layer',
+                default => 'bx-package',
+            };
+
+            $benefits = match ($key) {
+                'fitness' => [
+                    'Akses Area Gym & Fasilitas Lengkap',
+                    'Peralatan Cardio & Weight Training',
+                    'Reservasi Kunjungan Terjadwal',
+                    'Loker, Kamar Mandi & Fasilitas Gym',
+                    'Presensi Digital QR',
+                ],
+                'aerobic' => [
+                    'Akses Studio Aerobic & Zumba',
+                    'Instruktur Berlisensi & Musik Energik',
+                    'Jadwal Rutin (Senin & Kamis 19.00-21.00)',
+                    'Reservasi Sesi Kelas Terjadwal',
+                    'Presensi Digital QR',
+                ],
+                'combo' => [
+                    'Akses Penuh Area Gym & Fitness',
+                    'Bebas Mengikuti Seluruh Kelas Aerobic & Zumba',
+                    'Pilihan Jadwal Fleksibel',
+                    'Reservasi Kunjungan Gym & Sesi Kelas',
+                    'Presensi Digital QR',
+                ],
+                default => [
+                    'Akses Fasilitas Resmi IFGS',
+                    'Reservasi Kunjungan Terjadwal',
+                    'Presensi Digital QR',
+                ],
+            };
+
+            $defaultDuration = $product->durations->first(function ($d) {
+                return $d->duration_unit === ProductDuration::DURATION_MONTH && $d->duration_value === 1;
+            }) ?? $product->durations->first();
+
+            return (object) [
+                'key' => (string) $key,
+                'product' => $product,
+                'title' => $product->name,
+                'badge' => $badge,
+                'icon' => $icon,
+                'description' => $product->description ?: 'Paket layanan kebugaran resmi Indo Fitness Gym Sport.',
+                'benefits' => $benefits,
+                'durations' => $product->durations,
+                'default_duration' => $defaultDuration,
+                'products' => $product->durations,
+                'default_product' => $defaultDuration,
+            ];
+        })->values();
     }
 }

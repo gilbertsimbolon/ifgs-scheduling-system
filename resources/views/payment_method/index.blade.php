@@ -12,7 +12,8 @@
                 </h5>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPaymentMethod">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#modalTambahPaymentMethod">
                     <i class="bx bx-plus me-1"></i> Tambah Metode Pembayaran
                 </button>
             </div>
@@ -56,8 +57,7 @@
                         <div class="input-group input-group-merge">
                             <span class="input-group-text"><i class="bx bx-search"></i></span>
                             <input type="text" id="search" name="search" class="form-control"
-                                placeholder="Ketik nama, kode, atau no rekening..."
-                                value="{{ request('search') }}" />
+                                placeholder="Ketik nama, kode, atau no rekening..." value="{{ request('search') }}" />
                         </div>
                     </div>
 
@@ -66,7 +66,8 @@
                         <select name="status" id="status" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
-                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Non-Aktif</option>
+                            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Non-Aktif
+                            </option>
                         </select>
                     </div>
 
@@ -75,7 +76,8 @@
                             <i class="bx bx-filter-alt me-1"></i> Filter
                         </button>
                         @if (request()->hasAny(['search', 'status']))
-                            <a href="{{ route('payment-methods.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <a href="{{ route('payment-methods.index') }}" class="btn btn-outline-secondary"
+                                title="Reset Filter">
                                 <i class="bx bx-reset"></i>
                             </a>
                         @endif
@@ -103,7 +105,8 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <div class="avatar avatar-sm me-3">
-                                            <span class="avatar-initial rounded {{ $pm->type === 'qris' ? 'bg-label-danger' : ($pm->type === 'bank_transfer' ? 'bg-label-primary' : ($pm->type === 'ewallet' ? 'bg-label-info' : 'bg-label-success')) }}">
+                                            <span
+                                                class="avatar-initial rounded {{ $pm->type === 'qris' ? 'bg-label-danger' : ($pm->type === 'bank_transfer' ? 'bg-label-primary' : ($pm->type === 'ewallet' ? 'bg-label-info' : 'bg-label-success')) }}">
                                                 @if ($pm->type === 'qris')
                                                     <i class="bx bx-qr-scan"></i>
                                                 @elseif ($pm->type === 'bank_transfer')
@@ -140,9 +143,12 @@
                                                 <i class="bx bx-image-alt me-1"></i> Belum ada QRIS
                                             </span>
                                         @endif
-                                    @elseif ($pm->type === \App\Models\PaymentMethod::TYPE_BANK_TRANSFER || $pm->type === \App\Models\PaymentMethod::TYPE_EWALLET)
+                                    @elseif (
+                                        $pm->type === \App\Models\PaymentMethod::TYPE_BANK_TRANSFER ||
+                                            $pm->type === \App\Models\PaymentMethod::TYPE_EWALLET)
                                         <div>
-                                            <span class="fw-semibold font-monospace text-heading">{{ $pm->account_number ?? '-' }}</span>
+                                            <span
+                                                class="fw-semibold font-monospace text-heading">{{ $pm->account_number ?? '-' }}</span>
                                             @if ($pm->account_name)
                                                 <small class="text-muted d-block">a.n. {{ $pm->account_name }}</small>
                                             @endif
@@ -162,7 +168,8 @@
                                                 title="Klik untuk ubah status"
                                                 {{ $pm->status === \App\Models\PaymentMethod::STATUS_ACTIVE ? 'checked' : '' }}>
                                         </div>
-                                        <label class="form-check-label cursor-pointer mb-0" for="switchPm{{ $pm->id }}">
+                                        <label class="form-check-label cursor-pointer mb-0"
+                                            for="switchPm{{ $pm->id }}">
                                             @if ($pm->status === \App\Models\PaymentMethod::STATUS_ACTIVE)
                                                 <span class="badge bg-label-success status-badge">Aktif</span>
                                             @else
@@ -175,23 +182,22 @@
                                     <div class="d-inline-flex gap-1">
                                         <!-- Edit Button -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-warning"
-                                            title="Edit Metode" data-bs-toggle="modal" data-bs-target="#modalEditPaymentMethod"
+                                            title="Edit Metode" data-bs-toggle="modal"
+                                            data-bs-target="#modalEditPaymentMethod"
                                             data-action="{{ route('payment-methods.update', $pm) }}"
-                                            data-name="{{ $pm->name }}"
-                                            data-type="{{ $pm->type }}"
+                                            data-name="{{ $pm->name }}" data-type="{{ $pm->type }}"
                                             data-account-no="{{ $pm->account_number }}"
                                             data-account-name="{{ $pm->account_name }}"
-                                            data-qr-image="{{ $pm->qr_image_url }}"
-                                            data-status="{{ $pm->status }}">
+                                            data-qr-image="{{ $pm->qr_image_url }}" data-status="{{ $pm->status }}">
                                             <i class="bx bx-edit-alt"></i>
                                         </button>
 
                                         <!-- Delete Button -->
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-danger"
-                                            title="Hapus Metode" data-bs-toggle="modal" data-bs-target="#modalHapusPaymentMethod"
+                                            title="Hapus Metode" data-bs-toggle="modal"
+                                            data-bs-target="#modalHapusPaymentMethod"
                                             data-action="{{ route('payment-methods.destroy', $pm) }}"
-                                            data-name="{{ $pm->name }}"
-                                            data-count="{{ $pm->memberships_count }}">
+                                            data-name="{{ $pm->name }}" data-count="{{ $pm->memberships_count }}">
                                             <i class="bx bx-trash"></i>
                                         </button>
                                     </div>
@@ -230,7 +236,8 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($paymentMethods->total() > 0)
-                        Menampilkan {{ $paymentMethods->firstItem() }}–{{ $paymentMethods->lastItem() }} dari {{ $paymentMethods->total() }} data
+                        Menampilkan {{ $paymentMethods->firstItem() }}–{{ $paymentMethods->lastItem() }} dari
+                        {{ $paymentMethods->total() }} data
                     @else
                         Tidak ada data
                     @endif
@@ -267,12 +274,14 @@
                     if (containerTambahAccount) containerTambahAccount.classList.remove('d-none');
                     if (containerTambahQris) containerTambahQris.classList.add('d-none');
                     if (containerTambahCash) containerTambahCash.classList.add('d-none');
-                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML = 'Nomor Rekening Bank <span class="text-danger">*</span>';
+                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML =
+                        'Nomor Rekening Bank <span class="text-danger">*</span>';
                 } else if (val === 'ewallet') {
                     if (containerTambahAccount) containerTambahAccount.classList.remove('d-none');
                     if (containerTambahQris) containerTambahQris.classList.add('d-none');
                     if (containerTambahCash) containerTambahCash.classList.add('d-none');
-                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML = 'Nomor HP / E-Wallet <span class="text-danger">*</span>';
+                    if (labelTambahAccountNo) labelTambahAccountNo.innerHTML =
+                        'Nomor HP / E-Wallet <span class="text-danger">*</span>';
                 } else if (val === 'qris') {
                     if (containerTambahAccount) containerTambahAccount.classList.add('d-none');
                     if (containerTambahQris) containerTambahQris.classList.remove('d-none');
@@ -304,12 +313,14 @@
                     if (containerEditAccount) containerEditAccount.classList.remove('d-none');
                     if (containerEditQris) containerEditQris.classList.add('d-none');
                     if (containerEditCash) containerEditCash.classList.add('d-none');
-                    if (labelEditAccountNo) labelEditAccountNo.innerHTML = 'Nomor Rekening Bank <span class="text-danger">*</span>';
+                    if (labelEditAccountNo) labelEditAccountNo.innerHTML =
+                        'Nomor Rekening Bank <span class="text-danger">*</span>';
                 } else if (val === 'ewallet') {
                     if (containerEditAccount) containerEditAccount.classList.remove('d-none');
                     if (containerEditQris) containerEditQris.classList.add('d-none');
                     if (containerEditCash) containerEditCash.classList.add('d-none');
-                    if (labelEditAccountNo) labelEditAccountNo.innerHTML = 'Nomor HP / E-Wallet <span class="text-danger">*</span>';
+                    if (labelEditAccountNo) labelEditAccountNo.innerHTML =
+                        'Nomor HP / E-Wallet <span class="text-danger">*</span>';
                 } else if (val === 'qris') {
                     if (containerEditAccount) containerEditAccount.classList.add('d-none');
                     if (containerEditQris) containerEditQris.classList.remove('d-none');
@@ -389,7 +400,8 @@
                     const img = btn.getAttribute('data-img') || '';
 
                     const titleEl = document.getElementById('previewQrisTitle');
-                    if (titleEl) titleEl.innerHTML = '<i class="bx bx-qr-scan me-1 text-primary"></i> Kode QRIS: ' + name;
+                    if (titleEl) titleEl.innerHTML =
+                        '<i class="bx bx-qr-scan me-1 text-primary"></i> Kode QRIS: ' + name;
 
                     const merchantEl = document.getElementById('previewQrisMerchantName');
                     if (merchantEl) merchantEl.textContent = merchant;
@@ -450,33 +462,40 @@
                     currentSwitch.disabled = true;
 
                     fetch(action, {
-                        method: 'PATCH',
-                        headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Gagal memperbarui status');
-                        return response.json();
-                    })
-                    .then(data => {
-                        currentSwitch.disabled = false;
-                        if (data.success) {
-                            if (badgeEl) {
-                                badgeEl.textContent = data.label;
-                                badgeEl.className = 'badge status-badge ' + (data.status === 'active' ? 'bg-label-success' : 'bg-label-secondary');
+                            method: 'PATCH',
+                            headers: {
+                                'X-CSRF-TOKEN': csrfToken,
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => {
+                            if (!response.ok) throw new Error('Gagal memperbarui status');
+                            return response.json();
+                        })
+                        .then(data => {
+                            currentSwitch.disabled = false;
+                            if (data.success) {
+                                if (badgeEl) {
+                                    badgeEl.textContent = data.label;
+                                    badgeEl.className = 'badge status-badge ' + (data.status ===
+                                        'active' ? 'bg-label-success' : 'bg-label-secondary'
+                                    );
+                                }
+                            } else {
+                                currentSwitch.checked = !isChecked;
                             }
-                        } else {
+                        })
+                        .catch(error => {
+                            currentSwitch.disabled = false;
                             currentSwitch.checked = !isChecked;
-                        }
-                    })
-                    .catch(error => {
-                        currentSwitch.disabled = false;
-                        currentSwitch.checked = !isChecked;
-                        alert('Terjadi kesalahan saat mengubah status metode pembayaran.');
-                    });
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan saat mengubah status metode pembayaran.',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        });
                 });
             });
 

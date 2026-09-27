@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\ProductDuration;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
@@ -12,79 +13,58 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
-        $products = [
+        $packages = [
             [
-                'name' => 'Fitness 1 Bulan',
-                'description' => 'Akses fitness Senin s/d Sabtu pukul 08.00-20.00 (Minggu & tanggal merah tutup)',
-                'price' => 150000,
-                'duration_value' => 1,
-                'duration_unit' => Product::DURATION_MONTH,
+                'name' => 'Fitness',
+                'description' => 'Akses seluruh area fitness Senin s/d Sabtu pukul 08.00-20.00 (Minggu & tanggal merah libur/tutup), locker, dan shower.',
                 'status' => Product::STATUS_ACTIVE,
+                'durations' => [
+                    ['duration_value' => 1, 'duration_unit' => ProductDuration::DURATION_DAY, 'price' => 25000],
+                    ['duration_value' => 1, 'duration_unit' => ProductDuration::DURATION_MONTH, 'price' => 150000],
+                    ['duration_value' => 2, 'duration_unit' => ProductDuration::DURATION_MONTH, 'price' => 250000],
+                ],
             ],
             [
-                'name' => 'Fitness 2 Bulan',
-                'description' => 'Akses fitness Senin s/d Sabtu pukul 08.00-20.00 (Minggu & tanggal merah tutup)',
-                'price' => 250000,
-                'duration_value' => 2,
-                'duration_unit' => Product::DURATION_MONTH,
+                'name' => 'Aerobic / Zumba',
+                'description' => 'Akses kelas Aerobic / Zumba bersama instruktur berlisensi setiap Senin & Kamis pukul 19.00-21.00 WITA.',
                 'status' => Product::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Fitness Visit',
-                'description' => 'Akses fitness 1 hari (berlaku sampai jam tutup gym pada hari yang sama)',
-                'description' => 'Akses fitness 1 hari (bebas jam masuk, berlaku sampai jam tutup gym pukul 20.00 pada hari yang sama, bukan 24 jam)',
-                'price' => 25000,
-                'duration_value' => 1,
-                'duration_unit' => Product::DURATION_DAY,
-                'status' => Product::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Aerobic / Zumba 1 Bulan',
-                'description' => 'Akses kelas Aerobic / Zumba Senin & Kamis pukul 19.00-21.00',
-                'price' => 150000,
-                'duration_value' => 1,
-                'duration_unit' => Product::DURATION_MONTH,
-                'status' => Product::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Aerobic / Zumba 2 Bulan',
-                'description' => 'Akses kelas Aerobic / Zumba Senin & Kamis pukul 19.00-21.00',
-                'price' => 250000,
-                'duration_value' => 2,
-                'duration_unit' => Product::DURATION_MONTH,
-                'status' => Product::STATUS_ACTIVE,
-            ],
-            [
-                'name' => 'Aerobic / Zumba Visit',
-                'description' => 'Akses kelas Aerobic / Zumba 1 sesi kunjungan pada hari yang sama',
-                'description' => 'Akses kelas Aerobic / Zumba 1 sesi kunjungan pada hari yang sama (pukul 19.00 - 21.00)',
-                'price' => 25000,
-                'duration_value' => 1,
-                'duration_unit' => Product::DURATION_DAY,
-                'status' => Product::STATUS_ACTIVE,
+                'durations' => [
+                    ['duration_value' => 1, 'duration_unit' => ProductDuration::DURATION_DAY, 'price' => 25000],
+                    ['duration_value' => 1, 'duration_unit' => ProductDuration::DURATION_MONTH, 'price' => 150000],
+                    ['duration_value' => 2, 'duration_unit' => ProductDuration::DURATION_MONTH, 'price' => 250000],
+                ],
             ],
             [
                 'name' => 'Aerobic + Fitness',
-                'description' => 'Akses gabungan Fitness (08.00-20.00) & Aerobic/Zumba (Senin & Kamis 19.00-21.00) selama 1 bulan',
-                'price' => 250000,
-                'duration_value' => 1,
-                'duration_unit' => Product::DURATION_MONTH,
-                'status' => Product::STATUS_ACTIVE,
+                'description' => 'Akses gabungan Fitness (08.00-20.00) & Aerobic/Zumba (Senin & Kamis 19.00-21.00) selama 1 bulan.',
+                'status' => Product::STATUS_INACTIVE,
+                'durations' => [
+                    ['duration_value' => 1, 'duration_unit' => ProductDuration::DURATION_MONTH, 'price' => 250000],
+                ],
             ],
         ];
 
-        // Jika ada Paket GYM lama, update menjadi Fitness 1 Bulan agar riwayat transaksi tetap terjaga
-        $oldGym = Product::where('name', 'like', '%Paket GYM%')->first();
-        if ($oldGym) {
-            $first = array_shift($products);
-            $oldGym->update($first);
-        }
-
-        foreach ($products as $item) {
-            Product::updateOrCreate(
-                ['name' => $item['name']],
-                $item
+        foreach ($packages as $pkg) {
+            $product = Product::updateOrCreate(
+                ['name' => $pkg['name']],
+                [
+                    'description' => $pkg['description'],
+                    'status' => $pkg['status'],
+                ]
             );
+
+            foreach ($pkg['durations'] as $dur) {
+                $product->durations()->updateOrCreate(
+                    [
+                        'duration_value' => $dur['duration_value'],
+                        'duration_unit' => $dur['duration_unit'],
+                    ],
+                    [
+                        'price' => $dur['price'],
+                        'is_active' => true,
+                    ]
+                );
+            }
         }
     }
 }

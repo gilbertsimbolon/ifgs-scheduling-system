@@ -37,6 +37,9 @@
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
 
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+
     <!-- Page CSS -->
     @stack('page-css')
     <!-- Penyelarasan Global Ikon & Teks -->
@@ -166,7 +169,8 @@
             body {
                 font-size: 0.82rem !important;
                 line-height: 1.35 !important;
-                font-size: 0.9375rem !important; /* ~13.1px */
+                font-size: 0.9375rem !important;
+                /* ~13.1px */
                 line-height: 1.4 !important;
             }
 
@@ -175,12 +179,36 @@
             .h1 {
                 font-size: 1.35rem !important;
             }
-            h1, .h1 { font-size: 1.75rem !important; }
-            h2, .h2 { font-size: 1.5rem !important; }
-            h3, .h3 { font-size: 1.35rem !important; }
-            h4, .h4 { font-size: 1.2rem !important; }
-            h5, .h5 { font-size: 1.05rem !important; }
-            h6, .h6 { font-size: 0.95rem !important; }
+
+            h1,
+            .h1 {
+                font-size: 1.75rem !important;
+            }
+
+            h2,
+            .h2 {
+                font-size: 1.5rem !important;
+            }
+
+            h3,
+            .h3 {
+                font-size: 1.35rem !important;
+            }
+
+            h4,
+            .h4 {
+                font-size: 1.2rem !important;
+            }
+
+            h5,
+            .h5 {
+                font-size: 1.05rem !important;
+            }
+
+            h6,
+            .h6 {
+                font-size: 0.95rem !important;
+            }
 
             h2,
             .h2 {
@@ -211,12 +239,30 @@
             .fs-1 {
                 font-size: 1.35rem !important;
             }
-            .fs-1 { font-size: 1.75rem !important; }
-            .fs-2 { font-size: 1.5rem !important; }
-            .fs-3 { font-size: 1.35rem !important; }
-            .fs-4 { font-size: 1.2rem !important; }
-            .fs-5 { font-size: 1.05rem !important; }
-            .fs-6 { font-size: 0.95rem !important; }
+
+            .fs-1 {
+                font-size: 1.75rem !important;
+            }
+
+            .fs-2 {
+                font-size: 1.5rem !important;
+            }
+
+            .fs-3 {
+                font-size: 1.35rem !important;
+            }
+
+            .fs-4 {
+                font-size: 1.2rem !important;
+            }
+
+            .fs-5 {
+                font-size: 1.05rem !important;
+            }
+
+            .fs-6 {
+                font-size: 0.95rem !important;
+            }
 
             .fs-2 {
                 font-size: 1.2rem !important;
@@ -243,87 +289,91 @@
             .form-select {
                 font-size: 0.82rem !important;
                 padding: 0.35rem 0.65rem !important;
-            .form-control, .form-select {
-                font-size: 0.875rem !important;
-                padding: 0.4375rem 0.75rem !important;
-            }
 
-            .form-label {
-                font-size: 0.76rem !important;
-                margin-bottom: 0.2rem !important;
-                font-size: 0.82rem !important;
-                margin-bottom: 0.25rem !important;
-            }
+                .form-control,
+                .form-select {
+                    font-size: 0.875rem !important;
+                    padding: 0.4375rem 0.75rem !important;
+                }
 
-            /* Tombol */
-            .btn {
-                font-size: 0.78rem !important;
-                padding: 0.35rem 0.65rem !important;
-                font-size: 0.875rem !important;
-                padding: 0.4375rem 0.875rem !important;
-            }
+                .form-label {
+                    font-size: 0.76rem !important;
+                    margin-bottom: 0.2rem !important;
+                    font-size: 0.82rem !important;
+                    margin-bottom: 0.25rem !important;
+                }
 
-            .btn-sm {
-                font-size: 0.72rem !important;
-                padding: 0.22rem 0.45rem !important;
-                font-size: 0.78rem !important;
-                padding: 0.28rem 0.55rem !important;
-            }
+                /* Tombol */
+                .btn {
+                    font-size: 0.78rem !important;
+                    padding: 0.35rem 0.65rem !important;
+                    font-size: 0.875rem !important;
+                    padding: 0.4375rem 0.875rem !important;
+                }
 
-            /* Badges */
-            .badge {
-                font-size: 0.7rem !important;
-                padding: 0.25em 0.5em !important;
-                font-size: 0.78rem !important;
-                padding: 0.35em 0.6em !important;
-            }
+                .btn-sm {
+                    font-size: 0.72rem !important;
+                    padding: 0.22rem 0.45rem !important;
+                    font-size: 0.78rem !important;
+                    padding: 0.28rem 0.55rem !important;
+                }
 
-            /* Tabel */
-            .table th,
-            .table td {
-                font-size: 0.76rem !important;
-                padding: 0.4rem 0.5rem !important;
-            .table th, .table td {
-                font-size: 0.82rem !important;
-                padding: 0.5rem 0.65rem !important;
-            }
+                /* Badges */
+                .badge {
+                    font-size: 0.7rem !important;
+                    padding: 0.25em 0.5em !important;
+                    font-size: 0.78rem !important;
+                    padding: 0.35em 0.6em !important;
+                }
 
-            /* Kartu & Container */
-            .card-header {
-                padding: 0.75rem 1rem !important;
-                padding: 0.85rem 1.15rem !important;
-            }
+                /* Tabel */
+                .table th,
+                .table td {
+                    font-size: 0.76rem !important;
+                    padding: 0.4rem 0.5rem !important;
 
-            .card-body {
-                padding: 0.85rem !important;
-                padding: 1rem !important;
-            }
+                    .table th,
+                    .table td {
+                        font-size: 0.82rem !important;
+                        padding: 0.5rem 0.65rem !important;
+                    }
 
-            /* Dropdown & Alert */
-            .dropdown-item {
-                font-size: 0.8rem !important;
-                padding: 0.35rem 0.75rem !important;
-                font-size: 0.875rem !important;
-                padding: 0.45rem 0.85rem !important;
-            }
+                    /* Kartu & Container */
+                    .card-header {
+                        padding: 0.75rem 1rem !important;
+                        padding: 0.85rem 1.15rem !important;
+                    }
 
-            .alert {
-                font-size: 0.8rem !important;
-                padding: 0.5rem 0.75rem !important;
-                font-size: 0.875rem !important;
-                padding: 0.65rem 0.85rem !important;
-            }
+                    .card-body {
+                        padding: 0.85rem !important;
+                        padding: 1rem !important;
+                    }
 
-            /* Drawer Menu Sidebar */
-            .layout-menu {
-                width: 260px !important;
-            }
+                    /* Dropdown & Alert */
+                    .dropdown-item {
+                        font-size: 0.8rem !important;
+                        padding: 0.35rem 0.75rem !important;
+                        font-size: 0.875rem !important;
+                        padding: 0.45rem 0.85rem !important;
+                    }
 
-            .layout-menu .menu-link {
-                font-size: 0.85rem !important;
-                font-size: 0.9rem !important;
-            }
-        }
+                    .alert {
+                        font-size: 0.8rem !important;
+                        padding: 0.5rem 0.75rem !important;
+                        font-size: 0.875rem !important;
+                        padding: 0.65rem 0.85rem !important;
+                    }
+
+                    /* Drawer Menu Sidebar */
+                    .layout-menu {
+                        width: 260px !important;
+                    }
+
+                    .layout-menu .menu-link {
+                        font-size: 0.85rem !important;
+                        font-size: 0.9rem !important;
+                    }
+                }
     </style>
     @stack('styles')
 
@@ -380,6 +430,31 @@
 
     <!-- Main JS -->
     <script src="{{ asset('sneat/assets/js/main.js') }}"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogoutAdmin() {
+            Swal.fire({
+                title: 'Konfirmasi Keluar',
+                text: 'Apakah Anda yakin ingin keluar dari sistem?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Keluar',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const logoutForm = document.getElementById('navbar-logout-form');
+                    if (logoutForm) {
+                        logoutForm.submit();
+                    }
+                }
+            });
+        }
+    </script>
 
     <!-- Page JS -->
     @stack('page-js')

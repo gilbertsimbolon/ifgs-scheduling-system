@@ -418,8 +418,6 @@
                             style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
                             PORTAL MEMBER IFGS
                         </p>
-                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo,
-                            {{ auth()->user()->name }}! 👋</h3>
                         <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo, {{ auth()->user()->name }}! 👋</h3>
                         <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
                             status membership, reservasi kunjungan, dan absensi
@@ -866,75 +864,168 @@
             </div>
 
             <div class="row g-4 justify-content-center">
-                @forelse ($activeProducts as $product)
+                @forelse ($groupedServices as $service)
                     @php
-                        $isPopular = str_contains(strtolower($product->name), '1 bulan');
+                        $isPopular = $service->key === 'fitness';
                     @endphp
                     <div class="col-md-6 col-lg-4">
-                        <div
-                            class="card h-100 shadow-sm border package-card {{ $isPopular ? 'package-popular' : '' }}">
+                        <div class="card h-100 shadow-sm border package-card position-relative {{ $isPopular ? 'package-popular' : '' }}"
+                            style="border-radius: 16px; overflow: visible;">
                             @if ($isPopular)
                                 <div class="popular-badge">Paling Populer</div>
                             @endif
+
                             <div class="card-body p-4 d-flex flex-column justify-content-between">
                                 <div>
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <span class="badge bg-label-primary text-uppercase fw-semibold">
-                                            {{ $product->duration_formatted }}
-                                        </span>
-                                        <span class="badge bg-label-secondary text-uppercase">
-                                            {{ $product->category }}
-                                        </span>
+                                    <!-- Header Layanan: Ikon, Judul, Kategori Badge -->
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="rounded-3 p-2 d-flex align-items-center justify-content-center text-danger"
+                                                style="width: 44px; height: 44px; background-color: #fef2f2;">
+                                                <i class="bx {{ $service->icon }} fs-3"></i>
+                                            </div>
+                                            <div>
+                                                <h4 class="fw-bold text-dark mb-0 fs-5">{{ $service->title }}</h4>
+                                                <span
+                                                    class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0"
+                                                    style="font-size: 0.68rem;">
+                                                    {{ $service->badge }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <h4 class="fw-bold text-dark mb-2">{{ $product->name }}</h4>
-                                    <div class="d-flex align-items-baseline gap-1 mb-3">
-                                        <span class="fs-2 fw-bold text-primary">{{ $product->formatted_price }}</span>
-                                        <span class="text-muted small">/ {{ $product->duration_formatted }}</span>
-                                    </div>
-                                    <p class="text-muted small mb-3">
-                                        {{ $product->description ?: 'Akses latihan optimal dengan instruktur profesional.' }}
+
+                                    <p class="text-muted small mb-3" style="line-height: 1.45; min-height: 42px;">
+                                        {{ $service->description }}
                                     </p>
 
-                                    <ul class="list-unstyled mb-4 vstack gap-2 small">
-                                        <li class="d-flex align-items-center text-heading">
-                                            <i class="bx bx-check-circle text-success me-2 fs-5"></i> Akses Fasilitas
-                                            Gym Resmi IFGS
-                                        </li>
-                                        <li class="d-flex align-items-center text-heading">
-                                            <i class="bx bx-check-circle text-success me-2 fs-5"></i> Reservasi
-                                            Kunjungan Terjadwal
-                                        </li>
-                                        <li class="d-flex align-items-center text-heading">
-                                            <i class="bx bx-check-circle text-success me-2 fs-5"></i> Kartu Member
-                                            Digital & Presensi QR
-                                        </li>
-                                        @if (str_contains(strtolower($product->name), 'aerobic') || str_contains(strtolower($product->name), 'zumba'))
-                                            <li class="d-flex align-items-center text-heading">
-                                                <i class="bx bx-check-circle text-success me-2 fs-5"></i> Mengikuti
-                                                Kelas Aerobic & Zumba
-                                            </li>
-                                        @endif
-                                    </ul>
+                                    <!-- Selector Durasi (Pills) -->
+                                    <div class="mb-3">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <span class="text-uppercase fw-bold text-muted"
+                                                style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                                PILIH DURASI:
+                                            </span>
+                                            <span class="text-muted small" style="font-size: 0.7rem;">
+                                                {{ $service->products->count() }} Pilihan Tarif
+                                            </span>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-1 p-1 rounded-3"
+                                            style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                                            @foreach ($service->products as $prod)
+                                                @php
+                                                    $isActive = $prod->id === $service->default_product->id;
+                                                @endphp
+                                                <button type="button"
+                                                    class="btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 {{ $isActive ? 'btn-danger text-white shadow-sm' : 'btn-light text-dark bg-white border-0' }}"
+                                                    style="font-size: 0.74rem; padding: 6px 8px; font-weight: 600;"
+                                                    data-service-key="{{ $service->key }}"
+                                                    data-product-id="{{ $prod->id }}"
+                                                    data-product-name="{{ $prod->name }}"
+                                                    data-product-price="{{ $prod->formatted_price }}"
+                                                    data-product-duration="{{ $prod->duration_formatted }}"
+                                                    data-product-desc="{{ $prod->description }}">
+                                                    {{ $prod->duration_formatted }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Box Harga Dinamis Sesuai Durasi -->
+                                    <div class="p-3 rounded-3 mb-3"
+                                        style="background-color: #fff5f5; border: 1px solid #fee2e2;">
+                                        <div
+                                            class="d-flex align-items-baseline justify-content-between flex-wrap gap-1">
+                                            <div>
+                                                <span class="text-muted small d-block"
+                                                    style="font-size: 0.68rem; font-weight: 600;">Tarif Layanan:</span>
+                                                <span class="fs-2 fw-bold text-danger price-display-val"
+                                                    id="price-display-{{ $service->key }}">
+                                                    {{ $service->default_product->formatted_price }}
+                                                </span>
+                                            </div>
+                                            <span
+                                                class="badge bg-white text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 duration-display-badge"
+                                                id="duration-display-{{ $service->key }}"
+                                                style="font-size: 0.72rem; font-weight: 600;">
+                                                / {{ $service->default_product->duration_formatted }}
+                                            </span>
+                                        </div>
+                                        <small
+                                            class="text-muted d-block mt-2 pt-2 border-top border-danger border-opacity-10 desc-display-text"
+                                            id="desc-display-{{ $service->key }}"
+                                            style="font-size: 0.74rem; line-height: 1.35;">
+                                            {{ $service->default_product->description ?: $service->description }}
+                                        </small>
+                                    </div>
+
+                                    <!-- Rincian Daftar Tarif -->
+                                    <div class="mb-3">
+                                        <div class="text-muted small mb-1 fw-bold"
+                                            style="font-size: 0.7rem; letter-spacing: 0.3px;">
+                                            Rincian Tarif Berdasarkan Durasi:
+                                        </div>
+                                        <div class="d-flex flex-column gap-1">
+                                            @foreach ($service->products as $prod)
+                                                @php
+                                                    $isRowActive = $prod->id === $service->default_product->id;
+                                                @endphp
+                                                <div class="d-flex justify-content-between align-items-center py-1 px-2 rounded-2 service-rate-row {{ $isRowActive ? 'bg-danger bg-opacity-10 text-danger fw-bold' : 'text-muted' }}"
+                                                    data-service-key="{{ $service->key }}"
+                                                    data-product-id="{{ $prod->id }}"
+                                                    style="font-size: 0.74rem; cursor: pointer; transition: all 0.2s;">
+                                                    <span class="d-flex align-items-center">
+                                                        <i
+                                                            class="bx {{ $isRowActive ? 'bx-check-circle text-danger' : 'bx-circle text-muted opacity-50' }} me-1 rate-icon"></i>
+                                                        <span class="rate-name">{{ $prod->name }}</span>
+                                                    </span>
+                                                    <span class="fw-bold">{{ $prod->formatted_price }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    <!-- Fasilitas & Keuntungan Layanan -->
+                                    <div class="mb-4">
+                                        <span class="text-uppercase fw-bold text-muted d-block small mb-2"
+                                            style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                            Fasilitas Termasuk:
+                                        </span>
+                                        <ul class="list-unstyled mb-0 vstack gap-2 small">
+                                            @foreach ($service->benefits as $benefit)
+                                                <li class="d-flex align-items-center text-heading">
+                                                    <i
+                                                        class="bx bx-check-circle text-success me-2 fs-5 flex-shrink-0"></i>
+                                                    <span>{{ $benefit }}</span>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
                                 </div>
 
+                                <!-- Tombol Aksi / Order -->
                                 <div>
                                     @guest
-                                        <a href="{{ route('login') }}" class="btn btn-outline-primary w-100 fw-semibold">
+                                        <a href="{{ route('login') }}"
+                                            class="btn btn-outline-danger w-100 fw-semibold rounded-pill py-2">
                                             <i class="bx bx-log-in me-1"></i> Masuk untuk Membeli
                                         </a>
                                     @else
                                         @if (auth()->user()->hasRole('Member'))
                                             <button type="button"
-                                                class="btn btn-primary w-100 fw-semibold btn-order-specific"
-                                                data-bs-toggle="modal" data-bs-target="#modalOrderMembership"
-                                                data-product-id="{{ $product->id }}"
-                                                data-product-name="{{ $product->name }}"
-                                                data-product-price="{{ $product->formatted_price }}"
-                                                data-product-duration="{{ $product->duration_formatted }}">
-                                                <i class="bx bx-check-circle me-1"></i> Pilih Paket Ini
+                                                class="btn btn-danger w-100 fw-semibold rounded-pill py-2 btn-order-specific btn-service-order"
+                                                id="btn-service-action-{{ $service->key }}" data-bs-toggle="modal"
+                                                data-bs-target="#modalOrderMembership"
+                                                data-product-id="{{ $service->default_product->id }}"
+                                                data-product-name="{{ $service->default_product->name }}"
+                                                data-product-price="{{ $service->default_product->formatted_price }}"
+                                                data-product-duration="{{ $service->default_product->duration_formatted }}">
+                                                <i class="bx bx-cart me-1"></i> Pilih Paket Ini
                                             </button>
                                         @else
-                                            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary w-100">
+                                            <a href="{{ route('dashboard') }}"
+                                                class="btn btn-outline-secondary w-100 rounded-pill py-2">
                                                 Kelola di Dashboard
                                             </a>
                                         @endif

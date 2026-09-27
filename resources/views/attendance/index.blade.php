@@ -125,6 +125,7 @@
                 opacity: 0;
                 transform: scale(0.96);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1);
@@ -263,13 +264,17 @@
                         <h4 id="feedbackTitle" class="fw-bold mb-1 text-white">Check-in Berhasil!</h4>
                         <h5 id="feedbackMemberName" class="fw-bold text-warning mb-1 fs-5">Member</h5>
                         <div class="mb-2">
-                            <span id="feedbackCode" class="badge bg-dark bg-opacity-75 text-light font-monospace border border-secondary">ID: -</span>
+                            <span id="feedbackCode"
+                                class="badge bg-dark bg-opacity-75 text-light font-monospace border border-secondary">ID:
+                                -</span>
                         </div>
-                        <div id="feedbackMessage" class="small text-white-50 mb-3 px-2">Selamat datang di Indo Fitness Gym Sport.</div>
+                        <div id="feedbackMessage" class="small text-white-50 mb-3 px-2">Selamat datang di Indo Fitness Gym
+                            Sport.</div>
                         <div>
                             <div class="cooldown-badge">
                                 <i class="bx bx-time-five me-1 text-warning"></i>
-                                <span>Siap scan berikutnya dalam <strong id="cooldownSeconds" class="text-warning">4</strong> detik</span>
+                                <span>Siap scan berikutnya dalam <strong id="cooldownSeconds"
+                                        class="text-warning">4</strong> detik</span>
                             </div>
                         </div>
                     </div>
@@ -389,8 +394,8 @@
                                                         method="POST" class="d-inline">
                                                         @csrf
                                                         @method('PATCH')
-                                                        <button type="submit" class="btn btn-sm btn-outline-success"
-                                                            onclick="return confirm('Catat Check-out untuk {{ $activeUser?->name }}?')">
+                                                        <button type="button" class="btn btn-sm btn-outline-success"
+                                                            onclick="confirmCheckout(this, '{{ addslashes($activeUser?->name ?? 'member ini') }}')">
                                                             <i class="bx bx-log-out me-1"></i> Check-out
                                                         </button>
                                                     </form>
@@ -908,5 +913,23 @@
                 }, 3500);
             }
         });
+
+        function confirmCheckout(button, memberName) {
+            Swal.fire({
+                title: 'Konfirmasi Check-out',
+                text: 'Catat Check-out untuk ' + memberName + '?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Check-out',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    button.closest('form').submit();
+                }
+            });
+        }
     </script>
 @endpush

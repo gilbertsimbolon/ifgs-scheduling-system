@@ -79,7 +79,8 @@
                             <i class="bx bx-filter-alt me-1"></i> Filter
                         </button>
                         @if (request()->hasAny(['search', 'status']))
-                            <a href="{{ route('admin-members.index') }}" class="btn btn-outline-secondary" title="Reset Filter">
+                            <a href="{{ route('admin-members.index') }}" class="btn btn-outline-secondary"
+                                title="Reset Filter">
                                 <i class="bx bx-reset"></i>
                             </a>
                         @endif
@@ -153,8 +154,7 @@
                                         @if ($member->user)
                                             <button type="button" class="btn btn-sm btn-icon btn-outline-primary"
                                                 title="Lihat QR Code & Kartu Member" data-bs-toggle="modal"
-                                                data-bs-target="#modalQrCodeAdmin"
-                                                data-name="{{ $member->user->name }}"
+                                                data-bs-target="#modalQrCodeAdmin" data-name="{{ $member->user->name }}"
                                                 data-code="{{ $member->member_code }}"
                                                 data-qr="{{ $member->user->qr_code }}"
                                                 data-svg-url="{{ route('user.qr-code.svg', $member->user) }}"
@@ -175,7 +175,8 @@
                                                 : 'Belum Ada / Tidak Aktif';
                                         @endphp
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-info"
-                                            title="Detail Member" data-bs-toggle="modal" data-bs-target="#modalDetailMember"
+                                            title="Detail Member" data-bs-toggle="modal"
+                                            data-bs-target="#modalDetailMember"
                                             data-name="{{ $member->user?->name ?? '-' }}"
                                             data-code="{{ $member->member_code }}"
                                             data-email="{{ $member->user?->email ?? '-' }}"
@@ -246,8 +247,6 @@
             <div class="card-footer d-flex justify-content-between align-items-center py-3">
                 <small class="text-muted">
                     @if ($members->total() > 0)
-                        Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }}
-                        member
                         Menampilkan {{ $members->firstItem() }}–{{ $members->lastItem() }} dari {{ $members->total() }} member
                     @else
                         Tidak ada data member
@@ -472,7 +471,12 @@
                         .catch(error => {
                             currentSwitch.disabled = false;
                             currentSwitch.checked = !isChecked;
-                            alert('Terjadi kesalahan saat mengubah status member.');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Terjadi kesalahan saat mengubah status member.',
+                                confirmButtonColor: '#dc2626'
+                            });
                         });
                 });
             });

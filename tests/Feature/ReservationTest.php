@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
+use App\Models\Trainer;
+use App\Models\TrainerBooking;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -353,4 +355,101 @@ test('member with only 24-hour visit membership does not need and cannot make a 
     $response->assertRedirect();
     $response->assertSessionHas('info');
     expect(Reservation::count())->toBe(0);
+});
+
+test('available slots endpoint returns realtime trainer slot data', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+
+    $trainerUser = User::factory()->create(['name' => 'Coach Budi']);
+    $trainer = Trainer::create([
+        'user_id' => $trainerUser->id,
+        'specialization' => 'Fitness & Strength',
+        'status' => 'active',
+        'daily_quota' => 5,
+    ]);
+
+    $visitDate = Carbon::today()->format('Y-m-d');
+
+    // Create 1 booking for this trainer on the visit date
+    $memberUser = User::factory()->create();
+    $member = Member::factory()->create(['user_id' => $memberUser->id]);
+    TrainerBooking::create([
+        'trainer_id' => $trainer->id,
+        'member_id' => $member->id,
+        'session_date' => $visitDate,
+        'training_focus' => 'Form Squat',
+        'status' => TrainerBooking::STATUS_PENDING,
+    ]);
+
+    $response = $this->actingAs($user)
+        ->getJson(route('reservations.available-slots', ['date' => $visitDate]));
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'date',
+            'is_sunday',
+            'slots',
+            'trainers' => [
+                '*' => ['id', 'name', 'specialization', 'daily_quota', 'occupied', 'remaining', 'is_full'],
+            ],
+        ]);
+
+    $trainerData = collect($response->json('trainers'))->firstWhere('id', $trainer->id);
+    expect($trainerData)->not->toBeNull();
+    expect($trainerData['daily_quota'])->toBe(5);
+    expect($trainerData['occupied'])->toBe(1);
+    expect($trainerData['remaining'])->toBe(4);
+    expect($trainerData['is_full'])->toBeFalse();
+});
+
+test('member can make a reservation with an optional trainer', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $product = Product::factory()->create(['name' => 'Fitness 1 Bulan']);
+    $membership = Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'status' => 'active',
+        'start_date' => Carbon::today()->subDays(2)->format('Y-m-d'),
+        'end_date' => Carbon::today()->addDays(28)->format('Y-m-d'),
+    ]);
+
+    $slot = TimeSlot::factory()->create([
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'capacity' => 20,
+        'status' => 'active',
+    ]);
+
+    $trainerUser = User::factory()->create(['name' => 'Coach Mario']);
+    $trainer = Trainer::create([
+        'user_id' => $trainerUser->id,
+        'specialization' => 'Fitness',
+        'status' => 'active',
+        'daily_quota' => 5,
+    ]);
+
+    $visitDate = Carbon::today()->format('Y-m-d');
+
+    $response = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => $visitDate,
+            'time_slot_id' => $slot->id,
+            'trainer_id' => $trainer->id,
+            'training_focus' => 'Koreksi Postur & Chest Day',
+            'notes' => 'Catatan latihan',
+        ]);
+
+    $response->assertRedirect(route('reservations.index'));
+    $response->assertSessionHas('success');
+
+    expect(Reservation::where('member_id', $member->id)->exists())->toBeTrue();
+    expect(TrainerBooking::where('member_id', $member->id)
+        ->where('trainer_id', $trainer->id)
+        ->whereDate('session_date', $visitDate)
+        ->where('training_focus', 'Koreksi Postur & Chest Day')
+        ->where('status', TrainerBooking::STATUS_PENDING)
+        ->exists())->toBeTrue();
 });

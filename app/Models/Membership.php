@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['transaction_id', 'member_id', 'product_id', 'payment_method_id', 'start_date', 'end_date', 'price', 'status'])]
+#[Fillable(['transaction_id', 'member_id', 'product_id', 'product_duration_id', 'payment_method_id', 'start_date', 'end_date', 'price', 'status'])]
 class Membership extends Model
 {
     /** @use HasFactory<MembershipFactory> */
@@ -69,6 +69,14 @@ class Membership extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the chosen duration variant of this membership.
+     */
+    public function duration(): BelongsTo
+    {
+        return $this->belongsTo(ProductDuration::class, 'product_duration_id');
     }
 
     /**

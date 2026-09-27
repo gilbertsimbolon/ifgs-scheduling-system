@@ -1,8 +1,14 @@
 <?php
 
 use App\Models\Member;
+use App\Models\Membership;
 use App\Models\Product;
+use App\Models\TimeSlot;
+use App\Models\Trainer;
+use App\Models\TrainerBooking;
 use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -99,7 +105,7 @@ test('member can access member home (/member) and see personal name and bottom n
     $response = $this->actingAs($user)->get(route('member.index'));
 
     $response->assertStatus(200);
-    $response->assertSee('Hi, Budi Santoso');
+    $response->assertSee('Budi Santoso');
     $response->assertSee('IFGS-2026-0001');
     $response->assertSee('MEMBER CARD');
     $response->assertSee('Reservasi');
@@ -312,4 +318,135 @@ test('member can directly upload avatar and then delete avatar with x button', f
     // Profil page shows initials again
     $pageAfterDelete = $this->actingAs($user)->get(route('member.profil'));
     $pageAfterDelete->assertSee('MT');
+});
+
+test('member with active membership can see 7-day selector, dynamic package cards, and trainer options on reservation modal', function () {
+    $user = User::factory()->create(['name' => 'John Gym']);
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $product = Product::factory()->create(['name' => 'Paket Fitness 1 Bulan']);
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'status' => Membership::STATUS_ACTIVE,
+        'start_date' => now()->subDay()->format('Y-m-d'),
+        'end_date' => now()->addDays(29)->format('Y-m-d'),
+    ]);
+
+    $slotFitness = TimeSlot::factory()->create([
+        'name' => 'Sesi Fitness Harian',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'status' => 'active',
+    ]);
+
+    $slotZumba = TimeSlot::factory()->create([
+        'name' => 'Sesi Zumba Spesial',
+        'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+        'status' => 'active',
+    ]);
+
+    $trainerUser = User::factory()->create(['name' => 'Coach Mario']);
+    $trainer = Trainer::create([
+        'user_id' => $trainerUser->id,
+        'specialization' => 'Fitness & Bodybuilding',
+        'status' => 'active',
+        'daily_quota' => 5,
+    ]);
+
+    $response = $this->actingAs($user)->get(route('member.reservasi'));
+
+    $response->assertStatus(200);
+    // Check modal exists
+    $response->assertSee('modalBuatReservasi');
+    // Check dynamic 10-day operational selector container
+    $response->assertSee('operationalDaysGrid');
+    $response->assertSee('days-grid-10');
+    $response->assertSee('day-pill-btn');
+    // Check package cards (Fitness is subscribed, Zumba is not subscribed)
+    $response->assertSee('Sesi Fitness Harian');
+    $response->assertSee('Berlangganan');
+    $response->assertSee('Sesi Zumba Spesial');
+    $response->assertSee('Belum Berlangganan');
+    // Check trainer options in Step 2
+    $response->assertSee('modalBuatReservasiStep2');
+    $response->assertSee('btnNextToStep2');
+    $response->assertSee('Tanpa Trainer');
+    $response->assertSee('Coach Mario');
+    $response->assertSee('Fitness & Bodybuilding');
+    $response->assertDontSee('trainingFocusWrapper');
+    // Check Confirmation in Step 3
+    $response->assertSee('modalBuatReservasiStep3');
+    $response->assertSee('btnNextToStep3');
+    $response->assertSee('btnSubmitReservasi');
+});
+
+test('timeslot generates correct operational dates for fitness and zumba cycling', function () {
+    $fitness = TimeSlot::factory()->create([
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'days' => 'Senin - Sabtu',
+    ]);
+
+    $zumba = TimeSlot::factory()->create([
+        'category' => TimeSlot::CATEGORY_AEROBIC_ZUMBA,
+        'days' => 'Senin & Kamis',
+    ]);
+
+    $fitnessDates = $fitness->getUpcomingOperationalDates(10, Carbon::parse('2026-09-21')); // Monday
+    expect($fitnessDates)->toHaveCount(10);
+    // Ensure none of the fitness dates is Sunday
+    foreach ($fitnessDates as $d) {
+        expect($d->dayOfWeek)->not->toBe(CarbonInterface::SUNDAY);
+    }
+
+    $zumbaDates = $zumba->getUpcomingOperationalDates(10, Carbon::parse('2026-09-21')); // Monday
+    expect($zumbaDates)->toHaveCount(10);
+    // Ensure all zumba dates are only Monday or Thursday
+    foreach ($zumbaDates as $d) {
+        expect(in_array($d->dayOfWeek, [CarbonInterface::MONDAY, CarbonInterface::THURSDAY], true))->toBeTrue();
+    }
+});
+
+test('member can submit reservation with trainer without training_focus', function () {
+    $user = User::factory()->create(['name' => 'Member Test']);
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $product = Product::factory()->create(['name' => 'Paket Fitness 1 Bulan']);
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'status' => Membership::STATUS_ACTIVE,
+        'start_date' => now()->subDay()->format('Y-m-d'),
+        'end_date' => now()->addDays(29)->format('Y-m-d'),
+    ]);
+
+    $slotFitness = TimeSlot::factory()->create([
+        'name' => 'Sesi Fitness Pagi',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'status' => 'active',
+        'capacity' => 50,
+        'reservation_quota' => 30,
+    ]);
+
+    $trainerUser = User::factory()->create(['name' => 'Coach Mario']);
+    $trainer = Trainer::create([
+        'user_id' => $trainerUser->id,
+        'specialization' => 'Fitness & Bodybuilding',
+        'status' => 'active',
+        'daily_quota' => 5,
+    ]);
+
+    $targetDate = now()->isSunday() ? now()->addDay()->toDateString() : now()->toDateString();
+
+    $response = $this->actingAs($user)->post(route('reservations.store'), [
+        'visit_date' => $targetDate,
+        'time_slot_id' => $slotFitness->id,
+        'trainer_id' => $trainer->id,
+    ]);
+
+    $response->assertSessionHas('success');
+    expect(TrainerBooking::where('member_id', $member->id)->where('trainer_id', $trainer->id)->count())->toBe(1);
+    $booking = TrainerBooking::where('member_id', $member->id)->where('trainer_id', $trainer->id)->first();
+    expect($booking->training_focus)->toBeNull();
 });

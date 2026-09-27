@@ -6,12 +6,13 @@ use App\Models\Member;
 use App\Models\Membership;
 use App\Models\PaymentMethod;
 use App\Models\Product;
+use App\Models\ProductDuration;
 use App\Models\Transaction;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -23,12 +24,7 @@ class MembershipController extends Controller
      */
     public function index(Request $request): View
     {
-        // Sinkronisasi otomatis status kadaluarsa oleh sistem
-        Membership::where('status', Membership::STATUS_ACTIVE)
-            ->whereDate('end_date', '<', now()->toDateString())
-            ->update(['status' => Membership::STATUS_EXPIRED]);
-
-        $query = Membership::with(['member.user', 'product', 'paymentMethod', 'transaction.user'])->latest();
+        $query = Membership::with(['member.user', 'product', 'duration', 'paymentMethod', 'transaction.user'])->latest();
 
         // Filter status
         if ($request->filled('status') && in_array($request->status, Membership::STATUSES)) {
@@ -91,8 +87,9 @@ class MembershipController extends Controller
             ->get()
             ->sortBy(fn ($m) => strtolower($m->user?->name ?? ''));
 
-        // Daftar produk aktif untuk pilihan dropdown Tambah Membership
-        $activeProducts = Product::where('status', Product::STATUS_ACTIVE)
+        // Daftar produk aktif beserta durasi aktifnya untuk pilihan dropdown Tambah Membership
+        $activeProducts = Product::with(['activeDurations' => fn ($q) => $q->orderBy('duration_value')])
+            ->where('status', Product::STATUS_ACTIVE)
             ->orderBy('name')
             ->get();
 
@@ -102,7 +99,7 @@ class MembershipController extends Controller
             ->get();
 
         $allPaymentMethods = PaymentMethod::orderBy('name')->get();
-        $allProducts = Product::orderBy('name')->get();
+        $allProducts = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])->orderBy('name')->get();
         $products = $allProducts;
         $statuses = Membership::STATUSES;
 
@@ -128,6 +125,7 @@ class MembershipController extends Controller
         $validated = $request->validate([
             'member_id' => ['required', 'exists:members,id'],
             'product_id' => ['required', 'exists:products,id'],
+            'product_duration_id' => ['nullable', 'exists:product_durations,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -137,6 +135,7 @@ class MembershipController extends Controller
             'member_id.exists' => 'Member yang dipilih tidak valid.',
             'product_id.required' => 'Paket layanan wajib dipilih.',
             'product_id.exists' => 'Paket layanan tidak ditemukan.',
+            'product_duration_id.exists' => 'Pilihan durasi yang dipilih tidak valid.',
             'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
             'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
@@ -146,20 +145,26 @@ class MembershipController extends Controller
         ]);
 
         $product = Product::findOrFail($validated['product_id']);
+        if (! empty($validated['product_duration_id'])) {
+            $duration = ProductDuration::where('product_id', $product->id)->findOrFail($validated['product_duration_id']);
+        } else {
+            $duration = $product->activeDurations()->first() ?? $product->durations()->first();
+        }
+
         $endDate = ! empty($validated['end_date'])
             ? $validated['end_date']
-            : $product->calculateEndDate($validated['start_date'])->format('Y-m-d');
+            : $duration->calculateEndDate($validated['start_date'])->format('Y-m-d');
         $price = isset($validated['price']) && $validated['price'] !== ''
             ? (float) $validated['price']
-            : (float) $product->price;
+            : (float) $duration->price;
 
         // Status diatur 100% oleh sistem berdasarkan tanggal berakhir
         $status = Carbon::parse($endDate)->isPast() && ! Carbon::parse($endDate)->isToday()
             ? Membership::STATUS_EXPIRED
             : Membership::STATUS_ACTIVE;
 
-        DB::transaction(function () use ($validated, $product, $endDate, $price, $status) {
-            // 1. Catat Transaksi Header dengan user_id pembuat (kasir atau pelanggan)
+        DB::transaction(function () use ($validated, $product, $duration, $endDate, $price, $status) {
+            // 1. Catat Transaksi Header dengan user_id pembuat (kasir atau admin)
             $transaction = Transaction::create([
                 'invoice_number' => Transaction::generateInvoiceNumber(),
                 'member_id' => $validated['member_id'],
@@ -169,23 +174,25 @@ class MembershipController extends Controller
                 'paid_amount' => $price,
                 'change_amount' => 0.00,
                 'status' => Transaction::STATUS_COMPLETED,
-                'notes' => 'Pendaftaran Membership '.$product->name,
+                'notes' => 'Pendaftaran Membership '.$product->name.' ('.$duration->duration_formatted.')',
             ]);
 
-            // 2. Catat Item Transaksi
+            // 2. Catat Item Transaksi (Snapshot price & duration reference)
             $transaction->items()->create([
                 'product_id' => $product->id,
-                'product_name' => $product->name,
+                'product_duration_id' => $duration->id,
+                'product_name' => $product->name.' ('.$duration->duration_formatted.')',
                 'price' => $price,
                 'quantity' => 1,
                 'subtotal' => $price,
             ]);
 
-            // 3. Terbitkan Membership Baru
+            // 3. Terbitkan Membership Baru (Snapshot price & duration reference)
             Membership::create([
                 'transaction_id' => $transaction->id,
                 'member_id' => $validated['member_id'],
                 'product_id' => $product->id,
+                'product_duration_id' => $duration->id,
                 'payment_method_id' => $validated['payment_method_id'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $endDate,
@@ -204,19 +211,39 @@ class MembershipController extends Controller
     public function calculateEndDate(Request $request): JsonResponse
     {
         $request->validate([
-            'product_id' => ['required', 'exists:products,id'],
             'start_date' => ['required', 'date'],
+            'product_duration_id' => ['nullable', 'exists:product_durations,id'],
+            'product_id' => ['nullable', 'exists:products,id'],
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        $endDate = $product->calculateEndDate($request->start_date)->format('Y-m-d');
+        if ($request->filled('product_duration_id')) {
+            $duration = ProductDuration::findOrFail($request->product_duration_id);
+            $endDate = $duration->calculateEndDate($request->start_date)->format('Y-m-d');
 
-        return response()->json([
-            'end_date' => $endDate,
-            'price' => (float) $product->price,
-            'formatted_price' => $product->formatted_price,
-            'duration_formatted' => $product->duration_formatted,
-        ]);
+            return response()->json([
+                'end_date' => $endDate,
+                'price' => (float) $duration->price,
+                'formatted_price' => $duration->formatted_price,
+                'duration_formatted' => $duration->duration_formatted,
+            ]);
+        }
+
+        if ($request->filled('product_id')) {
+            $product = Product::findOrFail($request->product_id);
+            $duration = $product->activeDurations()->first() ?? $product->durations()->first();
+            if ($duration) {
+                $endDate = $duration->calculateEndDate($request->start_date)->format('Y-m-d');
+
+                return response()->json([
+                    'end_date' => $endDate,
+                    'price' => (float) $duration->price,
+                    'formatted_price' => $duration->formatted_price,
+                    'duration_formatted' => $duration->duration_formatted,
+                ]);
+            }
+        }
+
+        return response()->json(['error' => 'Pilihan paket atau durasi tidak valid.'], 422);
     }
 
     /**
@@ -226,6 +253,7 @@ class MembershipController extends Controller
     {
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'product_duration_id' => ['nullable', 'exists:product_durations,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
@@ -233,19 +261,17 @@ class MembershipController extends Controller
             'status' => ['required', 'string', Rule::in(Membership::STATUSES)],
         ], [
             'product_id.required' => 'Paket layanan wajib dipilih.',
-            'product_id.exists' => 'Paket layanan tidak ditemukan.',
             'payment_method_id.required' => 'Metode pembayaran wajib dipilih.',
-            'payment_method_id.exists' => 'Metode pembayaran yang dipilih tidak valid.',
             'start_date.required' => 'Tanggal mulai wajib diisi.',
-            'start_date.date' => 'Format tanggal mulai tidak valid.',
             'end_date.required' => 'Tanggal berakhir wajib diisi.',
-            'end_date.date' => 'Format tanggal berakhir tidak valid.',
-            'end_date.after_or_equal' => 'Tanggal berakhir harus sama atau setelah tanggal mulai.',
-            'price.required' => 'Harga wajib diisi.',
-            'price.numeric' => 'Harga harus berupa angka.',
-            'status.required' => 'Status wajib dipilih.',
-            'status.in' => 'Status yang dipilih tidak valid.',
+            'price.required' => 'Biaya membership wajib diisi.',
+            'status.required' => 'Status membership wajib dipilih.',
         ]);
+
+        if (empty($validated['product_duration_id'])) {
+            $duration = ProductDuration::where('product_id', $validated['product_id'])->first();
+            $validated['product_duration_id'] = $duration?->id;
+        }
 
         $membership->update($validated);
 
@@ -254,30 +280,13 @@ class MembershipController extends Controller
     }
 
     /**
-     * Membatalkan transaksi membership.
-     */
-    public function cancel(Request $request, Membership $membership): RedirectResponse|JsonResponse
-    {
-        $membership->update(['status' => Membership::STATUS_CANCELLED]);
-
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Status membership berhasil diubah menjadi Dibatalkan.',
-            ]);
-        }
-
-        return redirect()->route('memberships.index')
-            ->with('success', 'Membership berhasil dibatalkan.');
-    }
-
-    /**
-     * Memproses pemesanan paket membership mandiri oleh member (dengan upload bukti transfer).
+     * Menyimpan pemesanan membership mandiri oleh Member (dengan upload bukti bayar).
      */
     public function order(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
+            'product_duration_id' => ['nullable', 'exists:product_durations,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'start_date' => ['nullable', 'date'],
             'payment_proof' => ['required', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
@@ -307,12 +316,19 @@ class MembershipController extends Controller
         }
 
         $product = Product::findOrFail($validated['product_id']);
-        $endDate = $product->calculateEndDate($startDate)->format('Y-m-d');
-        $price = (float) $product->price;
+        if (! empty($validated['product_duration_id'])) {
+            $duration = ProductDuration::where('product_id', $product->id)->findOrFail($validated['product_duration_id']);
+        } else {
+            $duration = $product->activeDurations()->first() ?? $product->durations()->first();
+        }
+
+        $endDate = $duration ? $duration->calculateEndDate($startDate)->format('Y-m-d') : Carbon::parse($startDate)->addMonth()->format('Y-m-d');
+        $price = $duration ? (float) $duration->price : 0.0;
+        $durationFormatted = $duration?->duration_formatted ?? '';
 
         $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
-        DB::transaction(function () use ($validated, $member, $product, $startDate, $endDate, $price, $proofPath) {
+        DB::transaction(function () use ($validated, $member, $product, $duration, $startDate, $endDate, $price, $durationFormatted, $proofPath) {
             $transaction = Transaction::create([
                 'invoice_number' => Transaction::generateInvoiceNumber(),
                 'member_id' => $member->id,
@@ -322,13 +338,14 @@ class MembershipController extends Controller
                 'paid_amount' => $price,
                 'change_amount' => 0.00,
                 'status' => Transaction::STATUS_PENDING,
-                'notes' => $validated['notes'] ?? 'Pemesanan Mandiri Paket '.$product->name,
+                'notes' => $validated['notes'] ?? 'Pemesanan Mandiri Paket '.$product->name.($durationFormatted ? " ({$durationFormatted})" : ''),
                 'payment_proof' => $proofPath,
             ]);
 
             $transaction->items()->create([
                 'product_id' => $product->id,
-                'product_name' => $product->name,
+                'product_duration_id' => $duration?->id,
+                'product_name' => $product->name.($durationFormatted ? " ({$durationFormatted})" : ''),
                 'price' => $price,
                 'quantity' => 1,
                 'subtotal' => $price,
@@ -338,6 +355,7 @@ class MembershipController extends Controller
                 'transaction_id' => $transaction->id,
                 'member_id' => $member->id,
                 'product_id' => $product->id,
+                'product_duration_id' => $duration?->id,
                 'payment_method_id' => $validated['payment_method_id'],
                 'start_date' => $startDate,
                 'end_date' => $endDate,
@@ -366,7 +384,11 @@ class MembershipController extends Controller
         if (Carbon::parse($startDate)->isPast() && ! Carbon::parse($startDate)->isToday()) {
             $startDate = now()->toDateString();
         }
-        $endDate = $membership->product->calculateEndDate($startDate)->format('Y-m-d');
+
+        $duration = $membership->duration ?? $membership->product->activeDurations()->first();
+        $endDate = $duration
+            ? $duration->calculateEndDate($startDate)->format('Y-m-d')
+            : Carbon::parse($membership->end_date)->format('Y-m-d');
 
         DB::transaction(function () use ($membership, $startDate, $endDate) {
             if ($membership->transaction) {
@@ -434,6 +456,19 @@ class MembershipController extends Controller
 
         return redirect()->route('memberships.index')
             ->with('success', "Transaksi membership untuk {$memberName} telah ditolak.");
+    }
+
+    /**
+     * Membatalkan membership aktif.
+     */
+    public function cancel(Membership $membership): RedirectResponse
+    {
+        $membership->update([
+            'status' => Membership::STATUS_CANCELLED,
+        ]);
+
+        return redirect()->route('memberships.index')
+            ->with('success', 'Membership berhasil dibatalkan.');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Attendance;
 use App\Models\Member;
 use App\Models\Membership;
 use App\Models\PaymentMethod;
@@ -9,7 +10,11 @@ use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
+use App\Models\Trainer;
+use App\Models\TrainerBooking;
 use App\Models\User;
+use App\Services\GreedySchedulingService;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -85,18 +90,125 @@ class MemberPortalController extends Controller
         }
 
         // Paket Layanan Tersedia (dari database riil)
-        $featuredProducts = Product::where('status', Product::STATUS_ACTIVE)
-            ->orderBy('price')
+        $featuredProducts = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+            ->where('status', Product::STATUS_ACTIVE)
+            ->orderBy('name')
             ->take(3)
             ->get();
 
         // Presensi Hari Ini jika ada
         $currentAttendance = $member?->currentAttendanceToday();
 
-        // Slot Operasional untuk modal reservasi cepat
+        // Slot Operasional untuk modal reservasi cepat & kapasitas gym
         $operationalSlots = TimeSlot::where('status', TimeSlot::STATUS_ACTIVE)
             ->orderBy('start_time')
             ->get();
+
+        // Kondisi Operasional & Status Keramaian Gym Real-time Hari Ini
+        $now = Carbon::now();
+        $isSunday = $now->isSunday();
+        $openTime = Carbon::createFromTime(8, 0, 0);
+        $closeTime = Carbon::createFromTime(22, 0, 0);
+        $isOpenNow = ! $isSunday && $now->between($openTime, $closeTime);
+
+        $gymStatus = [
+            'is_open' => $isOpenNow,
+            'is_sunday' => $isSunday,
+            'operating_hours' => '08:00 - 22:00 WITA',
+            'status_label' => $isSunday ? 'Tutup (Libur Hari Minggu)' : ($isOpenNow ? 'Buka Sekarang' : 'Tutup (Buka 08:00 WITA)'),
+            'status_badge_class' => $isSunday ? 'bg-secondary' : ($isOpenNow ? 'bg-success' : 'bg-dark'),
+        ];
+
+        // Metrik kehadiran & keramaian realtime hari ini
+        $today = Carbon::today()->format('Y-m-d');
+        $inGymCount = Attendance::today()->currentlyInGym()->count();
+        $todayCheckinCount = Attendance::today()->count();
+        $todayCheckoutCount = Attendance::today()->whereNotNull('check_out_at')->count();
+        $activeTrainerSessionsCount = TrainerBooking::whereDate('session_date', $today)
+            ->where('status', TrainerBooking::STATUS_IN_PROGRESS)
+            ->count();
+
+        $totalGymCapacity = $operationalSlots->sum('capacity') ?: 100;
+        $crowdPercentage = $totalGymCapacity > 0 ? min(100, (int) round(($inGymCount / $totalGymCapacity) * 100)) : 0;
+
+        if ($isSunday || ! $isOpenNow) {
+            $crowdLevel = [
+                'level' => 'closed',
+                'label' => 'Gym Sedang Tutup',
+                'badge_class' => 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
+                'description' => $isSunday ? 'IFGS Gym libur operasional setiap hari Minggu.' : 'Gym saat ini di luar jam operasional (Buka 08:00 - 22:00 WITA).',
+                'progress_class' => 'bg-secondary',
+                'icon' => 'bx-moon',
+            ];
+        } elseif ($crowdPercentage <= 35) {
+            $crowdLevel = [
+                'level' => 'sepi',
+                'label' => 'Sepi / Lengang',
+                'badge_class' => 'bg-success bg-opacity-10 text-success border border-success border-opacity-25',
+                'description' => 'Banyak alat latihan tersedia, suasana sangat leluasa untuk berolahraga.',
+                'progress_class' => 'bg-success',
+                'icon' => 'bx-smile',
+            ];
+        } elseif ($crowdPercentage <= 70) {
+            $crowdLevel = [
+                'level' => 'sedang',
+                'label' => 'Kondisi Normal / Sedang',
+                'badge_class' => 'bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25',
+                'description' => 'Suasana latihan kondusif dengan jumlah pengunjung yang stabil.',
+                'progress_class' => 'bg-warning',
+                'icon' => 'bx-user-check',
+            ];
+        } else {
+            $crowdLevel = [
+                'level' => 'ramai',
+                'label' => 'Ramai / Padat',
+                'badge_class' => 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25',
+                'description' => 'Area latihan cukup padat, disarankan saling bergantian menggunakan alat.',
+                'progress_class' => 'bg-danger',
+                'icon' => 'bx-group',
+            ];
+        }
+
+        $crowdMetrics = [
+            'in_gym_count' => $inGymCount,
+            'today_checkin_count' => $todayCheckinCount,
+            'today_checkout_count' => $todayCheckoutCount,
+            'active_trainer_sessions' => $activeTrainerSessionsCount,
+            'total_capacity' => $totalGymCapacity,
+            'percentage' => $crowdPercentage,
+            'crowd_level' => $crowdLevel,
+        ];
+
+        // Detail okupansi per sesi layanan aktif
+        $slotOccupancies = $operationalSlots->map(function ($slot) use ($today) {
+            $schedulesCount = Schedule::whereDate('scheduled_date', $today)
+                ->where('time_slot_id', $slot->id)
+                ->whereIn('status', [Schedule::STATUS_SCHEDULED, Schedule::STATUS_ATTENDED])
+                ->count();
+
+            return [
+                'id' => $slot->id,
+                'name' => $slot->name,
+                'category' => $slot->category,
+                'time_range' => $slot->time_range,
+                'capacity' => $slot->capacity,
+                'reservation_quota' => $slot->effective_reservation_quota,
+                'schedules_count' => $schedulesCount,
+            ];
+        });
+
+        // Trainer booking yang aktif/disetujui untuk sesi jadwal mendatang
+        $upcomingTrainerBooking = null;
+        if ($member && ($upcomingSchedule || $upcomingReservation)) {
+            $targetDate = $upcomingSchedule?->scheduled_date ?? $upcomingReservation?->visit_date;
+            if ($targetDate) {
+                $upcomingTrainerBooking = $member->trainerBookings()
+                    ->with(['trainer.user', 'timeSlot'])
+                    ->whereDate('session_date', $targetDate)
+                    ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED])
+                    ->first();
+            }
+        }
 
         return view('member-portal.index', compact(
             'user',
@@ -105,9 +217,13 @@ class MemberPortalController extends Controller
             'pendingMembership',
             'upcomingSchedule',
             'upcomingReservation',
+            'upcomingTrainerBooking',
             'featuredProducts',
             'currentAttendance',
-            'operationalSlots'
+            'operationalSlots',
+            'gymStatus',
+            'crowdMetrics',
+            'slotOccupancies'
         ));
     }
 
@@ -128,9 +244,61 @@ class MemberPortalController extends Controller
         $isDailyVisit = $member?->hasOnlyDailyVisitMembership();
         $canMakeReservation = $member?->canMakeReservation() ?? false;
 
+        $activeMemberships = $member ? $member->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->with('product')
+            ->get() : collect();
+
+        $subscribedCategories = [];
+        foreach ($activeMemberships as $ms) {
+            if ($ms->product) {
+                $subscribedCategories = array_merge($subscribedCategories, $ms->product->supportedCategories());
+            }
+        }
+        $subscribedCategories = array_values(array_unique($subscribedCategories));
+
+        $trainers = Trainer::with('user')->active()->get();
+
         $operationalSlots = TimeSlot::where('status', TimeSlot::STATUS_ACTIVE)
             ->orderBy('start_time')
             ->get();
+
+        $greedyService = app(GreedySchedulingService::class);
+
+        $defaultSelectedSlot = $operationalSlots->first(fn ($s) => in_array($s->category, $subscribedCategories)) ?? $operationalSlots->first();
+        $defaultSelectedSlotId = $defaultSelectedSlot?->id;
+
+        $slotDatesMap = [];
+        foreach ($operationalSlots as $slot) {
+            $upcomingDates = $slot->getUpcomingOperationalDates(10);
+            $slotDatesMap[$slot->id] = [];
+
+            foreach ($upcomingDates as $d) {
+                $dateStr = $d->toDateString();
+                $occ = $greedyService->calculateOccupanciesForDate($dateStr, collect([$slot]));
+                $occupied = $occ[$slot->id] ?? 0;
+                $quota = $slot->effective_reservation_quota;
+                $remaining = max(0, $quota - $occupied);
+
+                $slotDatesMap[$slot->id][] = [
+                    'date' => $dateStr,
+                    'day_name' => $d->translatedFormat('l'),
+                    'day_short' => $d->translatedFormat('D'),
+                    'day_number' => $d->format('d'),
+                    'month_name' => $d->translatedFormat('M'),
+                    'is_today' => $d->isToday(),
+                    'label' => $d->isToday() ? 'Hari Ini' : ($d->isTomorrow() ? 'Besok' : $d->translatedFormat('D')),
+                    'quota' => $quota,
+                    'occupied' => $occupied,
+                    'remaining' => $remaining,
+                    'formatted' => "{$remaining}/{$quota}",
+                ];
+            }
+        }
+
+        $availableDays = $slotDatesMap[$defaultSelectedSlotId] ?? ($slotDatesMap[$operationalSlots->first()?->id] ?? []);
 
         $activeReservations = $member ? $member->reservations()
             ->with(['timeSlot', 'membership.product', 'schedule'])
@@ -139,21 +307,35 @@ class MemberPortalController extends Controller
             ->get() : collect();
 
         $upcomingSchedules = $member ? $member->schedules()
-            ->with('timeSlot')
+            ->with(['timeSlot', 'reservation'])
             ->whereDate('scheduled_date', '>=', now()->toDateString())
             ->whereIn('status', [Schedule::STATUS_SCHEDULED, 'scheduled'])
             ->orderBy('scheduled_date')
             ->get() : collect();
 
+        $trainerBookings = $member ? $member->trainerBookings()
+            ->with(['trainer.user', 'timeSlot'])
+            ->whereDate('session_date', '>=', now()->toDateString())
+            ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED])
+            ->get()
+            ->keyBy(fn ($tb) => $tb->session_date->toDateString()) : collect();
+
         return view('member-portal.reservasi', compact(
             'user',
             'member',
             'activeMembership',
+            'activeMemberships',
+            'subscribedCategories',
+            'trainers',
+            'availableDays',
+            'slotDatesMap',
+            'defaultSelectedSlotId',
             'isDailyVisit',
             'canMakeReservation',
             'operationalSlots',
             'activeReservations',
-            'upcomingSchedules'
+            'upcomingSchedules',
+            'trainerBookings'
         ));
     }
 
@@ -178,22 +360,81 @@ class MemberPortalController extends Controller
         $attendances = $member ? $member->attendances()
             ->orderByDesc('date')
             ->orderByDesc('check_in_at')
-            ->paginate(15) : collect();
+            ->take(20)
+            ->get() : collect();
 
         $pastSchedules = $member ? $member->schedules()
             ->with('timeSlot')
-            ->whereIn('status', [Schedule::STATUS_ATTENDED, Schedule::STATUS_NO_SHOW, Schedule::STATUS_CANCELLED])
-            ->orWhere(function ($q) {
-                $q->whereDate('scheduled_date', '<', now()->toDateString());
+            ->where(function ($q) {
+                $q->whereIn('status', [Schedule::STATUS_ATTENDED, Schedule::STATUS_NO_SHOW, Schedule::STATUS_CANCELLED])
+                    ->orWhereDate('scheduled_date', '<', now()->toDateString());
             })
             ->orderByDesc('scheduled_date')
-            ->take(15)
+            ->take(20)
             ->get() : collect();
+
+        $activityLogs = collect();
+
+        foreach ($attendances as $att) {
+            $isCurrentlyInGym = ($att->status === Attendance::STATUS_CHECKED_IN && is_null($att->check_out_at));
+            $attDate = $att->date ? Carbon::parse($att->date) : ($att->check_in_at ?? now());
+
+            $activityLogs->push([
+                'type' => 'attendance',
+                'title' => 'Kehadiran Gym',
+                'date' => $attDate,
+                'check_in_at' => $att->check_in_at ? $att->check_in_at->format('H:i') : '-',
+                'check_out_at' => $att->check_out_at ? $att->check_out_at->format('H:i') : null,
+                'status_label' => $isCurrentlyInGym ? 'Sedang di Gym' : 'Selesai',
+                'status_badge_class' => $isCurrentlyInGym
+                    ? 'bg-success bg-opacity-10 text-success border border-success border-opacity-25'
+                    : 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25',
+                'notes' => $att->notes,
+                'icon' => 'bx-check-circle',
+                'icon_bg' => 'rgba(25, 135, 84, 0.1)',
+                'icon_color' => 'text-success',
+                'timestamp' => $att->check_in_at ? $att->check_in_at->timestamp : $attDate->timestamp,
+            ]);
+        }
+
+        foreach ($pastSchedules as $sched) {
+            $statusLabel = 'Selesai';
+            $badgeClass = 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25';
+            if ($sched->status === Schedule::STATUS_ATTENDED) {
+                $statusLabel = 'Hadir';
+                $badgeClass = 'bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+            } elseif ($sched->status === Schedule::STATUS_NO_SHOW) {
+                $statusLabel = 'Tidak Hadir';
+                $badgeClass = 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25';
+            } elseif ($sched->status === Schedule::STATUS_CANCELLED) {
+                $statusLabel = 'Dibatalkan';
+                $badgeClass = 'bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25';
+            }
+
+            $schedDate = $sched->scheduled_date ? Carbon::parse($sched->scheduled_date) : now();
+
+            $activityLogs->push([
+                'type' => 'schedule',
+                'title' => 'Jadwal Latihan',
+                'date' => $schedDate,
+                'time_slot' => $sched->timeSlot?->formatted_time ?? 'Waktu disesuaikan',
+                'status_label' => $statusLabel,
+                'status_badge_class' => $badgeClass,
+                'notes' => $sched->notes,
+                'icon' => 'bx-calendar-event',
+                'icon_bg' => 'rgba(13, 110, 253, 0.1)',
+                'icon_color' => 'text-primary',
+                'timestamp' => $schedDate->timestamp,
+            ]);
+        }
+
+        $activityLogs = $activityLogs->sortByDesc('timestamp')->values();
 
         return view('member-portal.riwayat', compact(
             'user',
             'member',
             'myMemberships',
+            'activityLogs',
             'attendances',
             'pastSchedules'
         ));
@@ -212,8 +453,9 @@ class MemberPortalController extends Controller
         $user = $request->user()->load(['member']);
         $member = $user->member;
 
-        $products = Product::where('status', Product::STATUS_ACTIVE)
-            ->orderBy('price')
+        $products = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+            ->where('status', Product::STATUS_ACTIVE)
+            ->orderBy('name')
             ->get();
 
         $paymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)

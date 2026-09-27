@@ -23,7 +23,11 @@ class HomeController extends Controller
     public function index(Request $request): View
     {
         $today = Carbon::today()->format('Y-m-d');
-        $activeProducts = Product::where('status', Product::STATUS_ACTIVE)->orderBy('price')->get();
+        $activeProducts = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+            ->where('status', Product::STATUS_ACTIVE)
+            ->orderBy('name')
+            ->get();
+        $groupedServices = Product::groupedServices();
         $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->orderBy('name')->get();
         $operationalSlots = TimeSlot::active()->orderBy('start_time')->get();
         $activeTrainers = Trainer::active()->with('user')->get();
@@ -107,6 +111,7 @@ class HomeController extends Controller
         return view('welcome', compact(
             'today',
             'activeProducts',
+            'groupedServices',
             'activePaymentMethods',
             'operationalSlots',
             'activeTrainers',

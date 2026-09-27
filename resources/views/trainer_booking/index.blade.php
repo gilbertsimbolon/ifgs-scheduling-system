@@ -427,7 +427,7 @@
                 }
                 const msg = encodeURIComponent(
                     `Halo ${memberName}, ini dari Indo Fitness Gym Sport mengenai sesi latihan Personal Trainer Anda.`
-                    );
+                );
                 return `https://wa.me/${cleaned}?text=${msg}`;
             }
 
@@ -556,7 +556,7 @@
 
                         const msgText = document.getElementById('accBookingWaMessageText').value;
                         const waUrl = 'https://wa.me/' + cleanPhone + '?text=' + encodeURIComponent(
-                        msgText);
+                            msgText);
 
                         // Buka WhatsApp di tab baru
                         window.open(waUrl, '_blank');

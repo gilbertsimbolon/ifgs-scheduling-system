@@ -257,8 +257,9 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="alert alert-warning small p-2 mb-0">
-                                    Belum ada metode pembayaran yang aktif saat ini.
+                                <div class="p-3 text-center text-muted border rounded-3 bg-white small">
+                                    <i class="bx bx-info-circle me-1 text-warning"></i> Belum ada metode pembayaran yang
+                                    aktif saat ini.
                                 </div>
                             @endforelse
                         </div>

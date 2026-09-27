@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\TransactionItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'transaction_id',
     'product_id',
+    'product_duration_id',
     'product_name',
     'price',
     'quantity',
@@ -18,10 +18,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class TransactionItem extends Model
 {
-    /** @use HasFactory<TransactionItemFactory> */
-    /** @use HasFactory<TransactionItemFactory> */
-    /** @use HasFactory<TransactionItemFactory> */
-    /** @use HasFactory<TransactionItemFactory> */
     use HasFactory;
 
     /**
@@ -52,6 +48,14 @@ class TransactionItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the specific duration option referenced by this line item.
+     */
+    public function duration(): BelongsTo
+    {
+        return $this->belongsTo(ProductDuration::class, 'product_duration_id');
     }
 
     /**

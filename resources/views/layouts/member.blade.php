@@ -14,8 +14,7 @@
         @endif{{ 'Member IFGS - Indo Fitness Gym Sport®' }}
     </title>
 
-    <meta name="description"
-        content="Sistem Informasi Penjadwalan & Layanan Gym Indo Fitness Gym Sport Tondano" />
+    <meta name="description" content="Sistem Informasi Penjadwalan & Layanan Gym Indo Fitness Gym Sport Tondano" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('img/logo-ifgs.jpg') }}" />
@@ -36,6 +35,9 @@
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}" />
+
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
     <style>
         body {
@@ -134,7 +136,8 @@
     <div class="member-viewport-wrapper">
         <!-- Top App Bar Khusus Member -->
         <header class="member-top-bar d-flex align-items-center justify-content-between">
-            <a href="{{ route('member.index') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+            <a href="{{ route('member.index') }}"
+                class="d-flex align-items-center gap-2 text-decoration-none text-dark">
                 <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="Indo Fitness Gym Sport®" width="34" height="34"
                     class="rounded-circle shadow-sm object-fit-cover" />
                 <h6 class="mb-0 fw-bold text-dark lh-1" style="font-size: 0.95rem; letter-spacing: -0.2px;">
@@ -145,7 +148,8 @@
             <div class="d-flex align-items-center gap-2">
                 @if (auth()->check())
                     <!-- Avatar Profil Member (Inisial seperti di panel admin) -->
-                    <a href="{{ route('member.profil') }}" class="d-inline-flex text-decoration-none" title="Profil Saya">
+                    <a href="{{ route('member.profil') }}" class="d-inline-flex text-decoration-none"
+                        title="Profil Saya">
                         <div class="avatar avatar-sm" style="width: 36px; height: 36px;">
                             @if (auth()->user()->avatar_url)
                                 <img src="{{ auth()->user()->avatar_url }}" alt="{{ auth()->user()->name }}"
@@ -160,10 +164,13 @@
                     </a>
 
                     <!-- Icon Logout Langsung di Samping Avatar (Tanpa Dropdown) -->
-                    <form action="{{ route('logout') }}" method="POST" class="m-0 d-inline" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari akun?');">
+                    <form id="memberHeaderLogoutForm" action="{{ route('logout') }}" method="POST"
+                        class="m-0 d-inline">
                         @csrf
-                        <button type="submit" class="btn btn-icon btn-sm btn-outline-danger rounded-circle border-0 shadow-none d-flex align-items-center justify-content-center"
-                            style="width: 36px; height: 36px; background-color: rgba(255, 62, 29, 0.08);" title="Keluar (Logout)">
+                        <button type="button" onclick="confirmMemberLogout()"
+                            class="btn btn-icon btn-sm btn-outline-danger rounded-circle border-0 shadow-none d-flex align-items-center justify-content-center"
+                            style="width: 36px; height: 36px; background-color: rgba(255, 62, 29, 0.08);"
+                            title="Keluar (Logout)">
                             <i class="bx bx-power-off fs-5 text-danger"></i>
                         </button>
                     </form>
@@ -173,41 +180,6 @@
 
         <!-- Main Content Area -->
         <main class="member-content">
-            <!-- Alert Session Notifications -->
-            @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center mb-3"
-                    role="alert" style="font-size: 0.85rem;">
-                    <i class="bx bx-check-circle fs-5 me-2 flex-shrink-0"></i>
-                    <div>{{ session('success') }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center mb-3"
-                    role="alert" style="font-size: 0.85rem;">
-                    <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
-                    <div>{{ session('error') }}</div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            @if ($errors->any())
-                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert"
-                    style="font-size: 0.85rem;">
-                    <div class="d-flex align-items-center mb-1">
-                        <i class="bx bx-error-circle fs-5 me-2 flex-shrink-0"></i>
-                        <strong>Perhatian:</strong>
-                    </div>
-                    <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
             @yield('content')
         </main>
 
@@ -220,6 +192,112 @@
     <script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
     <script src="{{ asset('sneat/assets/vendor/js/bootstrap.js') }}"></script>
     <script src="{{ asset('sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmMemberLogout() {
+            Swal.fire({
+                title: 'Konfirmasi Keluar',
+                text: 'Apakah Anda yakin ingin keluar dari akun?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Ya, Keluar',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                customClass: {
+                    popup: 'rounded-4',
+                    confirmButton: 'btn btn-danger rounded-pill px-4',
+                    cancelButton: 'btn btn-outline-secondary rounded-pill px-4'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('memberHeaderLogoutForm');
+                    if (form) {
+                        form.submit();
+                    }
+                }
+            });
+        }
+
+        // Global Flash Message SweetAlert2 Triggers
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: {{ Js::from(session('success')) }},
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    confirmButton: 'btn btn-danger rounded-pill px-4'
+                },
+                buttonsStyling: false
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Perhatian',
+                text: {{ Js::from(session('error')) }},
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Mengerti',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    confirmButton: 'btn btn-danger rounded-pill px-4'
+                },
+                buttonsStyling: false
+            });
+        @endif
+
+        @if (session('warning'))
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan',
+                text: {{ Js::from(session('warning')) }},
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Mengerti',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    confirmButton: 'btn btn-danger rounded-pill px-4'
+                },
+                buttonsStyling: false
+            });
+        @endif
+
+        @if (session('info'))
+            Swal.fire({
+                icon: 'info',
+                title: 'Informasi',
+                text: {{ Js::from(session('info')) }},
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Mengerti',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    confirmButton: 'btn btn-danger rounded-pill px-4'
+                },
+                buttonsStyling: false
+            });
+        @endif
+
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Terjadi Kesalahan',
+                html: '<div class="text-start small mt-2"><ul class="mb-0 ps-3">@foreach ($errors->all() as $error)<li>{{ addslashes($error) }}</li>@endforeach</ul></div>',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Periksa Kembali',
+                customClass: {
+                    popup: 'rounded-4 shadow-lg',
+                    confirmButton: 'btn btn-danger rounded-pill px-4'
+                },
+                buttonsStyling: false
+            });
+        @endif
+    </script>
     @stack('scripts')
 </body>
 

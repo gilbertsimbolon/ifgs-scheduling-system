@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Database\Factories\TimeSlotFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -75,6 +77,14 @@ class TimeSlot extends Model
     public function getWalkinQuotaAttribute(): int
     {
         return max(0, $this->capacity - $this->effective_reservation_quota);
+    }
+
+    /**
+     * Alias kuota reservasi efektif.
+     */
+    public function getQuotaAttribute(): int
+    {
+        return $this->effective_reservation_quota;
     }
 
     /**
@@ -192,5 +202,60 @@ class TimeSlot extends Model
     public function getStatusLabelAttribute(): string
     {
         return $this->status === self::STATUS_ACTIVE ? 'Aktif' : 'Non-Aktif';
+    }
+
+    /**
+     * Dapatkan daftar hari operasional dalam format integer CarbonInterface (0 = Minggu, 1 = Senin, ..., 6 = Sabtu).
+     *
+     * @return array<int>
+     */
+    public function getOperationalDaysOfWeek(): array
+    {
+        if ($this->category === self::CATEGORY_AEROBIC_ZUMBA || str_contains(strtolower($this->days ?? ''), 'kamis')) {
+            return [CarbonInterface::MONDAY, CarbonInterface::THURSDAY];
+        }
+
+        // Default untuk Fitness atau slot gym standar: Senin s.d. Sabtu (Minggu tutup)
+        return [
+            CarbonInterface::MONDAY,
+            CarbonInterface::TUESDAY,
+            CarbonInterface::WEDNESDAY,
+            CarbonInterface::THURSDAY,
+            CarbonInterface::FRIDAY,
+            CarbonInterface::SATURDAY,
+        ];
+    }
+
+    /**
+     * Periksa apakah slot ini beroperasi pada tanggal yang diberikan.
+     */
+    public function operatesOnDate(CarbonInterface|string $date): bool
+    {
+        $carbon = is_string($date) ? Carbon::parse($date) : $date;
+
+        return in_array($carbon->dayOfWeek, $this->getOperationalDaysOfWeek(), true);
+    }
+
+    /**
+     * Menghasilkan N tanggal operasional mendatang untuk slot ini dimulai dari hari ini.
+     *
+     * @return array<CarbonInterface>
+     */
+    public function getUpcomingOperationalDates(int $count = 10, ?CarbonInterface $startDate = null): array
+    {
+        $startDate = $startDate ? $startDate->copy()->startOfDay() : now()->startOfDay();
+        $operationalDays = $this->getOperationalDaysOfWeek();
+        $dates = [];
+        $cursor = $startDate->copy();
+
+        // Cari hingga $count hari operasional tercapai (maksimal batas 60 hari ke depan)
+        for ($i = 0; $i < 60 && count($dates) < $count; $i++) {
+            if (in_array($cursor->dayOfWeek, $operationalDays, true)) {
+                $dates[] = $cursor->copy();
+            }
+            $cursor->addDay();
+        }
+
+        return $dates;
     }
 }

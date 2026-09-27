@@ -7,6 +7,8 @@ use App\Models\Membership;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
+use App\Models\Trainer;
+use App\Models\TrainerBooking;
 use App\Services\GreedySchedulingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -156,6 +158,8 @@ class ReservationController extends Controller
             'visit_date' => ['required', 'date', 'after_or_equal:today'],
             'time_slot_id' => ['nullable', 'exists:time_slots,id'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'trainer_id' => ['nullable', 'exists:trainers,id'],
+            'training_focus' => ['nullable', 'string', 'max:255'],
         ];
 
         if (! $isMember) {
@@ -275,17 +279,45 @@ class ReservationController extends Controller
             $validated['time_slot_id'] ?? null
         );
 
+        $trainerNotice = null;
+        if (! empty($validated['trainer_id'])) {
+            $trainer = Trainer::with('user')->active()->find($validated['trainer_id']);
+            if ($trainer) {
+                $occupiedTrainerSlots = $trainer->getOccupiedSlotsForDate($visitDate);
+                $dailyQuota = $trainer->daily_quota ?? 5;
+
+                if ($occupiedTrainerSlots < $dailyQuota) {
+                    TrainerBooking::create([
+                        'trainer_id' => $trainer->id,
+                        'member_id' => $member->id,
+                        'time_slot_id' => $reservation->time_slot_id,
+                        'session_date' => $visitDate,
+                        'training_focus' => $request->filled('training_focus') ? $request->input('training_focus') : null,
+                        'notes' => $validated['notes'] ?? null,
+                        'status' => TrainerBooking::STATUS_PENDING,
+                    ]);
+                    $trainerNotice = " Permohonan sesi latihan bersama Coach {$trainer->user?->name} berhasil diajukan.";
+                } else {
+                    $trainerNotice = " Namun kuota sesi untuk Coach {$trainer->user?->name} pada tanggal tersebut sudah penuh.";
+                }
+            }
+        }
+
         $destination = $request->filled('redirect_to') ? $request->redirect_to : route('reservations.index');
 
         if ($scheduleResult['success']) {
-            $msg = "Reservasi {$reservation->code} berhasil dijadwalkan! {$scheduleResult['message']}";
+            $slot = $scheduleResult['time_slot'] ?? null;
+            $slotInfo = $slot ? " untuk sesi {$slot->name} ({$slot->time_range})" : '';
+            $msg = $isMember
+                ? "Jadwal latihan Anda berhasil dikonfirmasi{$slotInfo}!".($trainerNotice ?? '')
+                : "Reservasi berhasil dijadwalkan! {$scheduleResult['message']}".($trainerNotice ?? '');
 
             return redirect($destination)->with('success', $msg);
         }
 
         // Jika seluruh slot penuh pada tanggal tersebut
         return redirect($destination)
-            ->with('warning', "Reservasi dibuat ({$reservation->code}), namun jadwal gagal dialokasikan otomatis: {$scheduleResult['message']}");
+            ->with('warning', 'Jadwal latihan belum dapat dialokasikan otomatis karena kuota slot penuh: '.$scheduleResult['message'].($trainerNotice ?? ''));
     }
 
     /**
@@ -312,9 +344,10 @@ class ReservationController extends Controller
         }
 
         $destination = $request->filled('redirect_to') ? $request->redirect_to : route('reservations.index');
+        $isMemberUser = $user->hasRole('Member') || $user->member || $request->filled('redirect_to');
 
         return redirect($destination)
-            ->with('success', "Reservasi {$reservation->code} berhasil dibatalkan.");
+            ->with('success', $isMemberUser ? 'Jadwal kunjungan latihan Anda berhasil dibatalkan.' : "Reservasi {$reservation->code} berhasil dibatalkan.");
     }
 
     /**
@@ -351,9 +384,33 @@ class ReservationController extends Controller
             ];
         });
 
+        // Data ketersediaan slot realtime untuk masing-masing personal trainer
+        $trainers = Trainer::with('user')->active()->get()->map(function (Trainer $trainer) use ($date) {
+            $dailyQuota = $trainer->daily_quota ?? 5;
+            $occupied = TrainerBooking::where('trainer_id', $trainer->id)
+                ->whereDate('session_date', $date)
+                ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED, TrainerBooking::STATUS_REJECTED])
+                ->count();
+            $remaining = max(0, $dailyQuota - $occupied);
+
+            return [
+                'id' => $trainer->id,
+                'name' => $trainer->user?->name ?? 'Trainer',
+                'specialization' => $trainer->specialization ?? 'Personal Trainer',
+                'daily_quota' => $dailyQuota,
+                'occupied' => $occupied,
+                'remaining' => $remaining,
+                'is_full' => $remaining <= 0,
+            ];
+        });
+
+        $isSunday = Carbon::parse($date)->dayOfWeek === Carbon::SUNDAY;
+
         return response()->json([
             'date' => $date,
+            'is_sunday' => $isSunday,
             'slots' => $data,
+            'trainers' => $trainers,
         ]);
     }
 }

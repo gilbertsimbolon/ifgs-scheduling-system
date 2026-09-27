@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['user_id', 'trainer_code', 'phone', 'specialization', 'bio', 'status'])]
+#[Fillable(['user_id', 'trainer_code', 'phone', 'specialization', 'bio', 'status', 'daily_quota'])]
 class Trainer extends Model
 {
     /** @use HasFactory<TrainerFactory> */
@@ -24,6 +24,37 @@ class Trainer extends Model
         self::STATUS_ACTIVE,
         self::STATUS_INACTIVE,
     ];
+
+    /**
+     * Attributes cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'daily_quota' => 'integer',
+        ];
+    }
+
+    /**
+     * Hitung jumlah sesi terisi pada tanggal tertentu.
+     */
+    public function getOccupiedSlotsForDate(string $date): int
+    {
+        return $this->bookings()
+            ->whereDate('session_date', $date)
+            ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED, TrainerBooking::STATUS_REJECTED])
+            ->count();
+    }
+
+    /**
+     * Hitung sisa slot personal trainer pada tanggal tertentu.
+     */
+    public function getRemainingSlotsForDate(string $date): int
+    {
+        $quota = $this->daily_quota ?? 5;
+
+        return max(0, $quota - $this->getOccupiedSlotsForDate($date));
+    }
 
     /**
      * Boot model events.
