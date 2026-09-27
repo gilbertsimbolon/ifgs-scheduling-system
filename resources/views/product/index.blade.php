@@ -221,31 +221,31 @@
                 const idInput = id ? `<input type="hidden" name="durations[${index}][id]" value="${id}">` : '';
 
                 return `
-                    <tr class="duration-row align-middle" data-index="${index}">
+                    <tr class="duration-row align-middle" data-index="${index}" style="border-bottom: 1px solid var(--bs-border-color);">
                         ${idInput}
-                        <td>
+                        <td class="ps-1 py-2">
                             <input type="number" min="0" max="365"
-                                class="form-control form-control-sm duration-value-input ${isLifetime ? 'bg-light' : ''}"
+                                class="form-control form-control-sm duration-value-input"
                                 name="durations[${index}][duration_value]"
                                 value="${isLifetime ? 0 : val}"
                                 ${isLifetime ? 'readonly tabindex="-1"' : 'required'}>
                         </td>
-                        <td>
+                        <td class="py-2">
                             <select class="form-select form-select-sm duration-unit-select"
                                 name="durations[${index}][duration_unit]" required>
                                 ${unitOptions}
                             </select>
                         </td>
-                        <td>
+                        <td class="py-2">
                             <div class="input-group input-group-sm">
-                                <span class="input-group-text">Rp</span>
+                                <span class="input-group-text bg-white text-muted">Rp</span>
                                 <input type="number" step="1000" min="0"
                                     class="form-control form-control-sm duration-price-input"
                                     name="durations[${index}][price]"
                                     value="${price}" placeholder="150000" required>
                             </div>
                         </td>
-                        <td class="text-center">
+                        <td class="text-center pe-1 py-2">
                             <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-remove-duration"
                                 title="Hapus Pilihan">
                                 <i class="bx bx-trash"></i>
@@ -266,11 +266,9 @@
                             valInput.value = 0;
                             valInput.readOnly = true;
                             valInput.setAttribute('tabindex', '-1');
-                            valInput.classList.add('bg-light');
                         } else {
                             valInput.readOnly = false;
                             valInput.removeAttribute('tabindex');
-                            valInput.classList.remove('bg-light');
                             if (parseInt(valInput.value, 10) === 0 || !valInput.value) {
                                 valInput.value = 1;
                             }
@@ -440,11 +438,11 @@
                                     const durText = d.duration_formatted || `${d.duration_value} ${d.duration_unit}`;
                                     const priceText = d.formatted_price || `Rp ${Number(d.price).toLocaleString('id-ID')}`;
                                     const row = `
-                                        <tr>
-                                            <td class="fw-semibold text-dark">
-                                                <i class="bx bx-check-circle text-primary me-1"></i> ${durText}
+                                        <tr style="border-bottom: 1px solid var(--bs-border-color);">
+                                            <td class="ps-1 py-3 text-dark fw-medium">
+                                                ${durText}
                                             </td>
-                                            <td class="fw-bold text-success">${priceText}</td>
+                                            <td class="pe-1 py-3 text-end fw-bold text-success">${priceText}</td>
                                         </tr>
                                     `;
                                     tableBody.insertAdjacentHTML('beforeend', row);
