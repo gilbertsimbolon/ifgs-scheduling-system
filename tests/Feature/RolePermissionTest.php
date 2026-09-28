@@ -120,3 +120,67 @@ test('member cannot access admin dashboard and is redirected to member portal', 
 
     $this->actingAs($memberUser)->get(route('dashboard'))->assertRedirect(route('member.index'));
 });
+
+test('admin sees all sidebar menus with no duplicates', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $response = $this->actingAs($admin)->get(route('dashboard'));
+    $response->assertOk();
+
+    $content = $response->getContent();
+
+    // Verify all admin menus exist
+    $response->assertSee('Dashboard');
+    $response->assertSee('Pengguna');
+    $response->assertSee('Data Member');
+    $response->assertSee('Membership');
+    $response->assertSee('Transaksi Membership');
+    $response->assertSee('Paket Layanan');
+    $response->assertSee('Trainer');
+    $response->assertSee('Sesi Trainer');
+    $response->assertSee('Metode Pembayaran');
+    $response->assertSee('Jadwal Operasional');
+    $response->assertSee('Reservasi');
+    $response->assertSee('Kunjungan');
+    $response->assertSee('Greedy');
+    $response->assertSee('Check-in &amp; Check-out', false);
+
+    // Verify NO DUPLICATES in sidebar menu-text / text-truncate
+    expect(substr_count($content, '<div class="text-truncate">Membership</div>'))->toBe(1);
+    expect(substr_count($content, '<div class="text-truncate">Transaksi Membership</div>'))->toBe(1);
+    expect(substr_count($content, '<div class="text-truncate">Data Member</div>'))->toBe(1);
+    expect(substr_count($content, '<div class="text-truncate">Pengguna</div>'))->toBe(1);
+});
+
+test('kasir sees only permitted sidebar menus with no duplicates', function () {
+    $kasir = User::factory()->create();
+    $kasir->assignRole('Kasir');
+
+    $response = $this->actingAs($kasir)->get(route('dashboard'));
+    $response->assertOk();
+
+    $content = $response->getContent();
+
+    // Menus that Kasir SHOULD see
+    $response->assertSee('Dashboard');
+    $response->assertSee('Data Member');
+    $response->assertSee('Membership');
+    $response->assertSee('Transaksi Membership');
+    $response->assertSee('Sesi Trainer');
+    $response->assertSee('Reservasi');
+    $response->assertSee('Kunjungan');
+    $response->assertSee('Check-in &amp; Check-out', false);
+
+    // Menus that Kasir SHOULD NOT see in sidebar
+    $response->assertDontSee('<div class="text-truncate">Pengguna</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Paket Layanan</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Trainer</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Metode Pembayaran</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Jadwal Operasional</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Greedy</div>', false);
+
+    // Verify NO DUPLICATES
+    expect(substr_count($content, '<div class="text-truncate">Membership</div>'))->toBe(1);
+    expect(substr_count($content, '<div class="text-truncate">Transaksi Membership</div>'))->toBe(1);
+});
