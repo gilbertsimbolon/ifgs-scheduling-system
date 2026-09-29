@@ -2,19 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Member;
 use App\Models\Trainer;
-use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TrainerController extends Controller
 {
     /**
-     * Tampilkan daftar seluruh Trainer / Instruktur.
+     * Tampilkan daftar seluruh Trainer (Member dengan is_trainer = true).
      */
     public function index(Request $request): View
     {
@@ -37,162 +36,124 @@ class TrainerController extends Controller
         }
 
         if ($status = $request->input('status')) {
-            $query->where('status', $status);
+            $query->where('trainer_status', $status);
         }
 
         $trainers = $query->latest()->paginate(10)->withQueryString();
-        $specializations = Trainer::select('specialization')->distinct()->pluck('specialization');
 
-        return view('trainer.index', compact('trainers', 'specializations'));
+        $specializations = Trainer::whereNotNull('specialization')
+            ->where('specialization', '!=', '')
+            ->select('specialization')
+            ->distinct()
+            ->pluck('specialization');
+
+        // Daftar Member terdaftar yang belum menjadi trainer (untuk modal pencarian akun)
+        $eligibleMembers = Member::where('is_trainer', false)
+            ->with('user')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $eligibleMembersJson = $eligibleMembers->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'name' => $m->user?->name ?? 'Member #' . $m->id,
+                'email' => $m->user?->email ?? '-',
+                'code' => $m->member_code ?? '-',
+                'phone' => $m->phone ?? '',
+                'initials' => strtoupper(substr($m->user?->name ?? 'M', 0, 2)),
+            ];
+        })->values();
+
+        return view('trainer.index', compact('trainers', 'specializations', 'eligibleMembers', 'eligibleMembersJson'));
     }
 
     /**
-     * Simpan data trainer baru dan buat akun user terkait.
+     * Aktifkan status is_trainer pada akun member yang sudah terdaftar.
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'specialization' => ['required', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'status' => ['required', Rule::in([Trainer::STATUS_ACTIVE, Trainer::STATUS_INACTIVE])],
-            'max_slots' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'member_id' => ['required', 'exists:members,id'],
+            'specialization' => ['nullable', 'string', 'max:255'],
         ], [
-            'name.required' => 'Nama trainer wajib diisi.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah terdaftar pada akun lain.',
-            'password.required' => 'Kata sandi akun wajib diisi.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-            'specialization.required' => 'Spesialisasi keahlian wajib diisi.',
-            'status.required' => 'Status operasional wajib dipilih.',
-            'max_slots.integer' => 'Kapasitas maksimal member harus berupa bilangan bulat.',
-            'max_slots.min' => 'Kapasitas maksimal member minimal 1 orang.',
-            'max_slots.max' => 'Kapasitas maksimal member maksimal 100 orang.',
+            'member_id.required' => 'Pilih akun member yang ingin diaktifkan sebagai trainer.',
+            'member_id.exists' => 'Data akun member tidak ditemukan.',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'status' => $validated['status'] === Trainer::STATUS_ACTIVE ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
-            ]);
+        $member = Member::with('user')->findOrFail($validated['member_id']);
 
-            $user->assignRole('Trainer');
+        $member->update([
+            'is_trainer' => true,
+            'trainer_status' => Trainer::STATUS_ACTIVE, // Default status: Aktif
+            'specialization' => $validated['specialization'] ?? $member->specialization ?? 'Fitness & Gym Trainer',
+        ]);
 
-            Trainer::create([
-                'user_id' => $user->id,
-                'phone' => $validated['phone'] ?? null,
-                'specialization' => $validated['specialization'],
-                'bio' => $validated['bio'] ?? null,
-                'status' => $validated['status'],
-                'max_slots' => $validated['max_slots'] ?? 10,
-            ]);
-        });
+        $name = $member->user?->name ?? 'Member';
 
         return redirect()->route('trainers.index')
-            ->with('success', 'Data Trainer "'.$validated['name'].'" berhasil ditambahkan beserta akun login.');
+            ->with('success', "Akun \"{$name}\" berhasil diaktifkan sebagai Trainer (Status: Aktif).");
     }
 
     /**
-     * Perbarui data trainer dan akun user terkait.
+     * Perbarui data trainer (spesialisasi atau status).
      */
     public function update(Request $request, Trainer $trainer): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($trainer->user_id)],
-            'password' => ['nullable', 'string', 'min:8'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'specialization' => ['required', 'string', 'max:255'],
-            'bio' => ['nullable', 'string', 'max:1000'],
-            'status' => ['required', Rule::in([Trainer::STATUS_ACTIVE, Trainer::STATUS_INACTIVE])],
-            'max_slots' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'specialization' => ['nullable', 'string', 'max:255'],
+            'status' => ['required', Rule::in(['active', 'inactive'])],
         ], [
-            'name.required' => 'Nama trainer wajib diisi.',
-            'email.required' => 'Alamat email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
-            'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
-            'password.min' => 'Kata sandi minimal 8 karakter.',
-            'specialization.required' => 'Spesialisasi keahlian wajib diisi.',
             'status.required' => 'Status operasional wajib dipilih.',
-            'max_slots.integer' => 'Kapasitas maksimal member harus berupa bilangan bulat.',
-            'max_slots.min' => 'Kapasitas maksimal member minimal 1 orang.',
-            'max_slots.max' => 'Kapasitas maksimal member maksimal 100 orang.',
         ]);
 
-        DB::transaction(function () use ($trainer, $validated) {
-            $user = $trainer->user;
-            $userData = [
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'status' => $validated['status'] === Trainer::STATUS_ACTIVE ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
-            ];
+        $trainer->update([
+            'specialization' => $validated['specialization'] ?? $trainer->specialization,
+            'trainer_status' => $validated['status'],
+        ]);
 
-            if (! empty($validated['password'])) {
-                $userData['password'] = Hash::make($validated['password']);
-            }
-
-            $user->update($userData);
-
-            $trainerData = [
-                'phone' => $validated['phone'] ?? $trainer->phone,
-                'specialization' => $validated['specialization'],
-                'bio' => $validated['bio'] ?? $trainer->bio,
-                'status' => $validated['status'],
-            ];
-
-            if (isset($validated['max_slots'])) {
-                $trainerData['max_slots'] = $validated['max_slots'];
-            }
-
-            $trainer->update($trainerData);
-        });
+        $name = $trainer->user?->name ?? 'Trainer';
 
         return redirect()->route('trainers.index')
-            ->with('success', 'Data Trainer "'.$validated['name'].'" berhasil diperbarui.');
+            ->with('success', "Data Trainer \"{$name}\" berhasil diperbarui.");
     }
 
     /**
-     * Toggle status aktif / non-aktif trainer.
+     * Toggle status aktif / non-aktif trainer (On/Off switch di tabel).
      */
-    public function toggleStatus(Trainer $trainer): RedirectResponse
+    public function toggleStatus(Request $request, Trainer $trainer): RedirectResponse|JsonResponse
     {
-        $newStatus = $trainer->status === Trainer::STATUS_ACTIVE
-            ? Trainer::STATUS_INACTIVE
-            : Trainer::STATUS_ACTIVE;
+        $newStatus = ($trainer->trainer_status ?? 'active') === 'active' ? 'inactive' : 'active';
 
-        DB::transaction(function () use ($trainer, $newStatus) {
-            $trainer->update(['status' => $newStatus]);
-            $trainer->user->update([
-                'status' => $newStatus === Trainer::STATUS_ACTIVE ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
+        $trainer->update(['trainer_status' => $newStatus]);
+
+        $label = $newStatus === 'active' ? 'diaktifkan' : 'dinonaktifkan';
+        $trainerName = $trainer->user?->name ?? 'Trainer';
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'status' => $newStatus,
+                'message' => "Status Trainer \"{$trainerName}\" berhasil {$label}.",
             ]);
-        });
-
-        $label = $newStatus === Trainer::STATUS_ACTIVE ? 'diaktifkan' : 'dinonaktifkan';
+        }
 
         return redirect()->route('trainers.index')
-            ->with('success', "Status Trainer \"{$trainer->user->name}\" berhasil {$label}.");
+            ->with('success', "Status Trainer \"{$trainerName}\" berhasil {$label}.");
     }
 
     /**
-     * Hapus data trainer dan akun user-nya.
+     * Cabut status trainer (mengubah is_trainer menjadi false).
      */
     public function destroy(Trainer $trainer): RedirectResponse
     {
-        $trainerName = $trainer->user->name;
+        $trainerName = $trainer->user?->name ?? 'Trainer';
 
-        DB::transaction(function () use ($trainer) {
-            $user = $trainer->user;
-            $trainer->delete();
-            $user->delete();
-        });
+        $trainer->update([
+            'is_trainer' => false,
+            'trainer_status' => 'inactive',
+        ]);
 
         return redirect()->route('trainers.index')
-            ->with('success', "Trainer \"{$trainerName}\" beserta akunnya berhasil dihapus.");
+            ->with('success', "Status Trainer untuk \"{$trainerName}\" berhasil dicabut.");
     }
 }
