@@ -240,6 +240,16 @@
                                     aria-label="Close"></button>
                             </div>
                             <div class="modal-body text-wrap" style="white-space: normal;">
+                                @if ($errors->any() && old('_modal') === 'edit_' . $trainer->id)
+                                    <div class="alert alert-danger mb-3">
+                                        <ul class="mb-0 ps-3">
+                                            @foreach ($errors->all() as $error)
+                                                <li>{{ $error }}</li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
                                 <div class="mb-3">
                                     <label class="form-label" for="name_{{ $trainer->id }}">Nama Lengkap <span
                                             class="text-danger">*</span></label>
@@ -287,6 +297,20 @@
                                         Catatan</label>
                                     <textarea class="form-control" id="bio_{{ $trainer->id }}" name="bio" rows="2"
                                         placeholder="Keterangan singkat pengalaman atau sertifikasi...">{{ old('_modal') === 'edit_' . $trainer->id ? old('bio') : $trainer->bio }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="max_slots_{{ $trainer->id }}">Maksimal Member <span
+                                            class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bx bx-user-check"></i></span>
+                                        <input type="number" class="form-control" id="max_slots_{{ $trainer->id }}"
+                                            name="max_slots" min="1" max="100"
+                                            value="{{ old('_modal') === 'edit_' . $trainer->id ? old('max_slots', $trainer->max_slots ?? 10) : ($trainer->max_slots ?? 10) }}"
+                                            required>
+                                        <span class="input-group-text">Member</span>
+                                    </div>
+                                    <small class="text-muted">Jumlah member aktif yang dapat ditangani trainer.</small>
                                 </div>
 
                                 <div class="mb-3">
@@ -419,6 +443,18 @@
                                 <label class="form-label" for="tambah_bio">Profil / Sertifikasi / Catatan</label>
                                 <textarea class="form-control" id="tambah_bio" name="bio" rows="2"
                                     placeholder="Keterangan singkat pengalaman atau sertifikasi...">{{ old('_modal') === 'tambah' ? old('bio') : '' }}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="tambah_max_slots">Maksimal Member <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bx bx-user-check"></i></span>
+                                    <input type="number" class="form-control" id="tambah_max_slots" name="max_slots"
+                                        min="1" max="100"
+                                        value="{{ old('_modal') === 'tambah' ? old('max_slots', 10) : 10 }}" required>
+                                    <span class="input-group-text">Member</span>
+                                </div>
+                                <small class="text-muted">Jumlah member aktif yang dapat ditangani trainer.</small>
                             </div>
 
                             <div class="mb-3">

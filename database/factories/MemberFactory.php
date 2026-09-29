@@ -21,6 +21,20 @@ class MemberFactory extends Factory
         return [
             'user_id' => User::factory(),
             'phone' => fake()->phoneNumber(),
+            'is_trainer' => false,
         ];
+    }
+
+    /**
+     * State untuk menandai member sebagai trainer.
+     */
+    public function trainer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_trainer' => true,
+            'specialization' => fake()->randomElement(['Fitness & Bodybuilding', 'Aerobic & Zumba', 'Strength & Conditioning', 'Fat Loss']),
+            'bio' => fake()->sentence(10),
+            'trainer_status' => 'active',
+        ]);
     }
 }

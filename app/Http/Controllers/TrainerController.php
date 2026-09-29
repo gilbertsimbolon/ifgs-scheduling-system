@@ -59,6 +59,7 @@ class TrainerController extends Controller
             'specialization' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', Rule::in([Trainer::STATUS_ACTIVE, Trainer::STATUS_INACTIVE])],
+            'max_slots' => ['nullable', 'integer', 'min:1', 'max:100'],
         ], [
             'name.required' => 'Nama trainer wajib diisi.',
             'email.required' => 'Alamat email wajib diisi.',
@@ -68,6 +69,9 @@ class TrainerController extends Controller
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'specialization.required' => 'Spesialisasi keahlian wajib diisi.',
             'status.required' => 'Status operasional wajib dipilih.',
+            'max_slots.integer' => 'Kapasitas maksimal member harus berupa bilangan bulat.',
+            'max_slots.min' => 'Kapasitas maksimal member minimal 1 orang.',
+            'max_slots.max' => 'Kapasitas maksimal member maksimal 100 orang.',
         ]);
 
         DB::transaction(function () use ($validated) {
@@ -82,10 +86,11 @@ class TrainerController extends Controller
 
             Trainer::create([
                 'user_id' => $user->id,
-                'phone' => $validated['phone'],
+                'phone' => $validated['phone'] ?? null,
                 'specialization' => $validated['specialization'],
-                'bio' => $validated['bio'],
+                'bio' => $validated['bio'] ?? null,
                 'status' => $validated['status'],
+                'max_slots' => $validated['max_slots'] ?? 10,
             ]);
         });
 
@@ -106,6 +111,7 @@ class TrainerController extends Controller
             'specialization' => ['required', 'string', 'max:255'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'status' => ['required', Rule::in([Trainer::STATUS_ACTIVE, Trainer::STATUS_INACTIVE])],
+            'max_slots' => ['nullable', 'integer', 'min:1', 'max:100'],
         ], [
             'name.required' => 'Nama trainer wajib diisi.',
             'email.required' => 'Alamat email wajib diisi.',
@@ -114,6 +120,9 @@ class TrainerController extends Controller
             'password.min' => 'Kata sandi minimal 8 karakter.',
             'specialization.required' => 'Spesialisasi keahlian wajib diisi.',
             'status.required' => 'Status operasional wajib dipilih.',
+            'max_slots.integer' => 'Kapasitas maksimal member harus berupa bilangan bulat.',
+            'max_slots.min' => 'Kapasitas maksimal member minimal 1 orang.',
+            'max_slots.max' => 'Kapasitas maksimal member maksimal 100 orang.',
         ]);
 
         DB::transaction(function () use ($trainer, $validated) {
@@ -130,12 +139,18 @@ class TrainerController extends Controller
 
             $user->update($userData);
 
-            $trainer->update([
-                'phone' => $validated['phone'],
+            $trainerData = [
+                'phone' => $validated['phone'] ?? $trainer->phone,
                 'specialization' => $validated['specialization'],
-                'bio' => $validated['bio'],
+                'bio' => $validated['bio'] ?? $trainer->bio,
                 'status' => $validated['status'],
-            ]);
+            ];
+
+            if (isset($validated['max_slots'])) {
+                $trainerData['max_slots'] = $validated['max_slots'];
+            }
+
+            $trainer->update($trainerData);
         });
 
         return redirect()->route('trainers.index')

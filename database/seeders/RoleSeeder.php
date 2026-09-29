@@ -67,7 +67,6 @@ class RoleSeeder extends Seeder
             'manage-members',
             'manage-memberships',
             'manage-membership-transactions',
-            'manage-trainer-bookings',
             'manage-reservations',
             'manage-schedules',
             'manage-attendances',

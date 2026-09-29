@@ -34,14 +34,13 @@ test('admin can access everything and perform CRUD operations', function () {
     $this->actingAs($admin)->get(route('transactions.index'))->assertOk();
 });
 
-test('kasir can access membership, transactions, trainer bookings, reservations, schedules, and attendance', function () {
+test('kasir can access membership, transactions, reservations, schedules, and attendance', function () {
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
     $this->actingAs($kasir)->get(route('dashboard'))->assertOk();
     $this->actingAs($kasir)->get(route('memberships.index'))->assertOk();
     $this->actingAs($kasir)->get(route('membership-transactions.index'))->assertOk();
-    $this->actingAs($kasir)->get(route('trainer-bookings.index'))->assertOk();
     $this->actingAs($kasir)->get(route('reservations.index'))->assertOk();
     $this->actingAs($kasir)->get(route('schedules.index'))->assertOk();
     $this->actingAs($kasir)->get(route('attendances.index'))->assertOk();
@@ -49,7 +48,7 @@ test('kasir can access membership, transactions, trainer bookings, reservations,
     $this->actingAs($kasir)->get(route('transactions.index'))->assertOk();
 });
 
-test('kasir cannot access user management, time slots, products, trainers, payment methods, or greedy', function () {
+test('kasir cannot access user management, time slots, products, trainers, payment methods, greedy, or trainer bookings', function () {
     $kasir = User::factory()->create();
     $kasir->assignRole('Kasir');
 
@@ -59,12 +58,29 @@ test('kasir cannot access user management, time slots, products, trainers, payme
     $this->actingAs($kasir)->get(route('trainers.index'))->assertForbidden();
     $this->actingAs($kasir)->get(route('payment-methods.index'))->assertForbidden();
     $this->actingAs($kasir)->get(route('greedy.index'))->assertForbidden();
+    $this->actingAs($kasir)->get(route('trainer-bookings.index'))->assertForbidden();
 });
 
-test('trainer cannot access admin dashboard or attendance panel and is redirected to home', function () {
+test('kasir cannot perform actions on trainer bookings', function () {
+    $kasir = User::factory()->create();
+    $kasir->assignRole('Kasir');
+
+    $booking = TrainerBooking::factory()->create([
+        'status' => TrainerBooking::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($kasir)->patch(route('trainer-bookings.approve', $booking))->assertForbidden();
+    $this->actingAs($kasir)->patch(route('trainer-bookings.reject', $booking), ['reason' => 'Alasan'])->assertForbidden();
+    $this->actingAs($kasir)->patch(route('trainer-bookings.complete', $booking))->assertForbidden();
+});
+
+test('trainer can access trainer bookings but cannot access dashboard or attendance panel and is redirected to home', function () {
     $trainerUser = User::factory()->create();
     $trainerUser->assignRole('Trainer');
     Trainer::factory()->create(['user_id' => $trainerUser->id]);
+
+    // Trainer can access trainer bookings
+    $this->actingAs($trainerUser)->get(route('trainer-bookings.index'))->assertOk();
 
     // Dashboard redirects trainer to landing page
     $this->actingAs($trainerUser)->get(route('dashboard'))->assertRedirect(route('home'));
@@ -113,12 +129,20 @@ test('trainer can only approve or reject their own assigned sessions', function 
     expect($bookingTrainer2->fresh()->status)->toBe(TrainerBooking::STATUS_PENDING);
 });
 
-test('member cannot access admin dashboard and is redirected to member portal', function () {
+test('member cannot access admin dashboard or trainer bookings', function () {
     $memberUser = User::factory()->create();
     $memberUser->assignRole('Member');
     Member::factory()->create(['user_id' => $memberUser->id]);
 
+    $booking = TrainerBooking::factory()->create([
+        'status' => TrainerBooking::STATUS_PENDING,
+    ]);
+
     $this->actingAs($memberUser)->get(route('dashboard'))->assertRedirect(route('member.index'));
+    $this->actingAs($memberUser)->get(route('trainer-bookings.index'))->assertForbidden();
+    $this->actingAs($memberUser)->patch(route('trainer-bookings.approve', $booking))->assertForbidden();
+    $this->actingAs($memberUser)->patch(route('trainer-bookings.reject', $booking), ['reason' => 'Alasan'])->assertForbidden();
+    $this->actingAs($memberUser)->patch(route('trainer-bookings.complete', $booking))->assertForbidden();
 });
 
 test('admin sees all sidebar menus with no duplicates', function () {
@@ -151,6 +175,7 @@ test('admin sees all sidebar menus with no duplicates', function () {
     expect(substr_count($content, '<div class="text-truncate">Transaksi Membership</div>'))->toBe(1);
     expect(substr_count($content, '<div class="text-truncate">Data Member</div>'))->toBe(1);
     expect(substr_count($content, '<div class="text-truncate">Pengguna</div>'))->toBe(1);
+    expect(substr_count($content, '<div class="text-truncate">Sesi Trainer</div>'))->toBe(1);
 });
 
 test('kasir sees only permitted sidebar menus with no duplicates', function () {
@@ -167,7 +192,6 @@ test('kasir sees only permitted sidebar menus with no duplicates', function () {
     $response->assertSee('Data Member');
     $response->assertSee('Membership');
     $response->assertSee('Transaksi Membership');
-    $response->assertSee('Sesi Trainer');
     $response->assertSee('Reservasi');
     $response->assertSee('Kunjungan');
     $response->assertSee('Check-in &amp; Check-out', false);
@@ -176,6 +200,7 @@ test('kasir sees only permitted sidebar menus with no duplicates', function () {
     $response->assertDontSee('<div class="text-truncate">Pengguna</div>', false);
     $response->assertDontSee('<div class="text-truncate">Paket Layanan</div>', false);
     $response->assertDontSee('<div class="text-truncate">Trainer</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Sesi Trainer</div>', false);
     $response->assertDontSee('<div class="text-truncate">Metode Pembayaran</div>', false);
     $response->assertDontSee('<div class="text-truncate">Jadwal Operasional</div>', false);
     $response->assertDontSee('<div class="text-truncate">Greedy</div>', false);
@@ -183,4 +208,30 @@ test('kasir sees only permitted sidebar menus with no duplicates', function () {
     // Verify NO DUPLICATES
     expect(substr_count($content, '<div class="text-truncate">Membership</div>'))->toBe(1);
     expect(substr_count($content, '<div class="text-truncate">Transaksi Membership</div>'))->toBe(1);
+});
+
+test('trainer sees trainer bookings menu in sidebar when accessing trainer bookings', function () {
+    $trainerUser = User::factory()->create();
+    $trainerUser->assignRole('Trainer');
+    Trainer::factory()->create(['user_id' => $trainerUser->id]);
+
+    $response = $this->actingAs($trainerUser)->get(route('trainer-bookings.index'));
+    $response->assertOk();
+
+    // Trainer sees Sesi Trainer
+    $response->assertSee('<div class="text-truncate">Sesi Trainer</div>', false);
+    // Trainer does not see other management / operational items
+    $response->assertDontSee('<div class="text-truncate">Dashboard</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Pengguna</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Data Member</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Membership</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Transaksi Membership</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Paket Layanan</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Trainer</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Metode Pembayaran</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Jadwal Operasional</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Reservasi</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Kunjungan</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Greedy</div>', false);
+    $response->assertDontSee('<div class="text-truncate">Check-in &amp; Check-out</div>', false);
 });

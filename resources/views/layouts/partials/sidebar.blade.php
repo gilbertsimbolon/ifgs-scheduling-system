@@ -83,16 +83,7 @@
                         <div class="text-truncate">Trainer</div>
                     </a>
                 </li>
-            @endhasrole
 
-            <li class="menu-item {{ request()->routeIs('trainer-bookings.*') ? 'active' : '' }}">
-                <a href="{{ route('trainer-bookings.index') }}" class="menu-link">
-                    <i class="menu-icon tf-icons bx bx-calendar-star"></i>
-                    <div class="text-truncate">Sesi Trainer</div>
-                </a>
-            </li>
-
-            @hasrole('Admin/Manager')
                 <li class="menu-item {{ request()->routeIs('payment-methods.*') ? 'active' : '' }}">
                     <a href="{{ route('payment-methods.index') }}" class="menu-link">
                         <i class="menu-icon tf-icons bx bx-credit-card-front"></i>
@@ -100,7 +91,9 @@
                     </a>
                 </li>
             @endhasrole
+        @endhasanyrole
 
+        @hasanyrole('Admin/Manager|Kasir')
             <!-- 3. OPERASIONAL -->
             <li class="menu-header small text-uppercase">
                 <span class="menu-header-text">OPERASIONAL</span>

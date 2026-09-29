@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Trainer;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +15,7 @@ class TrainerSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::firstOrCreate(['name' => 'Trainer', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'Member', 'guard_name' => 'web']);
 
         $trainers = [
             [
@@ -24,7 +24,7 @@ class TrainerSeeder extends Seeder
                 'phone' => '081234567891',
                 'specialization' => 'Fitness & Bodybuilding',
                 'bio' => 'Instruktur senior kebugaran dan pembentukan otot bersertifikasi APKI dengan pengalaman 5 tahun.',
-                'status' => Trainer::STATUS_ACTIVE,
+                'trainer_status' => 'active',
             ],
             [
                 'name' => 'Zin Rini Walangitan',
@@ -32,7 +32,7 @@ class TrainerSeeder extends Seeder
                 'phone' => '081234567892',
                 'specialization' => 'Aerobic & Zumba',
                 'bio' => 'Instruktur resmi Zumba & Aerobic berlisensi internasional yang memandu sesi rutin Senin & Kamis.',
-                'status' => Trainer::STATUS_ACTIVE,
+                'trainer_status' => 'active',
             ],
         ];
 
@@ -46,17 +46,18 @@ class TrainerSeeder extends Seeder
                 ]
             );
 
-            if (! $user->hasRole('Trainer')) {
-                $user->assignRole('Trainer');
+            if (! $user->hasRole('Member')) {
+                $user->assignRole('Member');
             }
 
-            Trainer::updateOrCreate(
+            Member::updateOrCreate(
                 ['user_id' => $user->id],
                 [
                     'phone' => $data['phone'],
+                    'is_trainer' => true,
                     'specialization' => $data['specialization'],
                     'bio' => $data['bio'],
-                    'status' => $data['status'],
+                    'trainer_status' => $data['trainer_status'],
                 ]
             );
         }

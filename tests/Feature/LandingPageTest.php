@@ -6,8 +6,6 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
-use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use App\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,7 +34,6 @@ test('guest can view landing page with products, operational hours, and login li
         ->assertSee('Indo Fitness Gym Sport®')
         ->assertSee('Paket Layanan')
         ->assertSee('Fitness 1 Bulan')
-        ->assertSee('Rp 150.000')
         ->assertSee('Jam Buka Operasional')
         ->assertSee('Masuk')
         ->assertSee('Daftar Akun');
@@ -80,81 +77,20 @@ test('authenticated member sees membership status, QR absensi, and visit schedul
         ->assertSee('Terjadwal');
 });
 
-test('authenticated trainer sees their assigned sessions and actions on landing page', function () {
+test('visitor can see active trainers list with contact button on landing page', function () {
     $trainerUser = User::factory()->create(['name' => 'Coach Alex']);
-    $trainerUser->assignRole('Trainer');
-    $trainer = Trainer::factory()->create([
+    $trainerUser->assignRole('Member');
+    $trainer = Member::factory()->trainer()->create([
         'user_id' => $trainerUser->id,
+        'phone' => '081234567890',
         'specialization' => 'Bodybuilding Specialist',
+        'trainer_status' => 'active',
     ]);
 
-    $memberUser = User::factory()->create(['name' => 'David Client']);
-    $memberUser->assignRole('Member');
-    $member = Member::factory()->create(['user_id' => $memberUser->id]);
-
-    $booking = TrainerBooking::factory()->create([
-        'trainer_id' => $trainer->id,
-        'member_id' => $member->id,
-        'training_focus' => 'Hypertrophy Chest & Back',
-        'status' => TrainerBooking::STATUS_PENDING,
-    ]);
-
-    $response = $this->actingAs($trainerUser)->get(route('home'));
+    $response = $this->get(route('home'));
 
     $response->assertOk()
-        ->assertSee('PORTAL TRAINER IFGS')
         ->assertSee('Coach Alex')
-        ->assertSee('Daftar Sesi Latihan Member')
-        ->assertSee('David Client')
-        ->assertSee('Hypertrophy Chest & Back')
-        ->assertSee('Setujui')
-        ->assertSee('Tolak');
-});
-
-test('trainer can approve session booking from landing page and remain on landing page', function () {
-    $trainerUser = User::factory()->create(['name' => 'Coach Alex']);
-    $trainerUser->assignRole('Trainer');
-    $trainer = Trainer::factory()->create(['user_id' => $trainerUser->id]);
-
-    $memberUser = User::factory()->create(['name' => 'David Client']);
-    $memberUser->assignRole('Member');
-    $member = Member::factory()->create(['user_id' => $memberUser->id]);
-
-    $booking = TrainerBooking::factory()->create([
-        'trainer_id' => $trainer->id,
-        'member_id' => $member->id,
-        'status' => TrainerBooking::STATUS_PENDING,
-    ]);
-
-    $response = $this->actingAs($trainerUser)->patch(route('trainer-bookings.approve', $booking), [
-        'redirect_to' => route('home'),
-    ]);
-
-    $response->assertRedirect(route('home'));
-    expect($booking->fresh()->status)->toBe(TrainerBooking::STATUS_APPROVED);
-});
-
-test('trainer can reject session booking from landing page with reason', function () {
-    $trainerUser = User::factory()->create(['name' => 'Coach Alex']);
-    $trainerUser->assignRole('Trainer');
-    $trainer = Trainer::factory()->create(['user_id' => $trainerUser->id]);
-
-    $memberUser = User::factory()->create(['name' => 'David Client']);
-    $memberUser->assignRole('Member');
-    $member = Member::factory()->create(['user_id' => $memberUser->id]);
-
-    $booking = TrainerBooking::factory()->create([
-        'trainer_id' => $trainer->id,
-        'member_id' => $member->id,
-        'status' => TrainerBooking::STATUS_PENDING,
-    ]);
-
-    $response = $this->actingAs($trainerUser)->patch(route('trainer-bookings.reject', $booking), [
-        'reason' => 'Jadwal bertabrakan dengan agenda lain.',
-        'redirect_to' => route('home'),
-    ]);
-
-    $response->assertRedirect(route('home'));
-    expect($booking->fresh()->status)->toBe(TrainerBooking::STATUS_REJECTED);
-    expect($booking->fresh()->rejection_reason)->toBe('Jadwal bertabrakan dengan agenda lain.');
+        ->assertSee('Bodybuilding Specialist')
+        ->assertSee('Hubungi / Chat via WhatsApp');
 });

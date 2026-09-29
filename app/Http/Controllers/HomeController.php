@@ -9,8 +9,6 @@ use App\Models\Product;
 use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
-use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,7 +28,7 @@ class HomeController extends Controller
         $groupedServices = Product::groupedServices();
         $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->orderBy('name')->get();
         $operationalSlots = TimeSlot::active()->orderBy('start_time')->get();
-        $activeTrainers = Trainer::active()->with('user')->get();
+        $activeTrainers = Member::with('user')->activeTrainers()->get();
 
         $user = auth()->user();
         $member = null;
@@ -41,16 +39,6 @@ class HomeController extends Controller
         $myReservations = collect();
         $canMakeReservation = false;
         $isDailyVisitOnly = false;
-
-        $trainer = null;
-        $trainerBookings = collect();
-        $trainerMetrics = [
-            'total' => 0,
-            'pending' => 0,
-            'approved' => 0,
-            'completed' => 0,
-            'rejected' => 0,
-        ];
 
         if ($user) {
             // Data untuk Member
@@ -87,25 +75,6 @@ class HomeController extends Controller
                         ->get();
                 }
             }
-
-            // Data untuk Trainer
-            if ($user->hasRole('Trainer')) {
-                $trainer = $user->trainer;
-                if ($trainer) {
-                    $trainerBookings = TrainerBooking::with(['member.user', 'timeSlot'])
-                        ->where('trainer_id', $trainer->id)
-                        ->latest('session_date')
-                        ->get();
-
-                    $trainerMetrics = [
-                        'total' => $trainerBookings->count(),
-                        'pending' => $trainerBookings->where('status', TrainerBooking::STATUS_PENDING)->count(),
-                        'approved' => $trainerBookings->where('status', TrainerBooking::STATUS_APPROVED)->count(),
-                        'completed' => $trainerBookings->where('status', TrainerBooking::STATUS_COMPLETED)->count(),
-                        'rejected' => $trainerBookings->where('status', TrainerBooking::STATUS_REJECTED)->count(),
-                    ];
-                }
-            }
         }
 
         return view('welcome', compact(
@@ -122,10 +91,7 @@ class HomeController extends Controller
             'myRecentVisits',
             'myReservations',
             'canMakeReservation',
-            'isDailyVisitOnly',
-            'trainer',
-            'trainerBookings',
-            'trainerMetrics'
+            'isDailyVisitOnly'
         ));
     }
 }

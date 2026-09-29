@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
-use App\Models\Trainer;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +20,7 @@ class PenggunaController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = User::with(['roles', 'member', 'trainer']);
+        $query = User::with(['roles', 'member']);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -86,15 +85,6 @@ class PenggunaController extends Controller
                 Member::create([
                     'user_id' => $user->id,
                     'phone' => $validated['phone'] ?? null,
-                ]);
-            }
-
-            // Jika peran Trainer, otomatis buat profil Trainer
-            if ($validated['role'] === 'Trainer') {
-                Trainer::create([
-                    'user_id' => $user->id,
-                    'phone' => $validated['phone'] ?? null,
-                    'status' => Trainer::STATUS_ACTIVE,
                 ]);
             }
         });
@@ -163,20 +153,6 @@ class PenggunaController extends Controller
                     Member::create([
                         'user_id' => $user->id,
                         'phone' => $validated['phone'] ?? null,
-                    ]);
-                }
-            }
-
-            // Sinkronisasi nomor HP & pastikan profil Trainer ada jika role=Trainer
-            if ($validated['role'] === 'Trainer') {
-                $user->load('trainer');
-                if ($user->trainer) {
-                    $user->trainer->update(['phone' => $validated['phone'] ?? null]);
-                } else {
-                    Trainer::create([
-                        'user_id' => $user->id,
-                        'phone' => $validated['phone'] ?? null,
-                        'status' => Trainer::STATUS_ACTIVE,
                     ]);
                 }
             }

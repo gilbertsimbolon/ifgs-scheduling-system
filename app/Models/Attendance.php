@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'member_id',
     'membership_id',
     'reservation_id',
-    'trainer_booking_id',
     'date',
     'check_in_at',
     'check_out_at',
@@ -115,14 +114,6 @@ class Attendance extends Model
     public function reservation(): BelongsTo
     {
         return $this->belongsTo(Reservation::class);
-    }
-
-    /**
-     * Sesi personal trainer terkait (jika ada).
-     */
-    public function trainerBooking(): BelongsTo
-    {
-        return $this->belongsTo(TrainerBooking::class);
     }
 
     /**

@@ -334,7 +334,6 @@
                                             <th>Check-in</th>
                                             <th>Durasi Saat Ini</th>
                                             <th>Paket Membership</th>
-                                            <th>Sesi Personal Trainer</th>
                                             <th class="text-center">Aksi</th>
                                         </tr>
                                     </thead>
@@ -379,16 +378,6 @@
                                                         <span class="badge bg-label-danger">Tidak Aktif</span>
                                                     @endif
                                                 </td>
-                                                <td>
-                                                    @if ($active->trainerBooking)
-                                                        <span class="badge bg-label-warning">
-                                                            <i class="bx bx-run me-1"></i> Coach
-                                                            {{ $active->trainerBooking->trainer?->user?->name ?? 'Trainer' }}
-                                                        </span>
-                                                    @else
-                                                        <span class="text-muted small">-</span>
-                                                    @endif
-                                                </td>
                                                 <td class="text-center">
                                                     <form action="{{ route('attendances.checkout', $active) }}"
                                                         method="POST" class="d-inline">
@@ -403,7 +392,7 @@
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="7" class="text-center py-4">
+                                                <td colspan="6" class="text-center py-4">
                                                     <div class="text-muted small">Saat ini tidak ada member yang sedang
                                                         berada di gym.</div>
                                                 </td>

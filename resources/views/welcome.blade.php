@@ -349,11 +349,6 @@
                                         <i class="bx bx-cart-add me-1"></i> Berlangganan Membership
                                     </a>
                                 @endif
-                            @elseif (auth()->user()->hasRole('Trainer'))
-                                <a href="#section-trainer-portal" class="btn btn-primary btn-lg shadow"
-                                    style="font-family: Arial, Helvetica, sans-serif;">
-                                    <i class="bx bx-calendar-star me-1"></i> Kelola Sesi Trainer Saya
-                                </a>
                             @else
                                 <a href="{{ route('dashboard') }}" class="btn btn-primary btn-lg shadow"
                                     style="font-family: Arial, Helvetica, sans-serif;">
@@ -652,202 +647,6 @@
         </section>
     @endif
 
-    <!-- B. PORTAL TRAINER -->
-    @if (auth()->check() && auth()->user()->hasRole('Trainer'))
-        <section id="section-trainer-portal" class="py-4 bg-white border-bottom shadow-sm">
-            <div class="container-xl">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
-                    <div>
-                        <p class="text-uppercase fw-semibold mb-1"
-                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
-                            PORTAL TRAINER IFGS
-                        </p>
-                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Coach
-                            {{ auth()->user()->name }} 🏋️</h3>
-                        <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
-                            permohonan sesi latihan personal dari member yang
-                            memesan Anda.</p>
-                    </div>
-                    <span class="badge bg-success px-3 py-2 fs-6">
-                        <i class="bx bx-check-shield me-1"></i> Instruktur Terverifikasi
-                    </span>
-                </div>
-
-                <!-- Trainer Metrics Row -->
-                <div class="row g-3 mb-4">
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card border shadow-sm">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <small class="text-muted d-block">Total Sesi</small>
-                                    <h4 class="fw-bold mb-0">{{ $trainerMetrics['total'] }}</h4>
-                                </div>
-                                <div class="avatar bg-label-primary rounded p-2">
-                                    <i class="bx bx-calendar-star fs-3"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card border border-warning shadow-sm bg-warning bg-opacity-10">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <small class="text-warning fw-bold d-block">Menunggu Validasi</small>
-                                    <h4 class="fw-bold text-warning mb-0">{{ $trainerMetrics['pending'] }}</h4>
-                                </div>
-                                <div class="avatar bg-warning text-white rounded p-2">
-                                    <i class="bx bx-time fs-3"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card border border-primary shadow-sm">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <small class="text-primary fw-bold d-block">Disetujui (ACC)</small>
-                                    <h4 class="fw-bold text-primary mb-0">{{ $trainerMetrics['approved'] }}</h4>
-                                </div>
-                                <div class="avatar bg-label-primary rounded p-2">
-                                    <i class="bx bx-check fs-3"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card border border-success shadow-sm">
-                            <div class="card-body d-flex justify-content-between align-items-center py-3">
-                                <div>
-                                    <small class="text-success fw-bold d-block">Selesai</small>
-                                    <h4 class="fw-bold text-success mb-0">{{ $trainerMetrics['completed'] }}</h4>
-                                </div>
-                                <div class="avatar bg-label-success rounded p-2">
-                                    <i class="bx bx-award fs-3"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sesi Trainer Saya Table -->
-                <div class="card shadow-sm">
-                    <div class="card-header border-bottom py-3">
-                        <h5 class="fw-bold mb-0 text-heading">
-                            <i class="bx bx-list-check me-2 text-primary"></i> Daftar Sesi Latihan Member
-                        </h5>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Kode Booking</th>
-                                    <th>Member & Kontak</th>
-                                    <th>Tanggal & Waktu</th>
-                                    <th>Fokus Latihan</th>
-                                    <th>Status</th>
-                                    <th class="text-center" style="width: 220px;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($trainerBookings as $b)
-                                    <tr>
-                                        <td><strong class="text-primary fw-semibold"
-                                                style="font-family: Arial, Helvetica, sans-serif;">{{ $b->booking_code }}</strong>
-                                        </td>
-                                        <td>
-                                            <div class="fw-semibold text-dark">{{ $b->member->user->name ?? '-' }}
-                                            </div>
-                                            <small class="text-muted d-block">{{ $b->member->phone ?? '-' }}</small>
-                                            @if ($b->whatsapp_url)
-                                                <a href="{{ $b->whatsapp_url }}" target="_blank"
-                                                    class="badge bg-label-success text-decoration-none mt-1">
-                                                    <i class="bx bxl-whatsapp me-1"></i> WhatsApp Member
-                                                </a>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="fw-semibold text-dark">{{ $b->session_date->format('d M Y') }}</span>
-                                            <small class="d-block text-muted">{{ $b->timeSlot->name ?? '-' }}
-                                                ({{ $b->timeSlot->time_range ?? '-' }})
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <span class="text-heading fw-medium">{{ $b->training_focus }}</span>
-                                            @if ($b->notes)
-                                                <small class="d-block text-muted text-truncate"
-                                                    style="max-width: 200px;" title="{{ $b->notes }}">
-                                                    Catatan: {{ $b->notes }}
-                                                </small>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            @if ($b->status === 'pending')
-                                                <span class="badge bg-warning text-dark">Menunggu Validasi</span>
-                                            @elseif ($b->status === 'approved')
-                                                <span class="badge bg-primary">Disetujui</span>
-                                            @elseif ($b->status === 'completed')
-                                                <span class="badge bg-success">Selesai</span>
-                                            @elseif ($b->status === 'rejected')
-                                                <span class="badge bg-danger">Ditolak</span>
-                                            @else
-                                                <span class="badge bg-secondary">{{ ucfirst($b->status) }}</span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            @if ($b->status === 'pending')
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <form action="{{ route('trainer-bookings.approve', $b) }}"
-                                                        method="POST" class="m-0">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <input type="hidden" name="redirect_to"
-                                                            value="{{ route('home') }}">
-                                                        <button type="submit" class="btn btn-sm btn-success px-2"
-                                                            title="Setujui Sesi (ACC)">
-                                                            <i class="bx bx-check me-1"></i> Setujui
-                                                        </button>
-                                                    </form>
-                                                    <button type="button"
-                                                        class="btn btn-sm btn-outline-danger px-2 btn-reject-modal"
-                                                        data-bs-toggle="modal" data-bs-target="#modalRejectSession"
-                                                        data-action="{{ route('trainer-bookings.reject', $b) }}"
-                                                        data-code="{{ $b->booking_code }}"
-                                                        data-member="{{ $b->member->user->name ?? 'Member' }}">
-                                                        <i class="bx bx-x me-1"></i> Tolak
-                                                    </button>
-                                                </div>
-                                            @elseif ($b->status === 'approved')
-                                                <form action="{{ route('trainer-bookings.complete', $b) }}"
-                                                    method="POST" class="m-0">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <input type="hidden" name="redirect_to"
-                                                        value="{{ route('home') }}">
-                                                    <button type="submit" class="btn btn-sm btn-primary">
-                                                        <i class="bx bx-check-double me-1"></i> Selesaikan Sesi
-                                                    </button>
-                                                </form>
-                                            @else
-                                                <span class="text-muted small">-</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4 text-muted">
-                                            Belum ada permohonan sesi latihan yang diajukan ke Anda saat ini.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-    @endif
-
     <!-- 4. PAKET LAYANAN SECTION -->
     <section id="section-paket" class="py-5">
         <div class="container-xl">
@@ -1114,8 +913,15 @@
                                     <span class="badge bg-label-success mb-1">Bersertifikasi APKI</span>
                                     <h5 class="fw-bold text-dark mb-1">{{ $tr->user->name ?? '-' }}</h5>
                                     <p class="text-primary small fw-semibold mb-2">{{ $tr->specialization }}</p>
-                                    <p class="text-muted small mb-0">
+                                    <p class="text-muted small mb-2">
                                         {{ $tr->bio ?: 'Instruktur resmi Indo Fitness Gym Sport Tondano.' }}</p>
+                                    @if ($tr->phone)
+                                        <a href="{{ $tr->whats_app_url ?? ('https://wa.me/' . preg_replace('/[^0-9]/', '', $tr->phone)) }}"
+                                            target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-none"
+                                            style="font-size: 0.78rem;">
+                                            <i class="bx bxl-whatsapp me-1"></i> Hubungi / Chat via WhatsApp
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -1796,49 +1602,6 @@
         </div>
     @endif
 
-    @if (auth()->check() && auth()->user()->hasRole('Trainer'))
-        <!-- Modal Tolak Sesi Latihan Trainer -->
-        <div class="modal fade" id="modalRejectSession" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold text-danger">
-                            <i class="bx bx-x-circle me-1"></i> Tolak Permohonan Sesi Latihan
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <form id="formRejectSession" action="" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="redirect_to" value="{{ route('home') }}">
-                        <div class="modal-body">
-                            <p class="small text-muted mb-3">
-                                Anda akan menolak sesi latihan dari <strong id="rejectMemberName"
-                                    class="text-dark"></strong> (<span id="rejectBookingCode"
-                                    class="fw-semibold"></span>).
-                            </p>
-                            <div class="mb-3">
-                                <label for="rejectReason" class="form-label required fw-semibold">
-                                    Alasan Penolakan <span class="text-danger">*</span>
-                                </label>
-                                <textarea class="form-control" id="rejectReason" name="reason" rows="3"
-                                    placeholder="Misal: Jadwal bertabrakan dengan agenda lain / Kuota sesi hari tersebut telah penuh..." required></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="bx bx-x me-1"></i> Konfirmasi Tolak Sesi
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <!-- Core JS -->
     <script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
@@ -2132,23 +1895,6 @@
                 });
             }
 
-            // Trainer Reject Modal binding
-            const rejectButtons = document.querySelectorAll('.btn-reject-modal');
-            const formReject = document.getElementById('formRejectSession');
-            const rejectMemberName = document.getElementById('rejectMemberName');
-            const rejectBookingCode = document.getElementById('rejectBookingCode');
-
-            rejectButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (formReject) {
-                        formReject.action = this.getAttribute('data-action');
-                        if (rejectMemberName) rejectMemberName.textContent = this.getAttribute(
-                            'data-member');
-                        if (rejectBookingCode) rejectBookingCode.textContent = this.getAttribute(
-                            'data-code');
-                    }
-                });
-            });
             // Modal Avatar Preview
             const modalAvatarInput = document.getElementById('modalAvatarInput');
             const modalAvatarPreview = document.getElementById('modalAvatarPreview');

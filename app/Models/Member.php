@@ -4,17 +4,28 @@ namespace App\Models;
 
 use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
-#[Fillable(['user_id', 'member_code', 'phone'])]
+#[Fillable(['user_id', 'member_code', 'phone', 'is_trainer', 'specialization', 'bio', 'trainer_status'])]
 class Member extends Model
 {
     /** @use HasFactory<MemberFactory> */
     use HasFactory;
+
+    /**
+     * The attributes that should be cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_trainer' => 'boolean',
+        ];
+    }
 
     /**
      * The "booted" method of the model.
@@ -26,6 +37,23 @@ class Member extends Model
                 $member->member_code = $member->user?->user_code ?? static::generateUniqueMemberCode();
             }
         });
+    }
+
+    /**
+     * Scope untuk mengambil member yang terdaftar sebagai trainer.
+     */
+    public function scopeTrainers(Builder $query): Builder
+    {
+        return $query->where('is_trainer', true);
+    }
+
+    /**
+     * Scope untuk mengambil trainer yang berstatus aktif.
+     */
+    public function scopeActiveTrainers(Builder $query): Builder
+    {
+        return $query->where('is_trainer', true)
+            ->where('trainer_status', 'active');
     }
 
     /**
@@ -198,10 +226,35 @@ class Member extends Model
     }
 
     /**
-     * Daftar permohonan sesi latihan trainer oleh member ini.
+     * Format nomor WhatsApp dengan kode negara 62.
      */
-    public function trainerBookings(): HasMany
+    public function getFormattedWhatsAppNumber(): ?string
     {
-        return $this->hasMany(TrainerBooking::class);
+        if (! $this->phone) {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[^0-9]/', '', $this->phone);
+        if (str_starts_with($cleaned, '0')) {
+            return '62'.substr($cleaned, 1);
+        }
+
+        return $cleaned;
+    }
+
+    /**
+     * Link direct chat WhatsApp untuk menghubungi trainer.
+     */
+    public function getWhatsAppUrlAttribute(): ?string
+    {
+        $number = $this->getFormattedWhatsAppNumber();
+        if (! $number) {
+            return null;
+        }
+
+        $trainerName = $this->user?->name ?? 'Coach';
+        $message = urlencode("Halo {$trainerName}, saya ingin konsultasi mengenai program latihan di Indo Fitness Gym Sport.");
+
+        return "https://wa.me/{$number}?text={$message}";
     }
 }

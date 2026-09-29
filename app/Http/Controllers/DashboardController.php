@@ -22,7 +22,6 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // Member dan Trainer tidak masuk ke admin panel / dashboard
         // Member diarahkan ke Member Mobile Portal
         if ($user->hasRole('Member')) {
             return redirect()->route('member.index');

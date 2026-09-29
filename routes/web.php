@@ -16,7 +16,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\TimeSlotController;
-use App\Http\Controllers\TrainerBookingController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserQrCodeController;
@@ -74,21 +73,6 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{schedule}/status', [ScheduleController::class, 'updateStatus'])
             ->middleware('role:Admin/Manager|Kasir')
             ->name('update-status');
-    });
-
-    // Sesi Latihan Personal Trainer (Member ajukan, Trainer/Admin/Kasir kelola)
-    Route::prefix('trainer-bookings')->name('trainer-bookings.')->group(function () {
-        Route::get('/', [TrainerBookingController::class, 'index'])->name('index');
-        Route::post('/', [TrainerBookingController::class, 'store'])->name('store');
-        Route::patch('/{trainerBooking}/approve', [TrainerBookingController::class, 'approve'])
-            ->middleware('role:Admin/Manager|Kasir|Trainer')
-            ->name('approve');
-        Route::patch('/{trainerBooking}/reject', [TrainerBookingController::class, 'reject'])
-            ->middleware('role:Admin/Manager|Kasir|Trainer')
-            ->name('reject');
-        Route::patch('/{trainerBooking}/complete', [TrainerBookingController::class, 'complete'])
-            ->middleware('role:Admin/Manager|Kasir|Trainer')
-            ->name('complete');
     });
 
     // Dashboard Gym (Diakses Staf Admin & Kasir; dialihkan ke home jika Member/Trainer)

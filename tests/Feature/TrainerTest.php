@@ -175,3 +175,103 @@ test('TrainerSeeder populates official IFGS trainers', function () {
     expect($mario->hasRole('Trainer'))->toBeTrue();
     expect($mario->trainer->specialization)->toBe('Fitness & Bodybuilding');
 });
+
+test('trainer index page displays max_slots field in edit and create modals', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create(['name' => 'Coach Mario']);
+    $user->assignRole('Trainer');
+    $trainer = Trainer::factory()->create([
+        'user_id' => $user->id,
+        'max_slots' => 15,
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('trainers.index'))
+        ->assertOk()
+        ->assertSee('Maksimal Member')
+        ->assertSee('Jumlah member aktif yang dapat ditangani trainer.')
+        ->assertSee('id="max_slots_'.$trainer->id.'"', false)
+        ->assertSee('value="15"', false)
+        ->assertSee('id="tambah_max_slots"', false);
+});
+
+test('admin can update trainer max_slots', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create(['name' => 'Coach Mario']);
+    $user->assignRole('Trainer');
+    $trainer = Trainer::factory()->create([
+        'user_id' => $user->id,
+        'max_slots' => 10,
+    ]);
+
+    $response = $this->actingAs($admin)
+        ->put(route('trainers.update', $trainer), [
+            'name' => 'Coach Mario Updated',
+            'email' => $user->email,
+            'specialization' => 'Fitness & Bodybuilding',
+            'status' => 'active',
+            'max_slots' => 20,
+        ]);
+
+    $response->assertRedirect(route('trainers.index'));
+    $response->assertSessionHas('success');
+
+    expect($trainer->fresh()->max_slots)->toBe(20);
+});
+
+test('admin can create trainer with custom max_slots', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $response = $this->actingAs($admin)
+        ->post(route('trainers.store'), [
+            'name' => 'Coach Alex',
+            'email' => 'alex@ifgs.test',
+            'password' => 'password123',
+            'specialization' => 'Pilates',
+            'status' => 'active',
+            'max_slots' => 25,
+        ]);
+
+    $response->assertRedirect(route('trainers.index'));
+    $response->assertSessionHas('success');
+
+    $trainer = Trainer::whereHas('user', fn ($q) => $q->where('email', 'alex@ifgs.test'))->first();
+    expect($trainer)->not->toBeNull()
+        ->and($trainer->max_slots)->toBe(25);
+});
+
+test('trainer max_slots validation rejects values out of range', function () {
+    $admin = User::factory()->create();
+    $admin->assignRole('Admin/Manager');
+
+    $user = User::factory()->create();
+    $user->assignRole('Trainer');
+    $trainer = Trainer::factory()->create(['user_id' => $user->id, 'max_slots' => 10]);
+
+    $response = $this->actingAs($admin)
+        ->put(route('trainers.update', $trainer), [
+            'name' => 'Coach Mario',
+            'email' => $user->email,
+            'specialization' => 'Fitness',
+            'status' => 'active',
+            'max_slots' => 0,
+        ]);
+
+    $response->assertSessionHasErrors(['max_slots']);
+
+    $response2 = $this->actingAs($admin)
+        ->put(route('trainers.update', $trainer), [
+            'name' => 'Coach Mario',
+            'email' => $user->email,
+            'specialization' => 'Fitness',
+            'status' => 'active',
+            'max_slots' => 101,
+        ]);
+
+    $response2->assertSessionHasErrors(['max_slots']);
+});

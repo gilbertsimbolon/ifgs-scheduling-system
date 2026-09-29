@@ -6,7 +6,6 @@ use App\Models\Attendance;
 use App\Models\Member;
 use App\Models\Reservation;
 use App\Models\Schedule;
-use App\Models\TrainerBooking;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -28,13 +27,10 @@ class AttendanceController extends Controller
             'in_gym_count' => Attendance::today()->currentlyInGym()->count(),
             'today_checkin_count' => Attendance::today()->count(),
             'today_checkout_count' => Attendance::today()->whereNotNull('check_out_at')->count(),
-            'active_trainer_sessions' => TrainerBooking::whereDate('session_date', $today)
-                ->where('status', TrainerBooking::STATUS_IN_PROGRESS)
-                ->count(),
         ];
 
         // Daftar member yang saat ini sedang berada di gym (belum check-out)
-        $currentlyInGym = Attendance::with(['member.user', 'membership', 'trainerBooking.trainer.user'])
+        $currentlyInGym = Attendance::with(['member.user', 'membership'])
             ->today()
             ->currentlyInGym()
             ->latest('check_in_at')
@@ -148,21 +144,6 @@ class AttendanceController extends Controller
             ], 422);
         }
 
-        // Cek apakah member memiliki janji sesi personal trainer yang berstatus Disetujui (ACC) hari ini
-        $trainerBooking = TrainerBooking::where('member_id', $member->id)
-            ->whereDate('session_date', today())
-            ->where('status', TrainerBooking::STATUS_APPROVED)
-            ->first();
-
-        $trainerNotice = null;
-        if ($trainerBooking) {
-            $trainerBooking->update([
-                'status' => TrainerBooking::STATUS_IN_PROGRESS,
-            ]);
-            $trainerName = $trainerBooking->trainer?->user?->name ?? 'Trainer';
-            $trainerNotice = "Sesi latihan dengan Coach {$trainerName} otomatis diaktifkan (Sedang Berjalan)!";
-        }
-
         // Cek apakah ada jadwal reservasi hari ini
         $reservation = Reservation::where('member_id', $member->id)
             ->whereDate('visit_date', today())
@@ -189,7 +170,6 @@ class AttendanceController extends Controller
             'member_id' => $member->id,
             'membership_id' => $activeMembership?->id,
             'reservation_id' => $reservation?->id,
-            'trainer_booking_id' => $trainerBooking?->id,
             'date' => today()->toDateString(),
             'check_in_at' => now(),
             'status' => Attendance::STATUS_CHECKED_IN,
@@ -198,13 +178,12 @@ class AttendanceController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        $attendance->load(['member.user', 'membership', 'trainerBooking.trainer.user']);
+        $attendance->load(['member.user', 'membership']);
 
         return response()->json([
             'success' => true,
             'action' => 'check_in',
             'message' => "Check-in berhasil! Selamat datang di Indo Fitness Gym Sport, {$member->user?->name}.",
-            'trainer_notice' => $trainerNotice,
             'membership_warning' => $membershipWarning,
             'member' => $this->formatMemberPayload($member),
             'attendance' => $this->formatAttendancePayload($attendance),
@@ -229,14 +208,6 @@ class AttendanceController extends Controller
             'check_out_at' => now(),
             'status' => Attendance::STATUS_COMPLETED,
         ]);
-
-        // Selesaikan sesi personal trainer jika masih berjalan
-        if ($attendance->trainerBooking && $attendance->trainerBooking->status === TrainerBooking::STATUS_IN_PROGRESS) {
-            $attendance->trainerBooking->update([
-                'status' => TrainerBooking::STATUS_COMPLETED,
-                'completed_at' => now(),
-            ]);
-        }
 
         $memberName = $attendance->member?->user?->name ?? 'Member';
         $successMsg = "Check-out untuk {$memberName} berhasil dicatat. Durasi: {$attendance->duration_formatted}.";
@@ -263,11 +234,6 @@ class AttendanceController extends Controller
         }
 
         $memberName = $attendance->member?->user?->name ?? 'Member';
-
-        // Kembalikan status sesi trainer jika baru saja diaktifkan hari ini
-        if ($attendance->trainerBooking && $attendance->trainerBooking->status === TrainerBooking::STATUS_IN_PROGRESS) {
-            $attendance->trainerBooking->update(['status' => TrainerBooking::STATUS_APPROVED]);
-        }
 
         $attendance->delete();
 
@@ -305,7 +271,7 @@ class AttendanceController extends Controller
             }
         }
 
-        // Jika user ditemukan tapi belum memiliki entri di tabel members (misal Admin/Trainer yang ingin presensi), buatkan otomatis
+        // Jika user ditemukan tapi belum memiliki entri di tabel members (misal Admin/Staf yang ingin presensi), buatkan otomatis
         if ($user && ! $user->member) {
             return Member::firstOrCreate(
                 ['user_id' => $user->id],
@@ -325,13 +291,7 @@ class AttendanceController extends Controller
             return $member;
         }
 
-        // 3. Cari jika yang di-scan adalah booking_code sesi trainer
-        $booking = TrainerBooking::where('booking_code', $code)->first();
-        if ($booking && $booking->member) {
-            return $booking->member;
-        }
-
-        // 4. Cari jika yang di-scan adalah kode reservasi
+        // 3. Cari jika yang di-scan adalah kode reservasi
         $reservation = Reservation::where('code', $code)->first();
         if ($reservation && $reservation->member) {
             return $reservation->member;

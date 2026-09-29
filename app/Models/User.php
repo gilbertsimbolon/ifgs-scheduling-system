@@ -158,11 +158,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the trainer profile associated with the user.
+     * Get the trainer profile associated with the user (member as trainer).
      */
-    public function trainer(): HasOne
+    public function getTrainerAttribute(): ?Member
     {
-        return $this->hasOne(Trainer::class);
+        return ($this->member && $this->member->is_trainer) ? $this->member : null;
     }
 
     /**

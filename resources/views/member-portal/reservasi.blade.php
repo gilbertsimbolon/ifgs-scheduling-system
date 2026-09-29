@@ -130,70 +130,7 @@
                                 </div>
                             @endif
 
-                            <!-- Detail Personal Trainer & Status ACC -->
-                            <div class="p-2 rounded-2 mb-2 border bg-white d-flex align-items-center justify-content-between gap-2"
-                                style="font-size: 0.74rem;">
-                                @if ($tb)
-                                    <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                        <div class="avatar avatar-xs bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                            style="width: 28px; height: 28px; font-size: 0.68rem;">
-                                            {{ strtoupper(substr($tb->trainer?->user?->name ?? 'T', 0, 2)) }}
-                                        </div>
-                                        <div class="text-truncate">
-                                            <span class="fw-bold text-dark d-block text-truncate">
-                                                <i
-                                                    class="bx bx-user-pin text-danger me-1"></i>{{ $tb->trainer?->user?->name ?? 'Coach' }}
-                                            </span>
-                                            <small class="text-muted d-block text-truncate" style="font-size: 0.68rem;">
-                                                {{ $tb->trainer?->specialization ?? 'Personal Trainer' }}
-                                                @if ($tb->training_focus)
-                                                    &bull; Fokus: {{ $tb->training_focus }}
-                                                @endif
-                                            </small>
-                                        </div>
-                                    </div>
 
-                                    <!-- Status ACC Trainer -->
-                                    <div class="flex-shrink-0">
-                                        @if ($tb->status === \App\Models\TrainerBooking::STATUS_APPROVED)
-                                            <span
-                                                class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 rounded-pill px-2 py-1"
-                                                style="font-size: 0.7rem;"
-                                                title="Disetujui pada: {{ $tb->approved_at?->translatedFormat('d M Y, H:i') ?? '-' }}">
-                                                <i class="bx bx-check-double me-1"></i>Disetujui Pelatih (ACC)
-                                            </span>
-                                        @elseif ($tb->status === \App\Models\TrainerBooking::STATUS_PENDING)
-                                            <span
-                                                class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-30 rounded-pill px-2 py-1"
-                                                style="font-size: 0.7rem;">
-                                                <i class="bx bx-time-five me-1"></i>Menunggu ACC Pelatih
-                                            </span>
-                                        @elseif ($tb->status === \App\Models\TrainerBooking::STATUS_REJECTED)
-                                            <span
-                                                class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-30 rounded-pill px-2 py-1"
-                                                style="font-size: 0.7rem;">
-                                                <i class="bx bx-x-circle me-1"></i>Pelatih Berhalangan
-                                            </span>
-                                        @else
-                                            <span
-                                                class="badge bg-info bg-opacity-15 text-info border border-info border-opacity-30 rounded-pill px-2 py-1"
-                                                style="font-size: 0.7rem;">
-                                                {{ $tb->status_label ?? ucfirst($tb->status) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                @else
-                                    <div class="d-flex align-items-center gap-1 text-muted">
-                                        <i class="bx bx-user-check text-success me-1"></i>
-                                        <span>Latihan Mandiri (Tanpa Trainer)</span>
-                                    </div>
-                                    <span
-                                        class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1"
-                                        style="font-size: 0.68rem;">
-                                        Mandiri
-                                    </span>
-                                @endif
-                            </div>
 
                             @if (
                                 $sched->reservation &&
@@ -254,69 +191,7 @@
                                     </span>
                                 </div>
 
-                                <!-- Detail Personal Trainer & Status ACC -->
-                                <div class="p-2 rounded-2 mb-2 border bg-white d-flex align-items-center justify-content-between gap-2"
-                                    style="font-size: 0.74rem;">
-                                    @if ($tbRes)
-                                        <div class="d-flex align-items-center gap-2 overflow-hidden">
-                                            <div class="avatar avatar-xs bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                                style="width: 28px; height: 28px; font-size: 0.68rem;">
-                                                {{ strtoupper(substr($tbRes->trainer?->user?->name ?? 'T', 0, 2)) }}
-                                            </div>
-                                            <div class="text-truncate">
-                                                <span class="fw-bold text-dark d-block text-truncate">
-                                                    <i
-                                                        class="bx bx-user-pin text-danger me-1"></i>{{ $tbRes->trainer?->user?->name ?? 'Coach' }}
-                                                </span>
-                                                <small class="text-muted d-block text-truncate"
-                                                    style="font-size: 0.68rem;">
-                                                    {{ $tbRes->trainer?->specialization ?? 'Personal Trainer' }}
-                                                    @if ($tbRes->training_focus)
-                                                        &bull; Fokus: {{ $tbRes->training_focus }}
-                                                    @endif
-                                                </small>
-                                            </div>
-                                        </div>
 
-                                        <div class="flex-shrink-0">
-                                            @if ($tbRes->status === \App\Models\TrainerBooking::STATUS_APPROVED)
-                                                <span
-                                                    class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 rounded-pill px-2 py-1"
-                                                    style="font-size: 0.7rem;">
-                                                    <i class="bx bx-check-double me-1"></i>Disetujui Pelatih (ACC)
-                                                </span>
-                                            @elseif ($tbRes->status === \App\Models\TrainerBooking::STATUS_PENDING)
-                                                <span
-                                                    class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-30 rounded-pill px-2 py-1"
-                                                    style="font-size: 0.7rem;">
-                                                    <i class="bx bx-time-five me-1"></i>Menunggu ACC Pelatih
-                                                </span>
-                                            @elseif ($tbRes->status === \App\Models\TrainerBooking::STATUS_REJECTED)
-                                                <span
-                                                    class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-30 rounded-pill px-2 py-1"
-                                                    style="font-size: 0.7rem;">
-                                                    <i class="bx bx-x-circle me-1"></i>Pelatih Berhalangan
-                                                </span>
-                                            @else
-                                                <span
-                                                    class="badge bg-info bg-opacity-15 text-info border border-info border-opacity-30 rounded-pill px-2 py-1"
-                                                    style="font-size: 0.7rem;">
-                                                    {{ $tbRes->status_label ?? ucfirst($tbRes->status) }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    @else
-                                        <div class="d-flex align-items-center gap-1 text-muted">
-                                            <i class="bx bx-user-check text-success me-1"></i>
-                                            <span>Latihan Mandiri (Tanpa Trainer)</span>
-                                        </div>
-                                        <span
-                                            class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1"
-                                            style="font-size: 0.68rem;">
-                                            Mandiri
-                                        </span>
-                                    @endif
-                                </div>
 
                                 @if ($res->notes)
                                     <div class="p-2 rounded-2 mb-2 border border-warning border-opacity-20 bg-warning bg-opacity-10 text-dark small"
@@ -409,12 +284,7 @@
                                 <i class="bx bx-chevron-right text-muted opacity-50" style="font-size: 0.8rem;"></i>
                                 <span class="badge rounded-pill px-2 py-1 bg-white text-dark border" id="stepBadge2"
                                     style="font-size: 0.68rem;">
-                                    Trainer
-                                </span>
-                                <i class="bx bx-chevron-right text-muted opacity-50" style="font-size: 0.8rem;"></i>
-                                <span class="badge rounded-pill px-2 py-1 bg-white text-dark border" id="stepBadge3"
-                                    style="font-size: 0.68rem;">
-                                    Konfirmasi
+                                    Konfirmasi & Catatan
                                 </span>
                             </div>
 
