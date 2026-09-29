@@ -94,8 +94,7 @@
                             <h3 class="text-white fw-bold mb-1">{{ auth()->user()->name }}</h3>
                             <p class="text-white-50 mb-3">
                                 ID Member: <strong
-                                    class="text-white font-monospace">{{ $member->member_code ?? '-' }}</strong> &bull;
-                                class="text-white font-monospace">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
+                                    class="text-white font-monospace">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
                                 &bull;
                                 Kode QR: <span class="text-white-50 font-monospace">{{ auth()->user()->qr_code }}</span>
                             </p>
@@ -254,148 +253,58 @@
             @include('dashboard.partials.modal-order-membership')
         @else
             <!-- Admin / Manager Dashboard View -->
-            <!-- Welcome Header -->
-            <div class="d-flex justify-content-between align-items-center mb-3 mt-2 flex-wrap gap-2">
-                <div>
-                    <h4 class="fw-bold py-1 mb-0">
-                        Dashboard Penjadwalan Gym IFGS
-                    </h4>
-                    <p class="text-muted mb-0">
-                        Sistem Informasi Optimasi Penjadwalan Kunjungan Member Berbasis Algoritma Greedy &bull;
-                        {{ \Carbon\Carbon::parse($today)->translatedFormat('l, d F Y') }}
-                    </p>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('reservations.index') }}" class="btn btn-primary">
-                        <i class="bx bx-calendar-plus me-1"></i> Buat Reservasi
-                    </a>
-                    <a href="{{ route('schedules.index') }}" class="btn btn-outline-primary">
-                        <i class="bx bx-calendar-check me-1"></i> Monitoring Jadwal
-                    </a>
-                </div>
+            <!-- Header -->
+            <div class="mb-4 mt-2">
+                <h4 class="fw-bold py-1 mb-0">Dashboard</h4>
             </div>
 
-            <!-- Jadwal Operasional Gym Resmi IFGS -->
-            @include('dashboard.partials.operational-schedule')
-
-            <!-- Ringkasan Membership & Pendapatan Bulanan (Dipindahkan dari Membership) -->
-            <div class="row g-3 mb-4">
-                <!-- Total Transaksi -->
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-start border-primary border-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="content-left">
-                                    <span class="text-muted fw-semibold">Total Transaksi</span>
-                                    <div class="d-flex align-items-center my-1">
-                                        <h4 class="mb-0 me-2">{{ number_format($totalMembershipTransactions) }}</h4>
-                                    </div>
-                                    <small class="text-muted">Semua riwayat paket</small>
-                                </div>
-                                <div class="avatar">
-                                    <span class="avatar-initial rounded bg-label-primary">
-                                        <i class="bx bx-credit-card bx-sm"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Membership Aktif -->
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-start border-success border-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="content-left">
-                                    <span class="text-muted fw-semibold">Membership Aktif</span>
-                                    <div class="d-flex align-items-center my-1">
-                                        <h4 class="mb-0 me-2 text-success">{{ number_format($activeMemberships) }}</h4>
-                                    </div>
-                                    <small class="text-success">Dapat beraktivitas</small>
-                                </div>
-                                <div class="avatar">
-                                    <span class="avatar-initial rounded bg-label-success">
-                                        <i class="bx bx-check-shield bx-sm"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kadaluarsa -->
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-start border-warning border-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="content-left">
-                                    <span class="text-muted fw-semibold">Kadaluarsa</span>
-                                    <div class="d-flex align-items-center my-1">
-                                        <h4 class="mb-0 me-2 text-warning">{{ number_format($expiredMemberships) }}</h4>
-                                    </div>
-                                    <small class="text-warning">Perlu perpanjangan</small>
-                                </div>
-                                <div class="avatar">
-                                    <span class="avatar-initial rounded bg-label-warning">
-                                        <i class="bx bx-time-five bx-sm"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Pendapatan Bulan Ini -->
-                <div class="col-sm-6 col-xl-3">
-                    <div class="card h-100 shadow-sm border-start border-info border-4">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <div class="content-left">
-                                    <span class="text-muted fw-semibold">Pendapatan Bulan Ini</span>
-                                    <div class="d-flex align-items-center my-1">
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">Rp
-                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                        <h5 class="mb-0 me-2 text-heading text-primary fw-bold">
-                                            {{ 'Rp ' . number_format($monthlyRevenue, 0, ',', '.') }}</h5>
-                                    </div>
-                                    <small class="text-muted">{{ $currentMonthLabel }}</small>
-                                </div>
-                                <div class="avatar">
-                                    <span class="avatar-initial rounded bg-label-info">
-                                        <i class="bx bx-wallet bx-sm"></i>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kartu Metrik Transaksi & Validasi Membership (Dipindahkan dari Halaman Transaksi Membership) -->
+            <!-- Transaksi Membership -->
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="text-muted fw-semibold text-uppercase small mb-0">
-                    <i class="bx bx-receipt me-1 text-primary"></i> Validasi Transaksi Membership
+                    <i class="bx bx-receipt me-1 text-primary"></i> Transaksi Membership
                 </h6>
                 <a href="{{ route('membership-transactions.index') }}" class="small fw-semibold text-primary">
                     Buka Halaman Transaksi &rarr;
                 </a>
             </div>
             <div class="row g-3 mb-4">
+                <!-- Total Transaksi -->
+                <div class="col-sm-6 col-xl-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div>
+                                    <span class="text-muted fw-semibold d-block mb-1">Total Transaksi</span>
+                                    <h4 class="mb-0 fw-bold">{{ number_format($totalMembershipTransactions) }}</h4>
+                                    <small class="text-muted">Semua riwayat paket</small>
+                                </div>
+                                <div class="avatar">
+                                    <span class="avatar-initial rounded bg-label-primary">
+                                        <i class="bx bx-receipt bx-sm"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Menunggu Validasi -->
                 <div class="col-sm-6 col-xl-3">
                     <a href="{{ route('membership-transactions.index', ['status' => 'pending']) }}"
                         class="text-decoration-none">
-                        <div class="card h-100 border-start border-warning border-4 shadow-sm">
+                        <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
                                         <span class="text-muted fw-semibold d-block mb-1">Menunggu Validasi</span>
-                                        <h4 class="card-title mb-0 text-warning">
-                                            {{ number_format($txMetrics['pending']) }}</h4>
+                                        <h4 class="mb-0 fw-bold text-warning">{{ number_format($txMetrics['pending']) }}
+                                        </h4>
+                                        <small class="text-muted">Perlu konfirmasi kasir</small>
                                     </div>
-                                    <div class="avatar bg-light-warning rounded p-2">
-                                        <i class="bx bx-time-five fs-2 text-warning"></i>
+                                    <div class="avatar">
+                                        <span class="avatar-initial rounded bg-label-warning">
+                                            <i class="bx bx-time-five bx-sm"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -407,37 +316,19 @@
                 <div class="col-sm-6 col-xl-3">
                     <a href="{{ route('membership-transactions.index', ['status' => 'active']) }}"
                         class="text-decoration-none">
-                        <div class="card h-100 border-start border-success border-4 shadow-sm">
+                        <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
                                         <span class="text-muted fw-semibold d-block mb-1">Transaksi Disetujui</span>
-                                        <h4 class="card-title mb-0 text-success">
-                                            {{ number_format($txMetrics['approved']) }}</h4>
+                                        <h4 class="mb-0 fw-bold text-success">{{ number_format($txMetrics['approved']) }}
+                                        </h4>
+                                        <small class="text-muted">Transaksi berhasil</small>
                                     </div>
-                                    <div class="avatar bg-light-success rounded p-2">
-                                        <i class="bx bx-check-double fs-2 text-success"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-
-                <!-- Ditolak / Batal -->
-                <div class="col-sm-6 col-xl-3">
-                    <a href="{{ route('membership-transactions.index', ['status' => 'rejected']) }}"
-                        class="text-decoration-none">
-                        <div class="card h-100 border-start border-danger border-4 shadow-sm">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <span class="text-muted fw-semibold d-block mb-1">Ditolak / Batal</span>
-                                        <h4 class="card-title mb-0 text-danger">
-                                            {{ number_format($txMetrics['rejected']) }}</h4>
-                                    </div>
-                                    <div class="avatar bg-light-danger rounded p-2">
-                                        <i class="bx bx-x-circle fs-2 text-danger"></i>
+                                    <div class="avatar">
+                                        <span class="avatar-initial rounded bg-label-success">
+                                            <i class="bx bx-check-double bx-sm"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -445,21 +336,23 @@
                     </a>
                 </div>
 
-                <!-- Total Pendapatan Transaksi -->
+                <!-- Total Pendapatan -->
                 <div class="col-sm-6 col-xl-3">
                     <a href="{{ route('membership-transactions.index') }}" class="text-decoration-none">
-                        <div class="card h-100 border-start border-primary border-4 shadow-sm">
+                        <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
                                         <span class="text-muted fw-semibold d-block mb-1">Total Pendapatan</span>
-                                        <h4 class="card-title mb-0 text-primary">Rp
+                                        <h4 class="mb-0 fw-bold text-primary">Rp
                                             {{ number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
-                                        <h4 class="card-title mb-0 text-primary">
-                                            {{ 'Rp ' . number_format($txMetrics['total_revenue'], 0, ',', '.') }}</h4>
+                                        <small class="text-muted">Bulan ini: Rp
+                                            {{ number_format($monthlyRevenue, 0, ',', '.') }}</small>
                                     </div>
-                                    <div class="avatar bg-light-primary rounded p-2">
-                                        <i class="bx bx-wallet fs-2 text-primary"></i>
+                                    <div class="avatar">
+                                        <span class="avatar-initial rounded bg-label-info">
+                                            <i class="bx bx-wallet bx-sm"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -468,7 +361,7 @@
                 </div>
             </div>
 
-            <!-- Kartu Metrik Reservasi (Dipindahkan dari Halaman Reservasi) -->
+            <!-- Kartu Metrik Reservasi -->
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="text-muted fw-semibold text-uppercase small mb-0">
                     <i class="bx bx-calendar-event me-1 text-primary"></i> Ringkasan Status Reservasi Sistem
@@ -479,7 +372,7 @@
             </div>
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="card card-border-shadow-primary h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-1">
                                 <div class="avatar avatar-sm me-2">
@@ -493,56 +386,56 @@
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="card card-border-shadow-success h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-1">
                                 <div class="avatar avatar-sm me-2">
                                     <span class="avatar-initial rounded bg-label-success"><i
                                             class="bx bx-calendar-check"></i></span>
                                 </div>
-                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['scheduled'] }}</h4>
+                                <h4 class="mb-0 fw-bold text-success">{{ $reservationMetrics['scheduled'] }}</h4>
                             </div>
                             <small class="text-muted">Terjadwal (Optimal)</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="card card-border-shadow-warning h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-1">
                                 <div class="avatar avatar-sm me-2">
                                     <span class="avatar-initial rounded bg-label-warning"><i
                                             class="bx bx-time"></i></span>
                                 </div>
-                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['pending'] }}</h4>
+                                <h4 class="mb-0 fw-bold text-warning">{{ $reservationMetrics['pending'] }}</h4>
                             </div>
                             <small class="text-muted">Menunggu Slot</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="card card-border-shadow-info h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-1">
                                 <div class="avatar avatar-sm me-2">
                                     <span class="avatar-initial rounded bg-label-info"><i
                                             class="bx bx-check-double"></i></span>
                                 </div>
-                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['completed'] }}</h4>
+                                <h4 class="mb-0 fw-bold text-info">{{ $reservationMetrics['completed'] }}</h4>
                             </div>
                             <small class="text-muted">Selesai Dikunjungi</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3 col-xl">
-                    <div class="card card-border-shadow-danger h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-1">
                                 <div class="avatar avatar-sm me-2">
                                     <span class="avatar-initial rounded bg-label-danger"><i
                                             class="bx bx-x-circle"></i></span>
                                 </div>
-                                <h4 class="mb-0 fw-bold">{{ $reservationMetrics['cancelled'] }}</h4>
+                                <h4 class="mb-0 fw-bold text-danger">{{ $reservationMetrics['cancelled'] }}</h4>
                             </div>
                             <small class="text-muted">Dibatalkan</small>
                         </div>
@@ -554,7 +447,7 @@
             <div class="row g-3 mb-4">
                 <!-- Total Member -->
                 <div class="col-sm-6 col-xl-3">
-                    <div class="card card-border-shadow-primary h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-2">
                                 <div class="avatar me-3">
@@ -569,7 +462,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
                                 <span class="text-muted">Member Aktif:</span>
-                                <span class="badge bg-label-success">{{ $activeMembers }} Orang</span>
+                                <span class="text-success fw-semibold">{{ $activeMembers }} Orang</span>
                             </div>
                         </div>
                     </div>
@@ -577,7 +470,7 @@
 
                 <!-- Membership Aktif -->
                 <div class="col-sm-6 col-xl-3">
-                    <div class="card card-border-shadow-success h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-2">
                                 <div class="avatar me-3">
@@ -592,7 +485,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
                                 <span class="text-muted">Siap Reservasi:</span>
-                                <span class="badge bg-label-primary">{{ $activeMemberships }} Member</span>
+                                <span class="text-primary fw-semibold">{{ $activeMemberships }} Member</span>
                             </div>
                         </div>
                     </div>
@@ -600,7 +493,7 @@
 
                 <!-- Reservasi Hari Ini -->
                 <div class="col-sm-6 col-xl-3">
-                    <div class="card card-border-shadow-warning h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-2">
                                 <div class="avatar me-3">
@@ -614,10 +507,9 @@
                                 </div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
-                                <span class="text-muted">Terjadwal vs Pending:</span>
-                                <span class="badge bg-label-{{ $todayPendingReservations > 0 ? 'warning' : 'success' }}">
-                                    {{ $todayScheduledReservations }} Terjadwal / {{ $todayPendingReservations }} Pending
-                                </span>
+                                <span class="text-muted">Status:</span>
+                                <span class="text-dark fw-semibold">{{ $todayScheduledReservations }} Terjadwal /
+                                    {{ $todayPendingReservations }} Pending</span>
                             </div>
                         </div>
                     </div>
@@ -625,7 +517,7 @@
 
                 <!-- Kehadiran Gym Hari Ini -->
                 <div class="col-sm-6 col-xl-3">
-                    <div class="card card-border-shadow-info h-100 shadow-sm">
+                    <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-2">
                                 <div class="avatar me-3">
@@ -640,154 +532,7 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-center pt-2 border-top small">
                                 <span class="text-muted">Dari Target Terjadwal:</span>
-                                <span class="badge bg-label-info">{{ $todayTotalVisits }} Orang</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Flow Banner -->
-            <div class="card bg-lighter border mb-4">
-                <div class="card-body py-3">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <span class="fw-bold small text-muted text-uppercase">Arsitektur Alur Utama Sistem:</span>
-                        <div class="d-flex align-items-center flex-wrap gap-2 small">
-                            <span class="badge bg-primary">MEMBER</span>
-                            <i class="bx bx-right-arrow-alt text-muted"></i>
-                            <span class="badge bg-info">MEMBERSHIP</span>
-                            <i class="bx bx-right-arrow-alt text-muted"></i>
-                            <span class="badge bg-warning">RESERVASI</span>
-                            <i class="bx bx-right-arrow-alt text-muted"></i>
-                            <span class="badge bg-secondary">TIME SLOT</span>
-                            <i class="bx bx-right-arrow-alt text-muted"></i>
-                            <span class="badge bg-dark">ALGORITMA GREEDY</span>
-                            <i class="bx bx-right-arrow-alt text-muted"></i>
-                            <span class="badge bg-success">JADWAL KUNJUNGAN</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row g-4 mb-4">
-                <!-- Slot Occupancy Distribution Monitor (Load Balancing Monitor) -->
-                <div class="col-12 col-lg-7">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="card-title fw-bold mb-0 text-heading">
-                                    <i class="bx bx-bar-chart-alt-2 me-1 text-primary"></i> Okupansi Time Slot Hari Ini
-                                </h5>
-                                <small class="text-muted">Distribusi beban kunjungan gym Indo Fitness Tondano</small>
-                            </div>
-                            <form action="{{ route('schedules.optimize') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="date" value="{{ $today }}">
-                                <button type="submit" class="btn btn-sm btn-warning">
-                                    <i class="bx bx-brain me-1"></i> Optimasi Greedy
-                                </button>
-                            </form>
-                        </div>
-                        <div class="card-body p-3">
-                            @forelse ($slotOccupancies as $occ)
-                                @php
-                                    $pct = $occ['percentage'];
-                                    $barColor = $pct >= 100 ? 'bg-danger' : ($pct >= 70 ? 'bg-warning' : 'bg-success');
-                                @endphp
-                                <div class="mb-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <div>
-                                            <span class="fw-semibold text-heading small">{{ $occ['slot']->name }}</span>
-                                            <span class="badge bg-label-dark font-monospace ms-1"
-                                                style="font-size: 0.72rem;">{{ $occ['slot']->time_range }}</span>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="fw-bold small">{{ $occ['occupied'] }} /
-                                                {{ $occ['slot']->capacity }} org</span>
-                                            <span class="badge {{ $barColor }} ms-1"
-                                                style="font-size: 0.7rem;">{{ $pct }}%</span>
-                                        </div>
-                                    </div>
-                                    <div class="progress" style="height: 8px;">
-                                        <div class="progress-bar {{ $barColor }}" role="progressbar"
-                                            style="width: {{ min(100, $pct) }}%;" aria-valuenow="{{ $pct }}"
-                                            aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-4 text-muted">
-                                    Belum ada Time Slot aktif.
-                                </div>
-                            @endforelse
-                        </div>
-                        <div
-                            class="card-footer border-top bg-lighter py-2 d-flex justify-content-between align-items-center small">
-                            <span class="text-muted">Total Kapasitas Kuota Gym Hari Ini: <strong>{{ $totalGymCapacity }}
-                                    Orang</strong></span>
-                            <a href="{{ route('schedules.index') }}" class="fw-semibold text-primary">Lihat Matriks
-                                Jadwal Lengkap &rarr;</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kunjungan Terjadwal Hari Ini -->
-                <div class="col-12 col-lg-5">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                            <h5 class="card-title fw-bold mb-0 text-heading">
-                                <i class="bx bx-calendar-check me-1 text-primary"></i> Sesi Kunjungan Hari Ini
-                            </h5>
-                            <a href="{{ route('schedules.index') }}" class="btn btn-sm btn-outline-secondary">Detail</a>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Member</th>
-                                            <th>Sesi Waktu</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($recentSchedules as $s)
-                                            <tr>
-                                                <td>
-                                                    <div class="fw-semibold small text-heading">
-                                                        {{ $s->member->user->name ?? '-' }}</div>
-                                                    <small class="text-muted font-monospace"
-                                                        style="font-size: 0.7rem;">{{ $s->member->member_code ?? '-' }}</small>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-label-primary font-monospace"
-                                                        style="font-size: 0.7rem;">
-                                                        {{ $s->timeSlot->name ?? '-' }}
-                                                    </span>
-                                                    <small class="d-block text-muted"
-                                                        style="font-size: 0.68rem;">{{ $s->timeSlot->time_range ?? '-' }}</small>
-                                                </td>
-                                                <td>
-                                                    @if ($s->status === 'attended')
-                                                        <span class="badge bg-label-success"
-                                                            style="font-size: 0.7rem;">Hadir</span>
-                                                    @elseif ($s->status === 'scheduled')
-                                                        <span class="badge bg-label-primary"
-                                                            style="font-size: 0.7rem;">Terjadwal</span>
-                                                    @else
-                                                        <span class="badge bg-label-secondary"
-                                                            style="font-size: 0.7rem;">{{ ucfirst($s->status) }}</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="3" class="text-center py-4 text-muted small">
-                                                    Belum ada kunjungan terjadwal untuk hari ini.
-                                                </td>
-                                            </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                <span class="text-info fw-semibold">{{ $todayTotalVisits }} Orang</span>
                             </div>
                         </div>
                     </div>
