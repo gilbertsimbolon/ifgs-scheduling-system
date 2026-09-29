@@ -29,7 +29,7 @@ class DashboardController extends Controller
 
         // Role selain Admin/Manager dan Kasir tidak masuk ke admin panel
         if (! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()->route('home');
+            return redirect()->route('member.index');
         }
 
         $today = Carbon::today()->format('Y-m-d');

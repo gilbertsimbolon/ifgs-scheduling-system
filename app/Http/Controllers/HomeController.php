@@ -3,13 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Member;
-use App\Models\Membership;
-use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Reservation;
-use App\Models\Schedule;
 use App\Models\TimeSlot;
-use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -17,81 +13,35 @@ class HomeController extends Controller
 {
     /**
      * Tampilkan Halaman Utama (Landing Page) Indo Fitness Gym Sport®.
+     * Landing page hanya untuk pengunjung publik/tamu sebelum masuk ke sistem.
+     * Pengguna yang sudah login akan langsung dialihkan ke dashboard/portal masing-masing.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $today = Carbon::today()->format('Y-m-d');
-        $activeProducts = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+        if (auth()->check()) {
+            $user = auth()->user();
+            if ($user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
+                return redirect()->route('dashboard');
+            }
+
+            // Member biasa maupun Member berstatus Trainer langsung masuk ke halaman Member
+            return redirect()->route('member.index');
+        }
+
+        $activeProducts = Product::with(['durations' => fn($q) => $q->orderedByDuration()])
             ->where('status', Product::STATUS_ACTIVE)
             ->orderBy('name')
             ->get();
+
         $groupedServices = Product::groupedServices();
-        $activePaymentMethods = PaymentMethod::where('status', PaymentMethod::STATUS_ACTIVE)->orderBy('name')->get();
         $operationalSlots = TimeSlot::active()->orderBy('start_time')->get();
         $activeTrainers = Member::with('user')->activeTrainers()->get();
 
-        $user = auth()->user();
-        $member = null;
-        $activeMembership = null;
-        $pendingMembership = null;
-        $myUpcomingSchedules = collect();
-        $myRecentVisits = collect();
-        $myReservations = collect();
-        $canMakeReservation = false;
-        $isDailyVisitOnly = false;
-
-        if ($user) {
-            // Data untuk Member
-            if ($user->hasRole('Member')) {
-                $member = $user->member;
-                if ($member) {
-                    $activeMembership = $member->activeMembership();
-                    $canMakeReservation = $member->canMakeReservation();
-                    $isDailyVisitOnly = $member->hasOnlyDailyVisitMembership();
-                    $pendingMembership = Membership::with(['product', 'paymentMethod', 'transaction'])
-                        ->where('member_id', $member->id)
-                        ->where('status', Membership::STATUS_PENDING)
-                        ->latest()
-                        ->first();
-
-                    $myUpcomingSchedules = Schedule::with(['timeSlot', 'reservation.membership.product'])
-                        ->where('member_id', $member->id)
-                        ->whereDate('scheduled_date', '>=', $today)
-                        ->orderBy('scheduled_date')
-                        ->take(10)
-                        ->get();
-
-                    $myRecentVisits = Schedule::with('timeSlot')
-                        ->where('member_id', $member->id)
-                        ->where('status', Schedule::STATUS_ATTENDED)
-                        ->latest('scheduled_date')
-                        ->take(5)
-                        ->get();
-
-                    $myReservations = Reservation::with(['timeSlot', 'membership.product'])
-                        ->where('member_id', $member->id)
-                        ->latest()
-                        ->take(5)
-                        ->get();
-                }
-            }
-        }
-
         return view('welcome', compact(
-            'today',
             'activeProducts',
             'groupedServices',
-            'activePaymentMethods',
             'operationalSlots',
-            'activeTrainers',
-            'member',
-            'activeMembership',
-            'pendingMembership',
-            'myUpcomingSchedules',
-            'myRecentVisits',
-            'myReservations',
-            'canMakeReservation',
-            'isDailyVisitOnly'
+            'activeTrainers'
         ));
     }
 }

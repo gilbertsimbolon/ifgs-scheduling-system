@@ -8,8 +8,8 @@
         content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Indo Fitness Gym Sport® - Official Portal</title>
-    <meta name="description" content="Portal Resmi Penjadwalan & Layanan Member Indo Fitness Gym Sport Tondano" />
+    <title>Indo Fitness Gym Sport® - Official Gym Center Tondano</title>
+    <meta name="description" content="Pusat Kebugaran, Pembentukan Tubuh & Kelas Aerobic Zumba Resmi di Tondano" />
 
     <!-- Favicon -->
     <link rel="icon" type="image/jpeg" href="{{ asset('img/logo-ifgs.jpg') }}" />
@@ -58,8 +58,9 @@
         }
 
         #section-paket,
-        #section-jadwal,
-        #section-trainer {
+        #section-faq,
+        #section-trainer,
+        #section-kontak {
             scroll-margin-top: 75px;
         }
 
@@ -98,13 +99,6 @@
             letter-spacing: 0.5px;
         }
 
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
         i.bx {
             vertical-align: -0.125em;
         }
@@ -134,7 +128,7 @@
                         <a class="nav-link fw-semibold text-heading px-3" href="#section-paket">Paket Layanan</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link fw-semibold text-heading px-3" href="#section-jadwal">Jam Operasional</a>
+                        <a class="nav-link fw-semibold text-heading px-3" href="#section-faq">FAQ</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link fw-semibold text-heading px-3" href="#section-trainer">Trainer Kami</a>
@@ -145,76 +139,12 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
-                    @guest
-                        <a href="{{ route('login') }}" class="btn btn-outline-primary px-3">
-                            <i class="bx bx-log-in me-1"></i> Masuk
-                        </a>
-                        <a href="{{ route('register') }}" class="btn btn-primary px-3">
-                            <i class="bx bx-user-plus me-1"></i> Daftar Akun
-                        </a>
-                    @else
-                        <!-- Logged-in User Pill -->
-                        <div class="dropdown">
-                            <button
-                                class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 py-1 px-3 border shadow-sm"
-                                type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <div class="avatar avatar-xs">
-                                    <span class="avatar-initial rounded-circle bg-label-primary fw-bold"
-                                        style="font-size: 0.75rem;">
-                                        {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
-                                    </span>
-                                </div>
-                                <div class="text-start">
-                                    <span
-                                        class="fw-semibold text-dark d-block lh-1 small">{{ auth()->user()->name }}</span>
-                                    <small class="text-primary fw-semibold"
-                                        style="font-size: 0.72rem; font-family: Arial, Helvetica, sans-serif;">
-                                        {{ auth()->user()->getRoleNames()->first() ?? 'Member' }}
-                                    </small>
-                                </div>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                                <li>
-                                    <h6 class="dropdown-header">Akun Saya</h6>
-                                </li>
-                                @if (auth()->user()->hasAnyRole(['Admin/Manager', 'Kasir']))
-                                    <li>
-                                        <a class="dropdown-item fw-semibold text-primary" href="{{ route('dashboard') }}">
-                                            <i class="bx bx-home-smile me-2"></i> Ke Dashboard Panel
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                @endif
-                                <li>
-                                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal"
-                                        data-bs-target="#modalPengaturanProfil"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        <i class="bx bx-user me-2"></i> Pengaturan Profil
-                                    </a>
-                                </li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li>
-                                    <form action="{{ route('logout') }}" method="POST" class="m-0">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="bx bx-log-out me-2"></i> Keluar (Logout)
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
-
-                        @if (auth()->user()->hasAnyRole(['Admin/Manager', 'Kasir']))
-                            <a href="{{ route('dashboard') }}"
-                                class="btn btn-primary d-none d-md-inline-flex align-items-center">
-                                <i class="bx bx-layout me-1"></i> Dashboard
-                            </a>
-                        @endif
-                    @endguest
+                    <a href="{{ route('login') }}" class="btn btn-outline-primary px-3">
+                        <i class="bx bx-log-in me-1"></i> Masuk
+                    </a>
+                    <a href="{{ route('register') }}" class="btn btn-primary px-3">
+                        <i class="bx bx-user-plus me-1"></i> Daftar Akun
+                    </a>
                 </div>
             </div>
         </div>
@@ -241,63 +171,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-
-        @if (session('warning'))
-            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bx bx-alarm-exclamation fs-4 me-2"></i>
-                    <div>{{ session('warning') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if (session('info'))
-            <div class="alert alert-info alert-dismissible fade show shadow-sm" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bx bx-info-circle fs-4 me-2"></i>
-                    <div>{{ session('info') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if (session('profile_success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bx bx-check-circle fs-4 me-2"></i>
-                    <div><strong>Berhasil!</strong> {{ session('profile_success') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if (session('password_success'))
-            <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bx bx-check-shield fs-4 me-2"></i>
-                    <div><strong>Berhasil!</strong> {{ session('password_success') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                <div class="d-flex align-items-start">
-                    <i class="bx bx-error-circle fs-4 me-2 mt-1"></i>
-                    <div>
-                        <strong class="d-block mb-1">Terdapat kesalahan pada formulir:</strong>
-                        <ul class="mb-0 ps-3">
-                            @foreach ($errors->all() as $err)
-                                <li>{{ $err }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
     </div>
 
     <!-- 2. HERO SECTION -->
@@ -305,10 +178,6 @@
         <div class="container-xl py-4 position-relative" style="z-index: 2;">
             <div class="row align-items-center g-4">
                 <div class="col-lg-7">
-                    <p class="text-uppercase fw-semibold mb-2"
-                        style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px; color: #d0d7de;">
-                        <i class="bx bx-dumbbell me-1 text-primary"></i> Official Gym Center &bull; Tondano
-                    </p>
                     <h1 class="display-5 fw-bold text-white mb-3 lh-sm"
                         style="font-family: Arial, Helvetica, sans-serif;">
                         Indo Fitness Gym Sport®
@@ -321,44 +190,18 @@
                     </p>
 
                     <div class="d-flex flex-wrap gap-3">
-                        @guest
-                            <a href="{{ route('register') }}" class="btn btn-primary btn-lg shadow"
-                                style="font-family: Arial, Helvetica, sans-serif;">
-                                <i class="bx bx-user-plus me-1"></i> Daftar Member Baru
-                            </a>
-                            <a href="#section-paket" class="btn btn-outline-light btn-lg"
-                                style="font-family: Arial, Helvetica, sans-serif;">
-                                <i class="bx bx-package me-1"></i> Lihat Paket & Harga
-                            </a>
-                        @else
-                            @if (auth()->user()->hasRole('Member'))
-                                @if ($activeMembership)
-                                    <button type="button" class="btn btn-primary btn-lg shadow" data-bs-toggle="modal"
-                                        data-bs-target="#modalTambahReservasi"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        <i class="bx bx-calendar-plus me-1"></i> Reservasi Kunjungan
-                                    </button>
-                                    <button type="button" class="btn btn-light text-primary btn-lg shadow"
-                                        data-bs-toggle="modal" data-bs-target="#modalQrCodeMember"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        <i class="bx bx-qr-scan me-1"></i> QR Absensi Saya
-                                    </button>
-                                @else
-                                    <a href="#section-paket" class="btn btn-warning text-dark btn-lg shadow fw-semibold"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        <i class="bx bx-cart-add me-1"></i> Berlangganan Membership
-                                    </a>
-                                @endif
-                            @else
-                                <a href="{{ route('dashboard') }}" class="btn btn-primary btn-lg shadow"
-                                    style="font-family: Arial, Helvetica, sans-serif;">
-                                    <i class="bx bx-home-smile me-1"></i> Buka Panel Dashboard
-                                </a>
-                            @endif
-                        @endguest
+                        <a href="{{ route('register') }}" class="btn btn-primary btn-lg shadow"
+                            style="font-family: Arial, Helvetica, sans-serif;">
+                            <i class="bx bx-user-plus me-1"></i> Daftar Member Baru
+                        </a>
+                        <a href="#section-paket" class="btn btn-outline-light btn-lg"
+                            style="font-family: Arial, Helvetica, sans-serif;">
+                            <i class="bx bx-package me-1"></i> Lihat Paket & Harga
+                        </a>
                     </div>
                 </div>
 
+                <!-- Jam Buka Operasional (Dinamis dari Dashboard Admin) -->
                 <div class="col-lg-5 text-center">
                     <div class="card shadow-lg rounded-4 p-4 text-white text-start"
                         style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(8px); font-family: Arial, Helvetica, sans-serif;">
@@ -368,27 +211,28 @@
                                 <i class="bx bx-time fs-2 text-white"></i>
                             </div>
                             <div>
-                                <h5 class="text-white fw-bold mb-0"
-                                    style="font-family: Arial, Helvetica, sans-serif;">Jam Buka Operasional</h5>
-                                <small class="text-white-50"
-                                    style="font-family: Arial, Helvetica, sans-serif;">Tondano, Minahasa</small>
+                                <h5 class="text-white fw-bold mb-0">Jam Buka Operasional</h5>
+                                <small class="text-white-50">Tondano, Minahasa</small>
                             </div>
                         </div>
 
                         <div class="vstack gap-2"
                             style="font-size: 0.92rem; font-family: Arial, Helvetica, sans-serif;">
-                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
-                                style="border-color: rgba(255, 255, 255, 0.15) !important;">
-                                <span style="color: #e2e8f0;"><i class="bx bx-check text-success me-1"></i> Fitness
-                                    (Senin - Sabtu)</span>
-                                <span class="fw-semibold text-white">08.00 - 20.00 WITA</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
-                                style="border-color: rgba(255, 255, 255, 0.15) !important;">
-                                <span style="color: #e2e8f0;"><i class="bx bx-check text-success me-1"></i> Aerobic /
-                                    Zumba (Senin & Kamis)</span>
-                                <span class="fw-semibold text-white">19.00 - 21.00 WITA</span>
-                            </div>
+                            @forelse ($operationalSlots as $slot)
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom"
+                                    style="border-color: rgba(255, 255, 255, 0.15) !important;">
+                                    <span style="color: #e2e8f0;">
+                                        <i class="bx bx-check text-success me-1"></i> {{ $slot->name }}
+                                        ({{ $slot->days }})
+                                    </span>
+                                    <span class="fw-semibold text-white">
+                                        {{ substr($slot->start_time, 0, 5) }} - {{ substr($slot->end_time, 0, 5) }}
+                                        WITA
+                                    </span>
+                                </div>
+                            @empty
+                                <div class="py-2 text-white-50 small">Jadwal operasional belum diatur.</div>
+                            @endforelse
                             <div class="d-flex justify-content-between align-items-center py-2">
                                 <span style="color: #e2e8f0;"><i class="bx bx-x text-danger me-1"></i> Minggu & Hari
                                     Libur</span>
@@ -401,261 +245,13 @@
         </div>
     </section>
 
-    <!-- 3. SPECIAL AUTHENTICATED PORTALS -->
-
-    <!-- A. PORTAL MEMBER -->
-    @if (auth()->check() && auth()->user()->hasRole('Member'))
-        <section id="section-member-portal" class="py-4 bg-white border-bottom shadow-sm">
-            <div class="container-xl">
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-2 border-bottom">
-                    <div>
-                        <p class="text-uppercase fw-semibold mb-1"
-                            style="font-family: Arial, Helvetica, sans-serif; font-size: 0.8rem; letter-spacing: 1.5px; color: #696cff;">
-                            PORTAL MEMBER IFGS
-                        </p>
-                        <h3 class="fw-bold text-dark mb-0" style="font-family: Arial, Helvetica, sans-serif;">Halo, {{ auth()->user()->name }}! 👋</h3>
-                        <p class="text-muted small mb-0" style="font-family: Arial, Helvetica, sans-serif;">Kelola
-                            status membership, reservasi kunjungan, dan absensi
-                            Anda di sini.</p>
-                    </div>
-                    @if ($activeMembership)
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahReservasi"
-                                style="font-family: Arial, Helvetica, sans-serif;">
-                                <i class="bx bx-calendar-plus me-1"></i> Reservasi Kunjungan
-                            </button>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Notifikasi Pending jika ada -->
-                @if (!empty($pendingMembership))
-                    <div
-                        class="alert alert-warning border border-warning shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                        <div class="d-flex align-items-center gap-3">
-                            <div
-                                class="avatar bg-warning text-white rounded p-2 d-flex align-items-center justify-content-center">
-                                <i class="bx bx-time-five fs-2"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold text-dark mb-1">Pesanan Paket
-                                    {{ $pendingMembership->product?->name }} Sedang Diverifikasi</h6>
-                                <p class="small text-muted mb-0">
-                                    No. Invoice: <strong
-                                        class="text-dark">{{ $pendingMembership->transaction?->invoice_number }}</strong>
-                                    &bull;
-                                    Nominal: <strong
-                                        class="text-success">{{ $pendingMembership->formatted_price }}</strong> &bull;
-                                    Metode:
-                                    <strong>{{ $pendingMembership->paymentMethod ? ucwords(str_replace('_', ' ', $pendingMembership->paymentMethod->name)) : 'Transfer' }}</strong>
-                                </p>
-                            </div>
-                        </div>
-                        @if ($pendingMembership->payment_proof_url)
-                            <a href="{{ $pendingMembership->payment_proof_url }}" target="_blank"
-                                class="btn btn-sm btn-outline-warning">
-                                <i class="bx bx-image me-1"></i> Bukti Transfer
-                            </a>
-                        @endif
-                    </div>
-                @endif
-
-                <div class="row g-4 mb-4">
-                    <!-- Status Kartu Keanggotaan -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card h-100 shadow-sm border-start border-primary border-4">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <span class="text-uppercase fw-semibold small text-muted"
-                                        style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px;">Status
-                                        Keanggotaan</span>
-                                    @if ($activeMembership)
-                                        <span class="badge bg-success">Aktif</span>
-                                    @elseif (!empty($pendingMembership))
-                                        <span class="badge bg-warning text-dark">Menunggu Verifikasi</span>
-                                    @else
-                                        <span class="badge bg-secondary">Belum Aktif</span>
-                                    @endif
-                                </div>
-
-                                <h4 class="fw-bold text-dark mb-1">
-                                    {{ $activeMembership ? $activeMembership->product->name : 'Belum Ada Paket' }}
-                                </h4>
-                                <p class="text-muted small mb-3">
-                                    Kode Member: <strong class="text-primary fw-semibold"
-                                        style="font-family: Arial, Helvetica, sans-serif;">{{ $member->member_code ?? (auth()->user()->user_code ?? '-') }}</strong>
-                                </p>
-
-                                @if ($activeMembership)
-                                    <div class="p-3 bg-light rounded-3 small">
-                                        <div class="d-flex justify-content-between mb-1">
-                                            <span class="text-muted">Masa Berlaku s/d:</span>
-                                            <strong
-                                                class="text-dark">{{ $activeMembership->end_date->format('d M Y') }}</strong>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Sisa Durasi:</span>
-                                            <span class="badge bg-label-success">
-                                                @if ($activeMembership->end_date->isToday())
-                                                    1 Hari (Hari Ini)
-                                                @else
-                                                    {{ $activeMembership->days_remaining }} Hari Lagi
-                                                @endif
-                                            </span>
-                                        </div>
-                                    </div>
-                                @else
-                                    <div class="p-3 bg-light rounded-3 small text-center text-muted">
-                                        Silakan pilih paket di bawah untuk mengaktifkan membership dan memesan jadwal
-                                        latihan.
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Digital QR Card Preview -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="card h-100 shadow-sm border-0"
-                            style="background: linear-gradient(135deg, #2b2c49 0%, #1e1e38 100%);">
-                            <div class="card-body text-white d-flex align-items-center justify-content-between p-4">
-                                <div>
-                                    <div class="text-uppercase fw-semibold small mb-2"
-                                        style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px; color: #cbd5e1;">
-                                        Kartu Member Digital</div>
-                                    <h5 class="fw-bold text-white mb-1"
-                                        style="font-family: Arial, Helvetica, sans-serif;">{{ auth()->user()->name }}
-                                    </h5>
-                                    <p class="text-white-50 small mb-3 fw-semibold"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        {{ auth()->user()->qr_code }}
-                                    </p>
-                                    <button type="button" class="btn btn-sm btn-primary shadow-sm"
-                                        data-bs-toggle="modal" data-bs-target="#modalQrCodeMember"
-                                        style="font-family: Arial, Helvetica, sans-serif;">
-                                        <i class="bx bx-fullscreen me-1"></i> Buka QR Absensi
-                                    </button>
-                                </div>
-                                <div class="bg-white p-2 rounded-3 shadow cursor-pointer" data-bs-toggle="modal"
-                                    data-bs-target="#modalQrCodeMember" title="Klik untuk memperbesar">
-                                    {!! auth()->user()->getQrCodeSvg(88) !!}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ringkasan Kunjungan -->
-                    <div class="col-lg-4 col-md-12">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <div class="text-uppercase fw-semibold small text-muted mb-2"
-                                    style="font-family: Arial, Helvetica, sans-serif; letter-spacing: 0.5px;">Aktivitas
-                                    Latihan</div>
-                                <h5 class="fw-bold text-dark mb-3" style="font-family: Arial, Helvetica, sans-serif;">
-                                    Jadwal & Riwayat</h5>
-                                <div class="d-flex justify-content-around text-center py-2 bg-light rounded-3">
-                                    <div>
-                                        <h4 class="fw-bold text-primary mb-0">{{ $myUpcomingSchedules->count() }}</h4>
-                                        <small class="text-muted">Terjadwal</small>
-                                    </div>
-                                    <div class="vr"></div>
-                                    <div>
-                                        <h4 class="fw-bold text-success mb-0">{{ $myRecentVisits->count() }}</h4>
-                                        <small class="text-muted">Kunjungan Hadir</small>
-                                    </div>
-                                    <div class="vr"></div>
-                                    <div>
-                                        <h4 class="fw-bold text-heading mb-0">{{ $myReservations->count() }}</h4>
-                                        <small class="text-muted">Reservasi</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabel Jadwal Kunjungan Saya -->
-                <div class="card shadow-sm mb-2">
-                    <div class="card-header border-bottom d-flex justify-content-between align-items-center py-3">
-                        <h5 class="fw-bold mb-0 text-heading">
-                            <i class="bx bx-calendar-star me-2 text-primary"></i> Jadwal Kunjungan Saya
-                        </h5>
-                        @if ($activeMembership)
-                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                data-bs-target="#modalTambahReservasi">
-                                <i class="bx bx-plus me-1"></i> Buat Reservasi
-                            </button>
-                        @endif
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Kode Jadwal</th>
-                                    <th>Tanggal</th>
-                                    <th>Sesi / Waktu</th>
-                                    <th>Paket</th>
-                                    <th>Status Kunjungan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($myUpcomingSchedules as $sch)
-                                    <tr>
-                                        <td><strong class="text-primary fw-semibold"
-                                                style="font-family: Arial, Helvetica, sans-serif;">{{ $sch->schedule_code }}</strong>
-                                        </td>
-                                        <td>
-                                            <span
-                                                class="fw-semibold text-dark">{{ $sch->scheduled_date->format('d M Y') }}</span>
-                                            <small
-                                                class="text-muted d-block">{{ $sch->scheduled_date->translatedFormat('l') }}</small>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-label-primary">
-                                                {{ $sch->timeSlot->name ?? '-' }}
-                                                ({{ $sch->timeSlot->time_range ?? '-' }})
-                                            </span>
-                                        </td>
-                                        <td>{{ $sch->reservation?->membership?->product?->name ?? 'Membership' }}</td>
-                                        <td>
-                                            @if ($sch->status === 'attended')
-                                                <span class="badge bg-label-success"><i class="bx bx-check me-1"></i>
-                                                    Check-in</span>
-                                            @elseif ($sch->status === 'scheduled')
-                                                <span class="badge bg-label-primary"><i
-                                                        class="bx bx-time-five me-1"></i> Terjadwal</span>
-                                            @else
-                                                <span
-                                                    class="badge bg-label-secondary">{{ ucfirst($sch->status) }}</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
-                                            Belum ada jadwal kunjungan mendatang. Silakan klik <strong>"Buat
-                                                Reservasi"</strong> untuk menjadwalkan latihan Anda.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-    @endif
-
-    <!-- 4. PAKET LAYANAN SECTION -->
+    <!-- 3. PAKET LAYANAN SECTION -->
     <section id="section-paket" class="py-5">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <p class="text-uppercase fw-semibold mb-2 text-primary"
-                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">
-                    PILIHAN KEANGGOTAAN</p>
-                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Paket Layanan Gym &
-                    Kelas</h2>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">
+                    Paket Layanan Gym & Kelas
+                </h2>
                 <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
                     Pilih paket yang sesuai dengan tujuan kebugaran Anda. Nikmati akses penuh ke area fitness dan kelas
                     aerobik zumba.
@@ -666,124 +262,89 @@
                 @forelse ($groupedServices as $service)
                     @php
                         $isPopular = $service->key === 'fitness';
+                        $hasDurations = $service->durations && $service->durations->count() > 0;
                     @endphp
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 shadow-sm border package-card position-relative {{ $isPopular ? 'package-popular' : '' }}"
-                            style="border-radius: 16px; overflow: visible;">
+                    <div class="col-md-6 col-lg-5">
+                        <div
+                            class="card h-100 bg-white border shadow-sm package-card {{ $isPopular ? 'package-popular' : '' }}">
                             @if ($isPopular)
-                                <div class="popular-badge">Paling Populer</div>
+                                <span class="popular-badge">Paling Populer</span>
                             @endif
-
                             <div class="card-body p-4 d-flex flex-column justify-content-between">
                                 <div>
-                                    <!-- Header Layanan: Ikon, Judul, Kategori Badge -->
-                                    <div class="d-flex align-items-center justify-content-between mb-3">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-3 p-2 d-flex align-items-center justify-content-center text-danger"
-                                                style="width: 44px; height: 44px; background-color: #fef2f2;">
-                                                <i class="bx {{ $service->icon }} fs-3"></i>
-                                            </div>
-                                            <div>
-                                                <h4 class="fw-bold text-dark mb-0 fs-5">{{ $service->title }}</h4>
-                                                <span
-                                                    class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-2 py-0"
-                                                    style="font-size: 0.68rem;">
-                                                    {{ $service->badge }}
-                                                </span>
-                                            </div>
+                                    <!-- Header Layanan -->
+                                    <div class="d-flex align-items-center gap-3 mb-3">
+                                        <div class="avatar avatar-md bg-light-danger text-danger rounded-3 d-flex align-items-center justify-content-center flex-shrink-0"
+                                            style="width: 48px; height: 48px; background-color: #fee2e2;">
+                                            <i class="bx {{ $service->icon }} fs-3 text-danger"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="fw-bold text-dark mb-1">{{ $service->title }}</h4>
+                                            <span class="badge bg-label-danger rounded-pill px-2 py-1"
+                                                style="font-size: 0.72rem;">
+                                                {{ $service->badge }}
+                                            </span>
                                         </div>
                                     </div>
 
-                                    <p class="text-muted small mb-3" style="line-height: 1.45; min-height: 42px;">
+                                    <p class="text-muted small mb-3" style="font-size: 0.8rem; line-height: 1.45;">
                                         {{ $service->description }}
                                     </p>
 
-                                    <!-- Selector Durasi (Pills) -->
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center justify-content-between mb-2">
-                                            <span class="text-uppercase fw-bold text-muted"
-                                                style="font-size: 0.7rem; letter-spacing: 0.5px;">
-                                                PILIH DURASI:
-                                            </span>
-                                            <span class="text-muted small" style="font-size: 0.7rem;">
-                                                {{ $service->products->count() }} Pilihan Tarif
-                                            </span>
-                                        </div>
-
-                                        <div class="d-flex flex-wrap gap-1 p-1 rounded-3"
-                                            style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
-                                            @foreach ($service->products as $prod)
-                                                @php
-                                                    $isActive = $prod->id === $service->default_product->id;
-                                                @endphp
-                                                <button type="button"
-                                                    class="btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 {{ $isActive ? 'btn-danger text-white shadow-sm' : 'btn-light text-dark bg-white border-0' }}"
-                                                    style="font-size: 0.74rem; padding: 6px 8px; font-weight: 600;"
-                                                    data-service-key="{{ $service->key }}"
-                                                    data-product-id="{{ $prod->id }}"
-                                                    data-product-name="{{ $prod->name }}"
-                                                    data-product-price="{{ $prod->formatted_price }}"
-                                                    data-product-duration="{{ $prod->duration_formatted }}"
-                                                    data-product-desc="{{ $prod->description }}">
-                                                    {{ $prod->duration_formatted }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-                                    </div>
-
-                                    <!-- Box Harga Dinamis Sesuai Durasi -->
-                                    <div class="p-3 rounded-3 mb-3"
-                                        style="background-color: #fff5f5; border: 1px solid #fee2e2;">
-                                        <div
-                                            class="d-flex align-items-baseline justify-content-between flex-wrap gap-1">
-                                            <div>
-                                                <span class="text-muted small d-block"
-                                                    style="font-size: 0.68rem; font-weight: 600;">Tarif Layanan:</span>
-                                                <span class="fs-2 fw-bold text-danger price-display-val"
-                                                    id="price-display-{{ $service->key }}">
-                                                    {{ $service->default_product->formatted_price }}
+                                    @if ($hasDurations)
+                                        <!-- Selector Durasi (Pills) -->
+                                        <div class="mb-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <span class="text-uppercase fw-bold text-muted"
+                                                    style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                                                    PILIH DURASI:
+                                                </span>
+                                                <span class="text-muted small" style="font-size: 0.7rem;">
+                                                    {{ $service->durations->count() }} Pilihan Tarif
                                                 </span>
                                             </div>
-                                            <span
-                                                class="badge bg-white text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 duration-display-badge"
-                                                id="duration-display-{{ $service->key }}"
-                                                style="font-size: 0.72rem; font-weight: 600;">
-                                                / {{ $service->default_product->duration_formatted }}
-                                            </span>
-                                        </div>
-                                        <small
-                                            class="text-muted d-block mt-2 pt-2 border-top border-danger border-opacity-10 desc-display-text"
-                                            id="desc-display-{{ $service->key }}"
-                                            style="font-size: 0.74rem; line-height: 1.35;">
-                                            {{ $service->default_product->description ?: $service->description }}
-                                        </small>
-                                    </div>
 
-                                    <!-- Rincian Daftar Tarif -->
-                                    <div class="mb-3">
-                                        <div class="text-muted small mb-1 fw-bold"
-                                            style="font-size: 0.7rem; letter-spacing: 0.3px;">
-                                            Rincian Tarif Berdasarkan Durasi:
+                                            <div class="d-flex flex-wrap gap-1 p-1 rounded-3"
+                                                style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+                                                @foreach ($service->durations as $dur)
+                                                    @php
+                                                        $isActive = $dur->id === $service->default_duration->id;
+                                                    @endphp
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 {{ $isActive ? 'btn-danger text-white shadow-sm' : 'btn-light text-dark bg-white border-0' }}"
+                                                        style="font-size: 0.74rem; padding: 6px 10px; font-weight: 600;"
+                                                        data-service-key="{{ $service->key }}"
+                                                        data-price="{{ $dur->formatted_price }}"
+                                                        data-duration="{{ $dur->duration_formatted }}">
+                                                        {{ $dur->duration_formatted }}
+                                                    </button>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                        <div class="d-flex flex-column gap-1">
-                                            @foreach ($service->products as $prod)
-                                                @php
-                                                    $isRowActive = $prod->id === $service->default_product->id;
-                                                @endphp
-                                                <div class="d-flex justify-content-between align-items-center py-1 px-2 rounded-2 service-rate-row {{ $isRowActive ? 'bg-danger bg-opacity-10 text-danger fw-bold' : 'text-muted' }}"
-                                                    data-service-key="{{ $service->key }}"
-                                                    data-product-id="{{ $prod->id }}"
-                                                    style="font-size: 0.74rem; cursor: pointer; transition: all 0.2s;">
-                                                    <span class="d-flex align-items-center">
-                                                        <i
-                                                            class="bx {{ $isRowActive ? 'bx-check-circle text-danger' : 'bx-circle text-muted opacity-50' }} me-1 rate-icon"></i>
-                                                        <span class="rate-name">{{ $prod->name }}</span>
+
+                                        <!-- Box Harga Dinamis Sesuai Durasi -->
+                                        <div class="p-3 rounded-3 mb-3"
+                                            style="background-color: #fff5f5; border: 1px solid #fee2e2;">
+                                            <div
+                                                class="d-flex align-items-baseline justify-content-between flex-wrap gap-1">
+                                                <div>
+                                                    <span class="text-muted small d-block"
+                                                        style="font-size: 0.68rem; font-weight: 600;">Tarif
+                                                        Layanan:</span>
+                                                    <span class="fs-2 fw-bold text-danger price-display-val"
+                                                        id="price-display-{{ $service->key }}">
+                                                        {{ $service->default_duration->formatted_price }}
                                                     </span>
-                                                    <span class="fw-bold">{{ $prod->formatted_price }}</span>
                                                 </div>
-                                            @endforeach
+                                                <span
+                                                    class="badge bg-white text-danger border border-danger border-opacity-25 rounded-pill px-2 py-1 duration-display-badge"
+                                                    id="duration-display-{{ $service->key }}"
+                                                    style="font-size: 0.72rem; font-weight: 600;">
+                                                    / {{ $service->default_duration->duration_formatted }}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
 
                                     <!-- Fasilitas & Keuntungan Layanan -->
                                     <div class="mb-4">
@@ -803,32 +364,12 @@
                                     </div>
                                 </div>
 
-                                <!-- Tombol Aksi / Order -->
+                                <!-- Tombol Masuk untuk Membeli -->
                                 <div>
-                                    @guest
-                                        <a href="{{ route('login') }}"
-                                            class="btn btn-outline-danger w-100 fw-semibold rounded-pill py-2">
-                                            <i class="bx bx-log-in me-1"></i> Masuk untuk Membeli
-                                        </a>
-                                    @else
-                                        @if (auth()->user()->hasRole('Member'))
-                                            <button type="button"
-                                                class="btn btn-danger w-100 fw-semibold rounded-pill py-2 btn-order-specific btn-service-order"
-                                                id="btn-service-action-{{ $service->key }}" data-bs-toggle="modal"
-                                                data-bs-target="#modalOrderMembership"
-                                                data-product-id="{{ $service->default_product->id }}"
-                                                data-product-name="{{ $service->default_product->name }}"
-                                                data-product-price="{{ $service->default_product->formatted_price }}"
-                                                data-product-duration="{{ $service->default_product->duration_formatted }}">
-                                                <i class="bx bx-cart me-1"></i> Pilih Paket Ini
-                                            </button>
-                                        @else
-                                            <a href="{{ route('dashboard') }}"
-                                                class="btn btn-outline-secondary w-100 rounded-pill py-2">
-                                                Kelola di Dashboard
-                                            </a>
-                                        @endif
-                                    @endguest
+                                    <a href="{{ route('login') }}"
+                                        class="btn btn-outline-danger w-100 fw-semibold rounded-pill py-2">
+                                        <i class="bx bx-log-in me-1"></i> Masuk untuk Membeli
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -842,144 +383,218 @@
         </div>
     </section>
 
-    <!-- 5. JAM OPERASIONAL SECTION -->
-    <section id="section-jadwal" class="py-5 bg-white border-top border-bottom">
+    <!-- 4. FAQ SECTION (Menggantikan Jadwal Operasional) -->
+    <section id="section-faq" class="py-5 bg-white border-top border-bottom">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <p class="text-uppercase fw-semibold mb-2 text-primary"
-                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">WAKTU
-                    LATIHAN</p>
-                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Jadwal Operasional
-                    Resmi IFGS</h2>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">
+                    Pertanyaan Umum (FAQ)
+                </h2>
                 <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
-                    Jadwal teratur memastikan kenyamanan seluruh member agar ruang gym tidak mengalami overkapasitas.
+                    Informasi penting dan pertanyaan yang sering diajukan seputar keanggotaan dan latihan di Indo
+                    Fitness Gym Sport®.
                 </p>
             </div>
 
-            <div class="row g-4 justify-content-center">
-                @forelse ($operationalSlots as $slot)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card h-100 border shadow-sm">
-                            <div class="card-body p-4">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span
-                                        class="badge bg-label-primary text-uppercase fw-semibold">{{ $slot->category_label }}</span>
-                                    <small class="text-muted"><i class="bx bx-user me-1"></i> Maks:
-                                        {{ $slot->capacity }} Orang</small>
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="accordion accordion-flush shadow-sm border rounded-3 p-3 bg-white" id="accordionFaq">
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button fw-bold text-dark" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
+                                    aria-controls="collapseOne">
+                                    Bagaimana cara mendaftar menjadi member di Indo Fitness Gym Sport®?
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show"
+                                aria-labelledby="headingOne" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                    Anda dapat mendaftar dengan membuat akun melalui tombol <strong>Daftar Akun</strong>
+                                    pada halaman ini. Setelah akun aktif, masuk ke sistem untuk memilih paket layanan
+                                    (Fitness atau Aerobic & Zumba) sesuai durasi yang diinginkan dan lakukan pembayaran.
                                 </div>
-                                <h5 class="fw-bold text-dark mb-1">{{ $slot->name }}</h5>
-                                <p class="text-muted small mb-3">{{ $slot->days }}</p>
-                                <div class="p-3 bg-light rounded-3 text-center">
-                                    <span class="fs-4 fw-bold text-primary">{{ $slot->time_range }} WITA</span>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
+                                    aria-controls="collapseTwo">
+                                    Kapan saja jam buka operasional gym?
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+                                data-bs-parent="#accordionFaq">
+                                <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                    Sesi latihan <strong>Fitness</strong> buka setiap hari <strong>Senin - Sabtu pukul
+                                        08:00 - 20:00 WITA</strong>. Sedangkan kelas <strong>Aerobic & Zumba</strong>
+                                    diselenggarakan setiap hari <strong>Senin & Kamis pukul 19:00 - 20:00 WITA</strong>.
+                                    Hari Minggu dan libur nasional tutup.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
+                                    aria-controls="collapseThree">
+                                    Apakah tersedia paket harian (visit) tanpa langganan bulanan?
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse"
+                                aria-labelledby="headingThree" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                    Ya, kami menyediakan pilihan paket <strong>1 Hari (Visit)</strong> bagi Anda yang
+                                    ingin berolahraga secara harian atau mencoba fasilitas gym tanpa terikat paket
+                                    bulanan.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false"
+                                    aria-controls="collapseFour">
+                                    Apakah member mendapatkan panduan dari pelatih (trainer)?
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                                data-bs-parent="#accordionFaq">
+                                <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                    Tentu saja! Indo Fitness Gym Sport® memiliki instruktur dan pelatih resmi yang siap
+                                    memandu gerakan dasar, penggunaan alat beban, serta instruktur kelas studio agar
+                                    latihan Anda aman, nyaman, dan terarah.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false"
+                                    aria-controls="collapseFive">
+                                    Metode pembayaran apa saja yang diterima?
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive"
+                                data-bs-parent="#accordionFaq">
+                                <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                    Kami menerima pembayaran secara non-tunai melalui Transfer Bank dan QRIS instan,
+                                    maupun pembayaran langsung secara tunai (cash) di meja kasir gym.
                                 </div>
                             </div>
                         </div>
                     </div>
-                @empty
-                    <div class="col-12 text-center py-4 text-muted">
-                        Data jadwal operasional belum tersedia.
-                    </div>
-                @endforelse
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- 6. TRAINER SECTION -->
+    <!-- 5. TRAINER SECTION (Layout: Foto Paling Atas di Tengah, Spesialisasi, Nama Pelatih) -->
     <section id="section-trainer" class="py-5">
         <div class="container-xl">
             <div class="text-center mb-5">
-                <p class="text-uppercase fw-semibold mb-2 text-primary"
-                    style="font-family: Arial, Helvetica, sans-serif; font-size: 0.85rem; letter-spacing: 1.5px;">
-                    INSTRUKTUR RESMI</p>
-                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">Pelatih Profesional
-                    Kami</h2>
+                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">
+                    Pelatih Profesional Kami
+                </h2>
                 <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
-                    Didampingi instruktur bersertifikasi untuk memastikan setiap gerakan dan sesi latihan Anda berjalan
-                    aman dan efektif.
+                    Didampingi instruktur terpercaya untuk memastikan setiap gerakan dan sesi latihan Anda berjalan aman
+                    dan terarah.
                 </p>
             </div>
 
             <div class="row g-4 justify-content-center">
                 @forelse ($activeTrainers as $tr)
-                    <div class="col-md-6 col-lg-5">
-                        <div class="card h-100 shadow-sm border">
-                            <div class="card-body p-4 d-flex gap-3 align-items-start">
-                                <div class="avatar avatar-xl flex-shrink-0">
-                                    <span class="avatar-initial rounded-circle bg-primary text-white fw-bold fs-3">
-                                        {{ strtoupper(substr($tr->user->name ?? 'T', 0, 2)) }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <span class="badge bg-label-success mb-1">Bersertifikasi APKI</span>
-                                    <h5 class="fw-bold text-dark mb-1">{{ $tr->user->name ?? '-' }}</h5>
-                                    <p class="text-primary small fw-semibold mb-2">{{ $tr->specialization }}</p>
-                                    <p class="text-muted small mb-2">
-                                        {{ $tr->bio ?: 'Instruktur resmi Indo Fitness Gym Sport Tondano.' }}</p>
-                                    @if ($tr->phone)
-                                        <a href="{{ $tr->whats_app_url ?? ('https://wa.me/' . preg_replace('/[^0-9]/', '', $tr->phone)) }}"
-                                            target="_blank" class="btn btn-sm btn-outline-success rounded-pill px-3 shadow-none"
-                                            style="font-size: 0.78rem;">
-                                            <i class="bx bxl-whatsapp me-1"></i> Hubungi / Chat via WhatsApp
-                                        </a>
-                                    @endif
-                                </div>
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card h-100 shadow-sm border text-center p-4">
+                            <!-- 1. Profile picture paling atas di tengah -->
+                            <div class="mx-auto mb-3">
+                                @if ($tr->user?->avatar)
+                                    <img src="{{ asset('storage/' . $tr->user->avatar) }}"
+                                        alt="{{ $tr->user?->name }}"
+                                        class="rounded-circle object-fit-cover shadow-sm"
+                                        style="width: 100px; height: 100px;">
+                                @else
+                                    <div class="avatar rounded-circle bg-label-primary d-flex align-items-center justify-content-center mx-auto"
+                                        style="width: 100px; height: 100px;">
+                                        <span class="fs-2 fw-bold text-primary font-monospace">
+                                            {{ strtoupper(substr($tr->user?->name ?? 'T', 0, 2)) }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
+
+                            <!-- 2. Detail dia pelatih apa -->
+                            <div class="mb-1">
+                                <span class="text-primary fw-semibold small text-uppercase"
+                                    style="letter-spacing: 0.5px;">
+                                    {{ $tr->specialization ?? 'Fitness & Gym Trainer' }}
+                                </span>
+                            </div>
+
+                            <!-- 3. Nama pelatih -->
+                            <h5 class="fw-bold text-dark mb-0">
+                                {{ $tr->user?->name ?? 'Trainer' }}
+                            </h5>
                         </div>
                     </div>
                 @empty
-                    <div class="col-12 text-center py-4 text-muted">
-                        Data instruktur belum tersedia.
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="bx bx-run fs-1 text-muted mb-2 d-block"></i>
+                        Data pelatih belum tersedia saat ini.
                     </div>
                 @endforelse
             </div>
         </div>
     </section>
 
-    <!-- 7. FOOTER SECTION -->
+    <!-- 6. FOOTER SECTION -->
     <footer id="section-kontak" class="bg-dark text-white pt-5 pb-4">
         <div class="container-xl">
             <div class="row g-4 mb-4">
-                <div class="col-lg-4">
+                <div class="col-md-6 col-lg-5">
                     <div class="d-flex align-items-center gap-2 mb-3">
                         <img src="{{ asset('img/logo-ifgs.jpg') }}" alt="IFGS" class="rounded-circle"
                             style="width: 42px; height: 42px;" />
                         <h5 class="text-white fw-bold mb-0">Indo Fitness Gym Sport®</h5>
                     </div>
-                    <p class="text-white-50 small">
-                        Pusat kebugaran dan penjadwalan latihan modern di Tondano, Minahasa, Sulawesi Utara. Berkomitmen
-                        membentuk gaya hidup sehat dan tubuh ideal masyarakat.
+                    <p class="text-white-50 small mb-0" style="max-width: 400px; line-height: 1.6;">
+                        Pusat kebugaran, pembentukan tubuh, dan kelas studio Aerobic & Zumba resmi di Tondano, Minahasa,
+                        Sulawesi Utara.
                     </p>
                 </div>
 
-                <div class="col-lg-4">
-                    <h6 class="text-white fw-bold mb-3">Alamat & Kontak</h6>
-                    <ul class="list-unstyled text-white-50 small vstack gap-2">
+                <div class="col-md-6 col-lg-7">
+                    <h6 class="text-white fw-bold mb-3">Kontak & Lokasi</h6>
+                    <ul class="list-unstyled text-white-50 small vstack gap-3 mb-0">
                         <li class="d-flex align-items-start gap-2">
-                            <i class="bx bx-map-pin fs-5 text-warning flex-shrink-0"></i>
-                            <span>Tondano, Kabupaten Minahasa, Sulawesi Utara, Indonesia</span>
+                            <i class="bx bx-map-pin fs-5 text-warning flex-shrink-0 mt-1"></i>
+                            <span>
+                                <strong>Alamat:</strong> 8W26+F7H, Wawalintouan, Kec. Tondano Bar., Kabupaten Minahasa,
+                                Sulawesi Utara
+                            </span>
                         </li>
                         <li class="d-flex align-items-center gap-2">
                             <i class="bx bx-phone fs-5 text-success flex-shrink-0"></i>
-                            <span>+62 812-3456-7890</span>
+                            <span>
+                                <strong>No HP:</strong> <a href="tel:0431321445"
+                                    class="text-white text-decoration-none">0431-321445</a>
+                            </span>
                         </li>
-                        <li class="d-flex align-items-center gap-2">
-                            <i class="bx bx-envelope fs-5 text-primary flex-shrink-0"></i>
-                            <span>indofitnessgym@gmail.com</span>
+                        <li class="d-flex align-items-center gap-2 pt-1">
+                            <a href="https://www.instagram.com/indofitnessgymsport/" target="_blank"
+                                class="btn btn-sm btn-outline-light rounded-pill px-3">
+                                <i class="bx bxl-instagram me-1"></i> Instagram
+                            </a>
+                            <a href="https://www.facebook.com/IndoFitnessGymSport/" target="_blank"
+                                class="btn btn-sm btn-outline-light rounded-pill px-3">
+                                <i class="bx bxl-facebook me-1"></i> Facebook
+                            </a>
                         </li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-4">
-                    <h6 class="text-white fw-bold mb-3">Tautan Cepat</h6>
-                    <ul class="list-unstyled text-white-50 small vstack gap-2">
-                        <li><a href="#section-paket" class="text-white-50 text-decoration-none">Paket Keanggotaan</a>
-                        </li>
-                        <li><a href="#section-jadwal" class="text-white-50 text-decoration-none">Jadwal Latihan</a>
-                        </li>
-                        <li><a href="{{ route('login') }}" class="text-white-50 text-decoration-none">Masuk ke
-                                Akun</a></li>
-                        <li><a href="{{ route('register') }}" class="text-white-50 text-decoration-none">Pendaftaran
-                                Member Baru</a></li>
                     </ul>
                 </div>
             </div>
@@ -990,618 +605,6 @@
         </div>
     </footer>
 
-    <!-- MODALS FOR MEMBER & TRAINER -->
-
-    @if (auth()->check() && auth()->user()->hasRole('Member'))
-        <!-- Modal Order Membership Mandiri (3 Tahap / Screen Polos & Ramah Pengguna) -->
-        <div class="modal fade" id="modalOrderMembership" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                <div class="modal-content bg-white border-0 shadow-lg"
-                    style="font-family: Arial, Helvetica, sans-serif;">
-                    <!-- Modal Header -->
-                    <div class="modal-header bg-white border-bottom py-3 px-4">
-                        <div class="d-flex align-items-center gap-2">
-                            <div
-                                class="avatar avatar-sm bg-primary rounded p-1 d-flex align-items-center justify-content-center text-white">
-                                <i class="bx bx-cart-add fs-4"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold text-dark mb-0" id="orderModalTitle">
-                                    Pembayaran Paket Membership
-                                </h5>
-                                <small class="text-muted" id="orderModalSubtitle">
-                                    Langkah 1 dari 3: Konfirmasi Paket & Pilihan Metode
-                                </small>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-
-                    <!-- Step Progress Indicator (Polos Putih Bersih) -->
-                    <div class="d-flex align-items-center justify-content-between px-4 py-2 bg-white border-bottom">
-                        <div class="d-flex align-items-center gap-2" id="indicatorStep1">
-                            <span
-                                class="badge rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
-                                style="width: 24px; height: 24px; font-size: 0.75rem;">1</span>
-                            <span class="small fw-bold text-primary">Paket & Metode</span>
-                        </div>
-                        <i class="bx bx-chevron-right text-muted fs-4"></i>
-                        <div class="d-flex align-items-center gap-2 opacity-50" id="indicatorStep2">
-                            <span
-                                class="badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center"
-                                style="width: 24px; height: 24px; font-size: 0.75rem;">2</span>
-                            <span class="small fw-semibold text-muted">Detail Rekening</span>
-                        </div>
-                        <i class="bx bx-chevron-right text-muted fs-4"></i>
-                        <div class="d-flex align-items-center gap-2 opacity-50" id="indicatorStep3">
-                            <span
-                                class="badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center"
-                                style="width: 24px; height: 24px; font-size: 0.75rem;">3</span>
-                            <span class="small fw-semibold text-muted">Upload Bukti</span>
-                        </div>
-                    </div>
-
-                    <form action="{{ route('memberships.order') }}" method="POST" enctype="multipart/form-data"
-                        id="formOrderMembership">
-                        @csrf
-                        <input type="hidden" name="product_id" id="orderProductId"
-                            value="{{ $activeProducts->first()?->id }}">
-                        <input type="hidden" name="start_date" id="orderStartDate" value="{{ date('Y-m-d') }}">
-
-                        <!-- TAHAP 1: KONFIRMASI APA YANG DIBELI & PILIH METODE PEMBAYARAN -->
-                        <div id="orderScreen1">
-                            <div class="modal-body p-4 bg-white">
-                                <!-- Ringkasan Paket yang Dipilih (Polos Putih Border Halus) -->
-                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                        <div>
-                                            <span class="text-uppercase fw-semibold text-muted d-block small"
-                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Paket Yang
-                                                Dipilih</span>
-                                            <h5 class="fw-bold text-dark mb-1" id="orderModalProductName">
-                                                {{ $activeProducts->first()?->name ?? 'Paket Gym' }}
-                                            </h5>
-                                            <small class="text-muted" id="orderModalProductDuration">
-                                                Durasi:
-                                                {{ $activeProducts->first()?->duration_formatted ?? '1 Bulan' }}
-                                                &bull;
-                                                Mulai: Hari Ini ({{ date('d/m/Y') }})
-                                            </small>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="text-uppercase fw-semibold text-muted d-block small"
-                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Total Tagihan</span>
-                                            <span class="fs-4 fw-bold text-primary" id="orderModalProductPrice">
-                                                {{ $activeProducts->first()?->formatted_price ?? 'Rp 0' }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Pilihan Metode Pembayaran -->
-                                <div>
-                                    <label class="form-label fw-bold text-dark mb-1" style="font-size: 0.95rem;">
-                                        <i class="bx bx-credit-card-front me-1 text-primary"></i> Pilih Metode
-                                        Pembayaran
-                                        <span class="text-danger">*</span>
-                                    </label>
-                                    <p class="small text-muted mb-3">Pilih salah satu metode di bawah ini. Rekening
-                                        tujuan dan instruksi lengkap akan tampil di langkah selanjutnya.</p>
-
-                                    <div class="payment-methods-list vstack gap-2" id="pgMethodsList">
-                                        @foreach ($activePaymentMethods as $index => $pm)
-                                            <label
-                                                class="payment-method-item card bg-white border rounded-3 p-3 mb-0 transition-all {{ $index === 0 ? 'border-primary shadow-sm' : 'border-light-subtle' }}"
-                                                for="pmRadio_{{ $pm->id }}" style="cursor: pointer;"
-                                                data-type="{{ $pm->type }}"
-                                                data-name="{{ ucwords(str_replace('_', ' ', $pm->name)) }}"
-                                                data-account-name="{{ $pm->account_name }}"
-                                                data-account-number="{{ $pm->account_number }}"
-                                                data-qr-image="{{ $pm->qr_image ? asset('storage/' . $pm->qr_image) : '' }}">
-                                                <div class="d-flex align-items-center justify-content-between">
-                                                    <div class="d-flex align-items-center gap-3">
-                                                        <input class="form-check-input mt-0 payment-radio"
-                                                            type="radio" name="payment_method_id"
-                                                            id="pmRadio_{{ $pm->id }}"
-                                                            value="{{ $pm->id }}"
-                                                            {{ $index === 0 ? 'checked' : '' }} required>
-                                                        <div
-                                                            class="avatar avatar-sm rounded p-1 d-flex align-items-center justify-content-center bg-white border">
-                                                            @if ($pm->type === 'qris')
-                                                                <i class="bx bx-qr-scan fs-4 text-dark"></i>
-                                                            @elseif ($pm->type === 'bank_transfer')
-                                                                <i class="bx bx-credit-card fs-4 text-primary"></i>
-                                                            @elseif ($pm->type === 'ewallet')
-                                                                <i class="bx bx-mobile-alt fs-4 text-success"></i>
-                                                            @else
-                                                                <i class="bx bx-wallet fs-4 text-info"></i>
-                                                            @endif
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-bold text-dark mb-0">
-                                                                {{ ucwords(str_replace('_', ' ', $pm->name)) }}
-                                                            </div>
-                                                            <small class="text-muted d-block">
-                                                                @if ($pm->type === 'qris')
-                                                                    Scan QRIS (BCA, Mandiri, GoPay, OVO, Dana,
-                                                                    ShopeePay)
-                                                                @elseif ($pm->type === 'bank_transfer')
-                                                                    Transfer Bank / ATM / m-Banking
-                                                                @elseif ($pm->type === 'ewallet')
-                                                                    E-Wallet Transfer
-                                                                @else
-                                                                    Bayar Langsung di Kasir Gym
-                                                                @endif
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                    <div class="text-end">
-                                                        <span
-                                                            class="fw-bold text-dark pm-price-tag">{{ $activeProducts->first()?->formatted_price ?? 'Rp 0' }}</span>
-                                                    </div>
-                                                </div>
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
-                                <button type="button" class="btn btn-outline-secondary"
-                                    data-bs-dismiss="modal">Batal</button>
-                                <button type="button" class="btn btn-primary shadow-sm fw-semibold"
-                                    id="btnGoToScreen2">
-                                    Lanjut ke Detail Pembayaran <i class="bx bx-right-arrow-alt ms-1"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- TAHAP 2: DETAIL TUJUAN TRANSFER / BAYAR KE MANA -->
-                        <div id="orderScreen2" class="d-none">
-                            <div class="modal-body p-4 bg-white">
-                                <!-- Ringkasan Pembayaran & Total Tagihan -->
-                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                        <div>
-                                            <span class="text-uppercase fw-semibold text-muted d-block small"
-                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Metode Yang
-                                                Dipilih</span>
-                                            <h6 class="fw-bold text-dark mb-0" id="screen2MethodName">Transfer Bank
-                                            </h6>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="text-uppercase fw-semibold text-muted d-block small"
-                                                style="letter-spacing: 0.5px; font-size: 0.75rem;">Nominal Yang Harus
-                                                Ditransfer</span>
-                                            <span class="fs-4 fw-bold text-primary" id="screen2Price">Rp 0</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Box Detail Tujuan Transfer -->
-                                <div class="card bg-white border rounded-3 p-4 mb-3">
-                                    <!-- Kontainer Transfer Bank & E-Wallet -->
-                                    <div id="screen2BankContainer">
-                                        <div class="text-center mb-3">
-                                            <span class="text-muted small d-block mb-1">Silakan lakukan transfer tepat
-                                                sesuai nominal ke nomor rekening berikut:</span>
-                                        </div>
-                                        <div class="border rounded-3 p-3 bg-white text-center mb-3">
-                                            <div class="small text-muted mb-1">Nomor Rekening Tujuan:</div>
-                                            <div
-                                                class="d-flex align-items-center justify-content-center gap-2 flex-wrap my-2">
-                                                <span id="screen2AccountNumber"
-                                                    class="text-dark fw-bold fs-3 font-monospace px-2 py-1"
-                                                    style="letter-spacing: 1px;">-</span>
-                                                <button type="button" class="btn btn-sm btn-outline-primary"
-                                                    id="btnCopyAccount" title="Salin Nomor Rekening">
-                                                    <i class="bx bx-copy me-1"></i> <span
-                                                        id="btnCopyText">Salin</span>
-                                                </button>
-                                            </div>
-                                            <div class="small text-muted mt-2">
-                                                Atas Nama: <strong id="screen2AccountName"
-                                                    class="text-dark fs-6">-</strong>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Kontainer QRIS -->
-                                    <div id="screen2QrContainer" class="text-center d-none">
-                                        <div class="small text-muted mb-3">Scan kode QRIS di bawah ini melalui aplikasi
-                                            m-Banking atau E-Wallet:</div>
-                                        <div class="d-inline-block p-2 border rounded-3 bg-white shadow-sm mb-3">
-                                            <img id="screen2QrImg" src="" alt="QRIS IFGS" class="img-fluid"
-                                                style="max-height: 220px;">
-                                        </div>
-                                        <p class="small text-muted mb-0">Mendukung BCA, Mandiri, BRI, BNI, GoPay, OVO,
-                                            Dana, ShopeePay, dan aplikasi QRIS lainnya.</p>
-                                    </div>
-
-                                    <!-- Kontainer Tunai -->
-                                    <div id="screen2CashContainer" class="text-center py-2 d-none">
-                                        <div
-                                            class="avatar avatar-md bg-info text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center">
-                                            <i class="bx bx-wallet fs-2"></i>
-                                        </div>
-                                        <h6 class="fw-bold text-dark mb-1">Pembayaran Tunai di Meja Kasir</h6>
-                                        <p class="small text-muted mb-0">Silakan lakukan pembayaran langsung di kasir
-                                            gym saat kunjungan pertama Anda untuk verifikasi instan.</p>
-                                    </div>
-
-                                    <div class="border-top pt-3 mt-3 text-center">
-                                        <small class="text-muted">
-                                            <i class="bx bx-info-circle text-primary me-1"></i> Simpan bukti transfer
-                                            (struk/screenshot) setelah transfer berhasil untuk diunggah pada tahap
-                                            berikutnya.
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
-                                <button type="button" class="btn btn-outline-secondary" id="btnBackToScreen1">
-                                    <i class="bx bx-left-arrow-alt me-1"></i> Kembali ke Pilihan Metode
-                                </button>
-                                <button type="button" class="btn btn-primary shadow-sm fw-semibold"
-                                    id="btnGoToScreen3">
-                                    Lanjut ke Unggah Bukti <i class="bx bx-right-arrow-alt ms-1"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- TAHAP 3: UPLOAD BUKTI PEMBAYARAN -->
-                        <div id="orderScreen3" class="d-none">
-                            <div class="modal-body p-4 bg-white">
-                                <!-- Ringkasan 1 Baris -->
-                                <div class="card bg-white border rounded-3 p-3 mb-4 shadow-none">
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                        <div>
-                                            <span class="text-muted small">Metode:</span>
-                                            <strong class="text-dark ms-1" id="screen3MethodName">Transfer
-                                                Bank</strong>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted small">Total Tagihan:</span>
-                                            <strong class="text-primary fs-5 ms-1" id="screen3Price">Rp 0</strong>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Form Upload Bukti -->
-                                <div class="mb-4">
-                                    <label for="orderPaymentProof" class="form-label fw-bold text-dark mb-1"
-                                        style="font-size: 0.95rem;">
-                                        <i class="bx bx-cloud-upload me-1 text-primary"></i> Unggah Bukti Transfer /
-                                        Pembayaran <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="file"
-                                        class="form-control @error('payment_proof') is-invalid @enderror"
-                                        id="orderPaymentProof" name="payment_proof"
-                                        accept="image/png,image/jpeg,image/jpg,image/webp" required>
-                                    <div class="form-text small">Format file: JPG, PNG, atau WEBP. Ukuran maksimal 5MB.
-                                    </div>
-
-                                    <!-- Preview Gambar Bukti (Polos Putih) -->
-                                    <div id="orderProofPreviewContainer"
-                                        class="mt-3 d-none text-center p-3 border rounded-3 bg-white">
-                                        <img id="orderProofPreviewImg" src="" alt="Preview Bukti Transfer"
-                                            class="img-thumbnail border shadow-sm mb-2" style="max-height: 180px;">
-                                        <p class="small text-success fw-semibold mb-0">
-                                            <i class="bx bx-check-circle me-1"></i> File gambar siap dikirimkan
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Catatan Tambahan -->
-                                <div class="mb-2">
-                                    <label for="orderNotes" class="form-label fw-semibold text-dark small mb-1">
-                                        Catatan Tambahan (Opsional)
-                                    </label>
-                                    <input type="text" class="form-control" id="orderNotes" name="notes"
-                                        placeholder="Misal: Transfer atas nama Budi Santoso / No. referensi transfer..."
-                                        value="{{ old('notes') }}">
-                                </div>
-
-                                <div class="mt-3 text-center">
-                                    <small class="text-muted">
-                                        <i class="bx bx-shield-quarter text-success me-1"></i> Data dan bukti Anda
-                                        terlindungi. Kasir gym kami akan segera memverifikasi pesanan Anda.
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="modal-footer bg-white border-top py-3 d-flex justify-content-between">
-                                <button type="button" class="btn btn-outline-secondary" id="btnBackToScreen2">
-                                    <i class="bx bx-left-arrow-alt me-1"></i> Kembali ke Detail Rekening
-                                </button>
-                                <button type="submit" class="btn btn-primary shadow-sm fw-semibold"
-                                    id="btnSubmitOrder">
-                                    <i class="bx bx-send me-1"></i> Kirim Bukti Pembayaran
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Tambah Reservasi Kunjungan Baru -->
-        <div class="modal fade" id="modalTambahReservasi" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title fw-bold text-dark">
-                            <i class="bx bx-calendar-plus me-1 text-primary"></i> Reservasi Kunjungan Latihan
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <form action="{{ route('reservations.store') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="redirect_to" value="{{ route('home') }}">
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label for="visitDateInput" class="form-label required fw-semibold">
-                                    Tanggal Kunjungan <span class="text-danger">*</span>
-                                </label>
-                                <input type="date" class="form-control" id="visitDateInput" name="visit_date"
-                                    value="{{ old('visit_date', date('Y-m-d')) }}" min="{{ date('Y-m-d') }}"
-                                    required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="timeSlotSelect" class="form-label fw-semibold">
-                                    Pilih Sesi Latihan (Opsional / Otomatis Greedy)
-                                </label>
-                                <select class="form-select" id="timeSlotSelect" name="time_slot_id">
-                                    <option value="">-- Otomatis Pilih Slot Paling Lengang (Greedy) --</option>
-                                    @foreach ($operationalSlots as $slot)
-                                        <option value="{{ $slot->id }}">
-                                            {{ $slot->name }} ({{ $slot->time_range }}) &bull; Sisa:
-                                            {{ $slot->available_quota }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <div class="form-text small">
-                                    Jika dikosongkan, Algoritma Greedy akan otomatis memilihkan slot dengan kepadatan
-                                    paling optimal.
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="reservationNotes" class="form-label fw-semibold">Catatan
-                                    (Opsional)</label>
-                                <textarea class="form-control" id="reservationNotes" name="notes" rows="2"
-                                    placeholder="Catatan latihan...">{{ old('notes') }}</textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary"
-                                data-bs-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-primary shadow-sm">
-                                <i class="bx bx-check me-1"></i> Konfirmasi Reservasi
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal Perbesar QR Code Absensi -->
-        <div class="modal fade" id="modalQrCodeMember" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content text-center shadow-lg border-0">
-                    <div class="modal-header bg-primary text-white border-0 pb-3">
-                        <div class="w-100 text-center">
-                            <h5
-                                class="modal-title text-white fw-bold d-inline-flex align-items-center justify-content-center">
-                                <i class="bx bx-qr-scan me-2 fs-4"></i> QR Absensi Kunjungan
-                            </h5>
-                            <small class="text-white-50 d-block">Indo Fitness Gym Sport Tondano</small>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white position-absolute end-0 me-3"
-                            data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body p-4 bg-white">
-                        <div class="mb-3">
-                            <h5 class="fw-bold text-dark mb-0">{{ auth()->user()->name }}</h5>
-                            <p class="text-muted small mb-0">ID Member:
-                                <code
-                                    class="text-primary fw-bold fs-6">{{ $member->member_code ?? (auth()->user()->user_code ?? auth()->user()->qr_code) }}</code>
-                            </p>
-                        </div>
-
-                        <div class="d-inline-block p-3 bg-white rounded-3 border border-2 border-dark shadow-sm my-2"
-                            style="max-width: 260px;">
-                            {!! auth()->user()->getQrCodeSvg(230) !!}
-                        </div>
-
-                        <div class="mt-2">
-                            <span class="badge bg-light text-dark border fw-semibold"
-                                style="font-family: Arial, Helvetica, sans-serif;">{{ auth()->user()->qr_code }}</span>
-                        </div>
-
-                        <div class="alert alert-info py-2 px-3 mt-3 mb-0 text-start small">
-                            <div class="d-flex align-items-center">
-                                <i class="bx bx-info-circle fs-5 me-2 flex-shrink-0"></i>
-                                <div>
-                                    Arahkan layar ponsel ini ke barcode scanner absensi di meja kasir saat memasuki area
-                                    gym.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer justify-content-center border-0 pt-0 pb-4 bg-white">
-                        <a href="{{ route('user.qr-code.download') }}" class="btn btn-primary">
-                            <i class="bx bx-download me-1"></i> Unduh File QR
-                        </a>
-                        <a href="{{ route('user.card', auth()->user()) }}" target="_blank"
-                            class="btn btn-outline-secondary">
-                            <i class="bx bx-printer me-1"></i> Cetak Kartu Member
-                        </a>
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Tutup</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if (auth()->check())
-        <!-- Modal Pengaturan Profil Pengguna / Member -->
-        <div class="modal fade" id="modalPengaturanProfil" tabindex="-1"
-            aria-labelledby="modalPengaturanProfilLabel" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content border-0 shadow" style="font-family: Arial, Helvetica, sans-serif;">
-                    <div class="modal-header bg-white border-bottom px-4 py-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 d-flex align-items-center justify-content-center"
-                                style="width: 42px; height: 42px;">
-                                <i class="bx bx-user text-primary fs-4"></i>
-                            </div>
-                            <div>
-                                <h5 class="modal-title fw-bold text-dark mb-0" id="modalPengaturanProfilLabel">
-                                    Pengaturan Profil
-                                </h5>
-                                <p class="text-muted small mb-0">Kelola data diri, kontak, dan keamanan kata sandi akun
-                                    Anda</p>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-
-                    <div class="modal-body p-4">
-                        <!-- Nav Tabs Polos & Ramah Pengguna -->
-                        <ul class="nav nav-pills nav-fill mb-4 border-bottom pb-3" id="profileModalTabs"
-                            role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active fw-semibold" id="tab-modal-datadiri-btn"
-                                    data-bs-toggle="pill" data-bs-target="#tab-modal-datadiri" type="button"
-                                    role="tab" aria-controls="tab-modal-datadiri" aria-selected="true"
-                                    style="border-radius: 8px;">
-                                    <i class="bx bx-user me-1"></i> Data Diri & Kontak
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link fw-semibold" id="tab-modal-keamanan-btn"
-                                    data-bs-toggle="pill" data-bs-target="#tab-modal-keamanan" type="button"
-                                    role="tab" aria-controls="tab-modal-keamanan" aria-selected="false"
-                                    style="border-radius: 8px;">
-                                    <i class="bx bx-shield-quarter me-1"></i> Keamanan & Password
-                                </button>
-                            </li>
-                        </ul>
-
-                        <div class="tab-content" id="profileModalTabContent">
-                            <!-- TAB 1: DATA DIRI -->
-                            <div class="tab-pane fade show active" id="tab-modal-datadiri" role="tabpanel"
-                                aria-labelledby="tab-modal-datadiri-btn">
-                                <form action="{{ route('profile.update') }}" method="POST"
-                                    enctype="multipart/form-data">
-                                    @csrf
-                                    @method('PUT')
-
-                                    <div class="d-flex align-items-center gap-3 mb-4 p-3 border rounded-3 bg-white">
-                                        <div class="position-relative">
-                                            @if (auth()->user()->avatar_url)
-                                                <img src="{{ auth()->user()->avatar_url }}"
-                                                    alt="{{ auth()->user()->name }}"
-                                                    class="rounded-circle object-fit-cover shadow-sm"
-                                                    style="width: 72px; height: 72px;" id="modalAvatarPreview" />
-                                            @else
-                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center shadow-sm"
-                                                    style="width: 72px; height: 72px; font-size: 1.6rem;"
-                                                    id="modalAvatarPreview">
-                                                    {{ auth()->user()->initials }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <label class="form-label fw-bold mb-1 text-dark">Foto Profil</label>
-                                            <input type="file" name="avatar" id="modalAvatarInput"
-                                                class="form-control form-control-sm"
-                                                accept="image/jpeg,image/png,image/jpg,image/webp">
-                                            <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                Format: JPG, JPEG, PNG, atau WEBP. Maksimal 2MB.
-                                            </small>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold text-dark">Nama Lengkap <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" name="name" class="form-control"
-                                            value="{{ old('name', auth()->user()->name) }}" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold text-dark">Alamat Email <span
-                                                class="text-danger">*</span></label>
-                                        <input type="email" name="email" class="form-control"
-                                            value="{{ old('email', auth()->user()->email) }}" required>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label fw-semibold text-dark">Nomor Handphone /
-                                            WhatsApp</label>
-                                        <input type="text" name="phone" class="form-control"
-                                            value="{{ old('phone', auth()->user()->phone ?? auth()->user()->member?->phone) }}"
-                                            placeholder="Contoh: 081234567890">
-                                    </div>
-
-                                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                                        <button type="button" class="btn btn-light border"
-                                            data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
-                                            <i class="bx bx-save me-1"></i> Simpan Data Diri
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <!-- TAB 2: KEAMANAN & PASSWORD -->
-                            <div class="tab-pane fade" id="tab-modal-keamanan" role="tabpanel"
-                                aria-labelledby="tab-modal-keamanan-btn">
-                                <form action="{{ route('profile.password.update') }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold text-dark">Password Saat Ini <span
-                                                class="text-danger">*</span></label>
-                                        <input type="password" name="current_password" class="form-control"
-                                            placeholder="Masukkan password saat ini" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label fw-semibold text-dark">Password Baru <span
-                                                class="text-danger">*</span></label>
-                                        <input type="password" name="password" class="form-control"
-                                            placeholder="Minimal 8 karakter" required>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label fw-semibold text-dark">Konfirmasi Password Baru <span
-                                                class="text-danger">*</span></label>
-                                        <input type="password" name="password_confirmation" class="form-control"
-                                            placeholder="Ulangi password baru" required>
-                                    </div>
-
-                                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                                        <button type="button" class="btn btn-light border"
-                                            data-bs-dismiss="modal">Batal</button>
-                                        <button type="submit" class="btn btn-primary px-4 shadow-sm">
-                                            <i class="bx bx-lock-alt me-1"></i> Perbarui Password
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
     <!-- Core JS -->
     <script src="{{ asset('sneat/assets/vendor/libs/jquery/jquery.js') }}"></script>
     <script src="{{ asset('sneat/assets/vendor/libs/popper/popper.js') }}"></script>
@@ -1610,311 +613,34 @@
     <!-- Page Specific Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 3-Stage Modal Elements
-            const orderScreen1 = document.getElementById('orderScreen1');
-            const orderScreen2 = document.getElementById('orderScreen2');
-            const orderScreen3 = document.getElementById('orderScreen3');
+            // Handler interaktif tombol pilih durasi (Pill)
+            document.querySelectorAll('.btn-service-pill').forEach(function(pill) {
+                pill.addEventListener('click', function() {
+                    var serviceKey = this.getAttribute('data-service-key');
+                    var price = this.getAttribute('data-price');
+                    var duration = this.getAttribute('data-duration');
 
-            const btnGoToScreen2 = document.getElementById('btnGoToScreen2');
-            const btnBackToScreen1 = document.getElementById('btnBackToScreen1');
-            const btnGoToScreen3 = document.getElementById('btnGoToScreen3');
-            const btnBackToScreen2 = document.getElementById('btnBackToScreen2');
-
-            const indicatorStep1 = document.getElementById('indicatorStep1');
-            const indicatorStep2 = document.getElementById('indicatorStep2');
-            const indicatorStep3 = document.getElementById('indicatorStep3');
-            const modalSubtitle = document.getElementById('orderModalSubtitle');
-            const modalOrderEl = document.getElementById('modalOrderMembership');
-
-            // Screen 2 elements
-            const screen2MethodName = document.getElementById('screen2MethodName');
-            const screen2Price = document.getElementById('screen2Price');
-            const screen2BankContainer = document.getElementById('screen2BankContainer');
-            const screen2AccountNumber = document.getElementById('screen2AccountNumber');
-            const screen2AccountName = document.getElementById('screen2AccountName');
-            const btnCopyAccount = document.getElementById('btnCopyAccount');
-            const btnCopyText = document.getElementById('btnCopyText');
-            const screen2QrContainer = document.getElementById('screen2QrContainer');
-            const screen2QrImg = document.getElementById('screen2QrImg');
-            const screen2CashContainer = document.getElementById('screen2CashContainer');
-
-            // Screen 3 elements
-            const screen3MethodName = document.getElementById('screen3MethodName');
-            const screen3Price = document.getElementById('screen3Price');
-            const fileProofInput = document.getElementById('orderPaymentProof');
-            const proofPreviewBox = document.getElementById('orderProofPreviewContainer');
-            const proofPreviewImg = document.getElementById('orderProofPreviewImg');
-
-            // Products & pricing
-            const inputOrderProduct = document.getElementById('orderProductId');
-            const modalProductName = document.getElementById('orderModalProductName');
-            const modalProductPrice = document.getElementById('orderModalProductPrice');
-            const modalProductDuration = document.getElementById('orderModalProductDuration');
-            const pmPriceTags = document.querySelectorAll('.pm-price-tag');
-            const methodItems = document.querySelectorAll('.payment-method-item');
-
-            function setIndicator(element, state, number, textLabel) {
-                if (!element) return;
-                const badge = element.querySelector('.badge');
-                const label = element.querySelector('span:last-child');
-
-                if (state === 'active') {
-                    element.classList.remove('opacity-50');
-                    if (badge) {
-                        badge.className =
-                            'badge rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center';
-                        badge.innerHTML = number;
+                    // Update harga dan badge durasi
+                    var priceEl = document.getElementById('price-display-' + serviceKey);
+                    var durationEl = document.getElementById('duration-display-' + serviceKey);
+                    if (priceEl && price) {
+                        priceEl.textContent = price;
                     }
-                    if (label) {
-                        label.className = 'small fw-bold text-primary';
-                        label.textContent = textLabel;
-                    }
-                } else if (state === 'done') {
-                    element.classList.remove('opacity-50');
-                    if (badge) {
-                        badge.className =
-                            'badge rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center';
-                        badge.innerHTML = '<i class="bx bx-check"></i>';
-                    }
-                    if (label) {
-                        label.className = 'small text-muted';
-                        label.textContent = textLabel;
-                    }
-                } else {
-                    element.classList.add('opacity-50');
-                    if (badge) {
-                        badge.className =
-                            'badge rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center';
-                        badge.innerHTML = number;
-                    }
-                    if (label) {
-                        label.className = 'small fw-semibold text-muted';
-                        label.textContent = textLabel;
-                    }
-                }
-            }
-
-            function showScreen(step) {
-                if (orderScreen1) orderScreen1.classList.add('d-none');
-                if (orderScreen2) orderScreen2.classList.add('d-none');
-                if (orderScreen3) orderScreen3.classList.add('d-none');
-
-                const currentPrice = modalProductPrice ? modalProductPrice.textContent.trim() : 'Rp 0';
-                const selectedRadio = document.querySelector('.payment-method-item .payment-radio:checked');
-                const selectedItem = selectedRadio ? selectedRadio.closest('.payment-method-item') : null;
-
-                let type = '';
-                let name = 'Transfer Bank';
-                let accName = '';
-                let accNum = '';
-                let qrImage = '';
-
-                if (selectedItem) {
-                    type = selectedItem.getAttribute('data-type') || '';
-                    name = selectedItem.getAttribute('data-name') || 'Transfer Bank';
-                    accName = selectedItem.getAttribute('data-account-name') || '';
-                    accNum = selectedItem.getAttribute('data-account-number') || '';
-                    qrImage = selectedItem.getAttribute('data-qr-image') || '';
-                }
-
-                if (step === 1) {
-                    if (orderScreen1) orderScreen1.classList.remove('d-none');
-                    if (modalSubtitle) modalSubtitle.textContent =
-                        'Langkah 1 dari 3: Konfirmasi Paket & Pilihan Metode';
-                    setIndicator(indicatorStep1, 'active', '1', 'Paket & Metode');
-                    setIndicator(indicatorStep2, 'inactive', '2', 'Detail Rekening');
-                    setIndicator(indicatorStep3, 'inactive', '3', 'Upload Bukti');
-                } else if (step === 2) {
-                    if (orderScreen2) orderScreen2.classList.remove('d-none');
-                    if (modalSubtitle) modalSubtitle.textContent =
-                        'Langkah 2 dari 3: Detail Rekening & Instruksi Transfer';
-
-                    if (screen2MethodName) screen2MethodName.textContent = name;
-                    if (screen2Price) screen2Price.textContent = currentPrice;
-
-                    if (screen2BankContainer) screen2BankContainer.classList.add('d-none');
-                    if (screen2QrContainer) screen2QrContainer.classList.add('d-none');
-                    if (screen2CashContainer) screen2CashContainer.classList.add('d-none');
-
-                    if (type === 'qris' && qrImage) {
-                        if (screen2QrContainer) screen2QrContainer.classList.remove('d-none');
-                        if (screen2QrImg) screen2QrImg.src = qrImage;
-                    } else if (type === 'cash' || (!accNum && type !== 'bank_transfer' && type !== 'ewallet')) {
-                        if (screen2CashContainer) screen2CashContainer.classList.remove('d-none');
-                    } else {
-                        if (screen2BankContainer) screen2BankContainer.classList.remove('d-none');
-                        if (screen2AccountNumber) screen2AccountNumber.textContent = accNum || '-';
-                        if (screen2AccountName) screen2AccountName.textContent = accName || 'IFGS Gym';
+                    if (durationEl && duration) {
+                        durationEl.textContent = '/ ' + duration;
                     }
 
-                    setIndicator(indicatorStep1, 'done', '1', 'Paket & Metode');
-                    setIndicator(indicatorStep2, 'active', '2', 'Detail Rekening');
-                    setIndicator(indicatorStep3, 'inactive', '3', 'Upload Bukti');
-                } else if (step === 3) {
-                    if (orderScreen3) orderScreen3.classList.remove('d-none');
-                    if (modalSubtitle) modalSubtitle.textContent =
-                        'Langkah 3 dari 3: Unggah Bukti Pembayaran';
-
-                    if (screen3MethodName) screen3MethodName.textContent = name;
-                    if (screen3Price) screen3Price.textContent = currentPrice;
-
-                    setIndicator(indicatorStep1, 'done', '1', 'Paket & Metode');
-                    setIndicator(indicatorStep2, 'done', '2', 'Detail Rekening');
-                    setIndicator(indicatorStep3, 'active', '3', 'Upload Bukti');
-                }
-            }
-
-            if (btnGoToScreen2) {
-                btnGoToScreen2.addEventListener('click', function() {
-                    showScreen(2);
-                });
-            }
-            if (btnBackToScreen1) {
-                btnBackToScreen1.addEventListener('click', function() {
-                    showScreen(1);
-                });
-            }
-            if (btnGoToScreen3) {
-                btnGoToScreen3.addEventListener('click', function() {
-                    showScreen(3);
-                });
-            }
-            if (btnBackToScreen2) {
-                btnBackToScreen2.addEventListener('click', function() {
-                    showScreen(2);
-                });
-            }
-            if (modalOrderEl) {
-                modalOrderEl.addEventListener('hidden.bs.modal', function() {
-                    showScreen(1);
-                });
-            }
-
-            // Payment method item selection (polos putih, border primary)
-            methodItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    methodItems.forEach(i => {
-                        i.classList.remove('border-primary', 'shadow-sm');
-                        i.classList.add('border-light-subtle');
+                    // Update style tombol aktif dalam grup layanan yang sama
+                    var groupPills = document.querySelectorAll(
+                        '.btn-service-pill[data-service-key="' + serviceKey + '"]');
+                    groupPills.forEach(function(p) {
+                        p.className =
+                            'btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 btn-light text-dark bg-white border-0';
                     });
-                    this.classList.add('border-primary', 'shadow-sm');
-                    this.classList.remove('border-light-subtle');
-
-                    const radio = this.querySelector('.payment-radio');
-                    if (radio) {
-                        radio.checked = true;
-                    }
+                    this.className =
+                        'btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 btn-danger text-white shadow-sm';
                 });
             });
-
-            // Copy Account Number button
-            if (btnCopyAccount) {
-                btnCopyAccount.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    if (!screen2AccountNumber) return;
-                    const textToCopy = screen2AccountNumber.textContent.trim();
-                    if (!textToCopy || textToCopy === '-') return;
-
-                    const setCopied = () => {
-                        if (btnCopyText) btnCopyText.textContent = 'Tersalin!';
-                        setTimeout(() => {
-                            if (btnCopyText) btnCopyText.textContent = 'Salin';
-                        }, 2000);
-                    };
-
-                    if (navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(textToCopy).then(setCopied).catch(() => {
-                            const tempInput = document.createElement('input');
-                            tempInput.value = textToCopy;
-                            document.body.appendChild(tempInput);
-                            tempInput.select();
-                            document.execCommand('copy');
-                            document.body.removeChild(tempInput);
-                            setCopied();
-                        });
-                    } else {
-                        const tempInput = document.createElement('input');
-                        tempInput.value = textToCopy;
-                        document.body.appendChild(tempInput);
-                        tempInput.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(tempInput);
-                        setCopied();
-                    }
-                });
-            }
-
-            // Auto select product in modal when clicking "Pilih Paket Ini"
-            document.querySelectorAll('.btn-order-specific').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    showScreen(1);
-                    const prodId = this.getAttribute('data-product-id');
-                    const prodName = this.getAttribute('data-product-name');
-                    const prodPrice = this.getAttribute('data-product-price');
-                    const prodDuration = this.getAttribute('data-product-duration');
-
-                    if (inputOrderProduct && prodId) {
-                        inputOrderProduct.value = prodId;
-                    }
-                    if (modalProductName && prodName) {
-                        modalProductName.textContent = prodName;
-                    }
-                    if (modalProductPrice && prodPrice) {
-                        modalProductPrice.textContent = prodPrice;
-                    }
-                    if (modalProductDuration && prodDuration) {
-                        const today = new Date();
-                        const day = String(today.getDate()).padStart(2, '0');
-                        const month = String(today.getMonth() + 1).padStart(2, '0');
-                        const year = today.getFullYear();
-                        modalProductDuration.innerHTML =
-                            `Durasi: ${prodDuration} &bull; Mulai: Hari Ini (${day}/${month}/${year})`;
-                    }
-                    pmPriceTags.forEach(tag => {
-                        if (prodPrice) {
-                            tag.textContent = prodPrice;
-                        }
-                    });
-                });
-            });
-
-            // Upload Proof Preview
-            if (fileProofInput) {
-                fileProofInput.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (file && proofPreviewBox && proofPreviewImg) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            proofPreviewImg.src = e.target.result;
-                            proofPreviewBox.classList.remove('d-none');
-                        };
-                        reader.readAsDataURL(file);
-                    } else if (proofPreviewBox) {
-                        proofPreviewBox.classList.add('d-none');
-                    }
-                });
-            }
-
-            // Modal Avatar Preview
-            const modalAvatarInput = document.getElementById('modalAvatarInput');
-            const modalAvatarPreview = document.getElementById('modalAvatarPreview');
-            if (modalAvatarInput && modalAvatarPreview) {
-                modalAvatarInput.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            if (modalAvatarPreview.tagName === 'IMG') {
-                                modalAvatarPreview.src = e.target.result;
-                            } else {
-                                modalAvatarPreview.outerHTML =
-                                    `<img src="${e.target.result}" class="rounded-circle object-fit-cover shadow-sm" style="width: 72px; height: 72px;" id="modalAvatarPreview" />`;
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
         });
     </script>
 </body>

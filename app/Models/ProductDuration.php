@@ -48,6 +48,23 @@ class ProductDuration extends Model
     }
 
     /**
+     * Scope query untuk mengurutkan durasi secara logis berdasarkan durasi nyata (hari -> minggu -> bulan -> tahun -> seumur hidup).
+     */
+    public function scopeOrderedByDuration($query)
+    {
+        return $query->orderByRaw("
+            CASE duration_unit
+                WHEN 'day' THEN duration_value * 1
+                WHEN 'week' THEN duration_value * 7
+                WHEN 'month' THEN duration_value * 30
+                WHEN 'year' THEN duration_value * 365
+                WHEN 'lifetime' THEN 36500
+                ELSE duration_value * 30
+            END ASC
+        ")->orderBy('price', 'asc');
+    }
+
+    /**
      * Get the parent product.
      */
     public function product(): BelongsTo
@@ -122,7 +139,7 @@ class ProductDuration extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp '.number_format((float) $this->price, 0, ',', '.');
+        return 'Rp ' . number_format((float) $this->price, 0, ',', '.');
     }
 
     /**

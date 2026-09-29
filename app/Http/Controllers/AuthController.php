@@ -57,15 +57,11 @@ class AuthController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        if ($user->hasRole('Member') && ! $user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()->intended(route('member.index'));
-        }
-
         if ($user->hasAnyRole(['Admin/Manager', 'Kasir'])) {
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('dashboard');
         }
 
-        return redirect()->intended(route('home'));
+        return redirect()->route('member.index');
     }
 
     /**
@@ -174,7 +170,7 @@ class AuthController extends Controller
 
         if ($status === Password::RESET_LINK_SENT) {
             return back()
-                ->with('status', 'Link reset password anda sudah kami kirim ke email '.$request->email);
+                ->with('status', 'Link reset password anda sudah kami kirim ke email ' . $request->email);
         }
 
         return back()

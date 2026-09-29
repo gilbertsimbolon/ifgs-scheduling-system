@@ -18,7 +18,7 @@ class ProductController extends Controller
      */
     public function index(): View
     {
-        $products = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+        $products = Product::with(['durations' => fn($q) => $q->orderedByDuration()])
             ->withCount('memberships')
             ->orderBy('id')
             ->paginate(10);
@@ -92,7 +92,7 @@ class ProductController extends Controller
         foreach ($validated['durations'] as $d) {
             $key = ($d['duration_unit'] === ProductDuration::DURATION_LIFETIME)
                 ? 'lifetime'
-                : ($d['duration_value'].'_'.$d['duration_unit']);
+                : ($d['duration_value'] . '_' . $d['duration_unit']);
 
             if (in_array($key, $combinations, true)) {
                 return back()->withInput()->withErrors([
@@ -128,14 +128,14 @@ class ProductController extends Controller
      */
     public function show(Request $request, Product $product): JsonResponse
     {
-        $product->load(['durations' => fn ($q) => $q->orderBy('duration_value')]);
+        $product->load(['durations' => fn($q) => $q->orderBy('duration_value')]);
 
         return response()->json([
             'id' => $product->id,
             'name' => $product->name,
             'description' => $product->description,
             'status' => $product->status,
-            'durations' => $product->durations->map(fn ($d) => [
+            'durations' => $product->durations->map(fn($d) => [
                 'id' => $d->id,
                 'duration_value' => $d->duration_value,
                 'duration_unit' => $d->duration_unit,
@@ -209,7 +209,7 @@ class ProductController extends Controller
         foreach ($validated['durations'] as $d) {
             $key = ($d['duration_unit'] === ProductDuration::DURATION_LIFETIME)
                 ? 'lifetime'
-                : ($d['duration_value'].'_'.$d['duration_unit']);
+                : ($d['duration_value'] . '_' . $d['duration_unit']);
 
             if (in_array($key, $combinations, true)) {
                 return back()->withInput()->withErrors([

@@ -43,7 +43,7 @@ class Product extends Model
      */
     public function durations(): HasMany
     {
-        return $this->hasMany(ProductDuration::class, 'product_id');
+        return $this->hasMany(ProductDuration::class, 'product_id')->orderedByDuration();
     }
 
     /**
@@ -51,7 +51,7 @@ class Product extends Model
      */
     public function activeDurations(): HasMany
     {
-        return $this->hasMany(ProductDuration::class, 'product_id')->where('is_active', true);
+        return $this->hasMany(ProductDuration::class, 'product_id')->where('is_active', true)->orderedByDuration();
     }
 
     /**
@@ -131,7 +131,7 @@ class Product extends Model
      */
     public function getFormattedPriceAttribute(): string
     {
-        return 'Rp '.number_format($this->min_price, 0, ',', '.');
+        return 'Rp ' . number_format($this->min_price, 0, ',', '.');
     }
 
     /**
@@ -167,7 +167,7 @@ class Product extends Model
     public function isDailyVisit(): bool
     {
         return str_contains(strtolower($this->name), 'visit')
-            || $this->durations->contains(fn ($d) => $d->duration_unit === ProductDuration::DURATION_DAY && $d->duration_value <= 1);
+            || $this->durations->contains(fn($d) => $d->duration_unit === ProductDuration::DURATION_DAY && $d->duration_value <= 1);
     }
 
     /**
@@ -228,7 +228,7 @@ class Product extends Model
      */
     public static function groupedServices(?string $status = self::STATUS_ACTIVE): Collection
     {
-        $query = static::with(['durations' => fn ($q) => $q->orderBy('duration_value')]);
+        $query = static::with(['durations' => fn($q) => $q->where('is_active', true)->orderedByDuration()]);
         if ($status !== null) {
             $query->where('status', $status);
         }
