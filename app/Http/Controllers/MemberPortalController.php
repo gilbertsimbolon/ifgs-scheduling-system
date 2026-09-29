@@ -11,7 +11,6 @@ use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use App\Models\User;
 use App\Services\GreedySchedulingService;
 use Carbon\Carbon;
@@ -124,9 +123,7 @@ class MemberPortalController extends Controller
         $inGymCount = Attendance::today()->currentlyInGym()->count();
         $todayCheckinCount = Attendance::today()->count();
         $todayCheckoutCount = Attendance::today()->whereNotNull('check_out_at')->count();
-        $activeTrainerSessionsCount = TrainerBooking::whereDate('session_date', $today)
-            ->where('status', TrainerBooking::STATUS_IN_PROGRESS)
-            ->count();
+        $activeTrainerSessionsCount = 0;
 
         $totalGymCapacity = $operationalSlots->sum('capacity') ?: 100;
         $crowdPercentage = $totalGymCapacity > 0 ? min(100, (int) round(($inGymCount / $totalGymCapacity) * 100)) : 0;
@@ -197,18 +194,8 @@ class MemberPortalController extends Controller
             ];
         });
 
-        // Trainer booking yang aktif/disetujui untuk sesi jadwal mendatang
+        // Trainer booking yang aktif/disetujui untuk sesi jadwal mendatang (trainer hanya sumber informasi)
         $upcomingTrainerBooking = null;
-        if ($member && ($upcomingSchedule || $upcomingReservation)) {
-            $targetDate = $upcomingSchedule?->scheduled_date ?? $upcomingReservation?->visit_date;
-            if ($targetDate) {
-                $upcomingTrainerBooking = $member->trainerBookings()
-                    ->with(['trainer.user', 'timeSlot'])
-                    ->whereDate('session_date', $targetDate)
-                    ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED])
-                    ->first();
-            }
-        }
 
         return view('member-portal.index', compact(
             'user',
@@ -313,12 +300,7 @@ class MemberPortalController extends Controller
             ->orderBy('scheduled_date')
             ->get() : collect();
 
-        $trainerBookings = $member ? $member->trainerBookings()
-            ->with(['trainer.user', 'timeSlot'])
-            ->whereDate('session_date', '>=', now()->toDateString())
-            ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED])
-            ->get()
-            ->keyBy(fn ($tb) => $tb->session_date->toDateString()) : collect();
+        $trainerBookings = collect();
 
         return view('member-portal.reservasi', compact(
             'user',

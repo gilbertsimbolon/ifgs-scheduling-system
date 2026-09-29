@@ -58,8 +58,8 @@
         }
 
         #section-paket,
-        #section-faq,
         #section-trainer,
+        #section-faq,
         #section-kontak {
             scroll-margin-top: 75px;
         }
@@ -99,6 +99,112 @@
             letter-spacing: 0.5px;
         }
 
+        /* Trainer Slider Styles */
+        .trainer-slider-track {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 8px 4px 16px 4px;
+        }
+
+        .trainer-slider-track::-webkit-scrollbar {
+            display: none;
+        }
+
+        .trainer-slide-card {
+            scroll-snap-align: start;
+            flex: 0 0 calc((100% - 64px) / 5);
+            /* 5 items visible on desktop */
+            background: transparent !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            text-align: center;
+            padding: 12px 8px;
+            border-radius: 12px;
+            transition: transform 0.25s ease;
+        }
+
+        .trainer-slide-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .trainer-avatar-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(105, 108, 255, 0.2);
+            transition: all 0.25s ease;
+        }
+
+        .trainer-avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(105, 108, 255, 0.1);
+            color: #696cff;
+            font-size: 1.85rem;
+            font-weight: 700;
+            margin: 0 auto;
+            border: 3px solid rgba(105, 108, 255, 0.2);
+            transition: all 0.25s ease;
+        }
+
+        .trainer-slide-card:hover .trainer-avatar-img,
+        .trainer-slide-card:hover .trainer-avatar-placeholder {
+            border-color: #696cff;
+            transform: scale(1.04);
+        }
+
+        .slider-nav-btn {
+            background-color: #ffffff;
+            border: 1px solid #d9dee3;
+            color: #566a7f;
+            transition: all 0.2s ease;
+        }
+
+        .slider-nav-btn:hover {
+            background-color: #696cff;
+            border-color: #696cff;
+            color: #ffffff;
+        }
+
+        @media (max-width: 1199.98px) {
+            .trainer-slide-card {
+                flex: 0 0 calc((100% - 32px) / 3);
+                /* 3 items on tablet */
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .trainer-slide-card {
+                flex: 0 0 calc((100% - 16px) / 2);
+                /* 2 items on small screens */
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .trainer-slide-card {
+                flex: 0 0 70%;
+                /* 1.4 items visible on mobile for easy swipe */
+            }
+
+            .trainer-avatar-img,
+            .trainer-avatar-placeholder {
+                width: 90px;
+                height: 90px;
+            }
+        }
+
         i.bx {
             vertical-align: -0.125em;
         }
@@ -128,10 +234,11 @@
                         <a class="nav-link fw-semibold text-heading px-3" href="#section-paket">Paket Layanan</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link fw-semibold text-heading px-3" href="#section-faq">FAQ</a>
+                        <a class="nav-link fw-semibold text-heading px-3" href="#section-trainer">Pelatih
+                            Profesional</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link fw-semibold text-heading px-3" href="#section-trainer">Trainer Kami</a>
+                        <a class="nav-link fw-semibold text-heading px-3" href="#section-faq">FAQ</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link fw-semibold text-heading px-3" href="#section-kontak">Kontak & Lokasi</a>
@@ -383,7 +490,75 @@
         </div>
     </section>
 
-    <!-- 4. FAQ SECTION (Menggantikan Jadwal Operasional) -->
+    <!-- 4. TRAINER SECTION (Layout: Foto Paling Atas di Tengah, Spesialisasi, Nama Pelatih | Transparent Slider 5 Desktop) -->
+    <section id="section-trainer" class="py-5">
+        <div class="container-xl">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold text-dark mb-2" style="font-family: Arial, Helvetica, sans-serif;">
+                    Pelatih Profesional Kami
+                </h2>
+                <p class="text-muted mx-auto mb-0"
+                    style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
+                    Didampingi instruktur terpercaya untuk memastikan setiap gerakan dan sesi latihan Anda berjalan aman
+                    dan terarah.
+                </p>
+                @if ($activeTrainers->count() > 1)
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        <button type="button"
+                            class="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center slider-nav-btn shadow-sm"
+                            id="btnTrainerPrev" title="Pelatih Sebelumnya" style="width: 38px; height: 38px;">
+                            <i class="bx bx-chevron-left fs-4"></i>
+                        </button>
+                        <button type="button"
+                            class="btn btn-sm rounded-circle p-0 d-flex align-items-center justify-content-center slider-nav-btn shadow-sm"
+                            id="btnTrainerNext" title="Pelatih Selanjutnya" style="width: 38px; height: 38px;">
+                            <i class="bx bx-chevron-right fs-4"></i>
+                        </button>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Trainer Slider Track -->
+            <div class="trainer-slider-track" id="trainerSliderTrack"
+                style="justify-content: {{ $activeTrainers->count() >= 5 ? 'flex-start' : 'center' }};">
+                @forelse ($activeTrainers as $tr)
+                    <div class="trainer-slide-card">
+                        <!-- 1. Profile Picture Paling Atas di Tengah -->
+                        <div class="mx-auto mb-3">
+                            @if ($tr->user?->avatar)
+                                <img src="{{ asset('storage/' . $tr->user->avatar) }}" alt="{{ $tr->user?->name }}"
+                                    class="trainer-avatar-img shadow-sm">
+                            @else
+                                <div class="trainer-avatar-placeholder shadow-sm">
+                                    {{ strtoupper(substr($tr->user?->name ?? 'T', 0, 2)) }}
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- 2. Detail Dia Pelatih Apa -->
+                        <div class="mb-1">
+                            <span class="text-danger fw-semibold small text-uppercase"
+                                style="letter-spacing: 0.5px; font-size: 0.78rem;">
+                                {{ $tr->specialization ?? 'Fitness & Gym Trainer' }}
+                            </span>
+                        </div>
+
+                        <!-- 3. Nama Pelatih -->
+                        <h5 class="fw-bold text-dark mb-0 fs-6">
+                            {{ $tr->user?->name ?? 'Trainer' }}
+                        </h5>
+                    </div>
+                @empty
+                    <div class="w-100 text-center py-5 text-muted">
+                        <i class="bx bx-run fs-1 text-muted mb-2 d-block"></i>
+                        Data pelatih belum tersedia saat ini.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. FAQ SECTION (Paling Bawah Sebelum Footer & Dinamis dari Admin Panel) -->
     <section id="section-faq" class="py-5 bg-white border-top border-bottom">
         <div class="container-xl">
             <div class="text-center mb-5">
@@ -398,156 +573,35 @@
 
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <div class="accordion accordion-flush shadow-sm border rounded-3 p-3 bg-white" id="accordionFaq">
-                        <div class="accordion-item border-bottom">
-                            <h2 class="accordion-header" id="headingOne">
-                                <button class="accordion-button fw-bold text-dark" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true"
-                                    aria-controls="collapseOne">
-                                    Bagaimana cara mendaftar menjadi member di Indo Fitness Gym Sport®?
-                                </button>
-                            </h2>
-                            <div id="collapseOne" class="accordion-collapse collapse show"
-                                aria-labelledby="headingOne" data-bs-parent="#accordionFaq">
-                                <div class="accordion-body text-muted" style="line-height: 1.6;">
-                                    Anda dapat mendaftar dengan membuat akun melalui tombol <strong>Daftar Akun</strong>
-                                    pada halaman ini. Setelah akun aktif, masuk ke sistem untuk memilih paket layanan
-                                    (Fitness atau Aerobic & Zumba) sesuai durasi yang diinginkan dan lakukan pembayaran.
+                    <div class="accordion" id="accordionFaq">
+                        @forelse ($faqs as $faq)
+                            <div class="accordion-item border rounded-3 mb-3 overflow-hidden shadow-sm">
+                                <h2 class="accordion-header" id="headingFaq{{ $faq->id }}">
+                                    <button
+                                        class="accordion-button {{ $loop->first ? '' : 'collapsed' }} fw-bold text-dark"
+                                        type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapseFaq{{ $faq->id }}"
+                                        aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
+                                        aria-controls="collapseFaq{{ $faq->id }}">
+                                        {{ $faq->question }}
+                                    </button>
+                                </h2>
+                                <div id="collapseFaq{{ $faq->id }}"
+                                    class="accordion-collapse collapse {{ $loop->first ? 'show' : '' }}"
+                                    aria-labelledby="headingFaq{{ $faq->id }}" data-bs-parent="#accordionFaq">
+                                    <div class="accordion-body text-muted" style="line-height: 1.6;">
+                                        {!! nl2br(e($faq->answer)) !!}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="accordion-item border-bottom">
-                            <h2 class="accordion-header" id="headingTwo">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false"
-                                    aria-controls="collapseTwo">
-                                    Kapan saja jam buka operasional gym?
-                                </button>
-                            </h2>
-                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
-                                data-bs-parent="#accordionFaq">
-                                <div class="accordion-body text-muted" style="line-height: 1.6;">
-                                    Sesi latihan <strong>Fitness</strong> buka setiap hari <strong>Senin - Sabtu pukul
-                                        08:00 - 20:00 WITA</strong>. Sedangkan kelas <strong>Aerobic & Zumba</strong>
-                                    diselenggarakan setiap hari <strong>Senin & Kamis pukul 19:00 - 20:00 WITA</strong>.
-                                    Hari Minggu dan libur nasional tutup.
-                                </div>
+                        @empty
+                            <div class="text-center py-5 text-muted">
+                                <i class="bx bx-help-circle fs-1 text-muted mb-2 d-block"></i>
+                                Belum ada pertanyaan FAQ yang dipublikasikan saat ini.
                             </div>
-                        </div>
-
-                        <div class="accordion-item border-bottom">
-                            <h2 class="accordion-header" id="headingThree">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false"
-                                    aria-controls="collapseThree">
-                                    Apakah tersedia paket harian (visit) tanpa langganan bulanan?
-                                </button>
-                            </h2>
-                            <div id="collapseThree" class="accordion-collapse collapse"
-                                aria-labelledby="headingThree" data-bs-parent="#accordionFaq">
-                                <div class="accordion-body text-muted" style="line-height: 1.6;">
-                                    Ya, kami menyediakan pilihan paket <strong>1 Hari (Visit)</strong> bagi Anda yang
-                                    ingin berolahraga secara harian atau mencoba fasilitas gym tanpa terikat paket
-                                    bulanan.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item border-bottom">
-                            <h2 class="accordion-header" id="headingFour">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false"
-                                    aria-controls="collapseFour">
-                                    Apakah member mendapatkan panduan dari pelatih (trainer)?
-                                </button>
-                            </h2>
-                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
-                                data-bs-parent="#accordionFaq">
-                                <div class="accordion-body text-muted" style="line-height: 1.6;">
-                                    Tentu saja! Indo Fitness Gym Sport® memiliki instruktur dan pelatih resmi yang siap
-                                    memandu gerakan dasar, penggunaan alat beban, serta instruktur kelas studio agar
-                                    latihan Anda aman, nyaman, dan terarah.
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="accordion-item">
-                            <h2 class="accordion-header" id="headingFive">
-                                <button class="accordion-button collapsed fw-bold text-dark" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false"
-                                    aria-controls="collapseFive">
-                                    Metode pembayaran apa saja yang diterima?
-                                </button>
-                            </h2>
-                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive"
-                                data-bs-parent="#accordionFaq">
-                                <div class="accordion-body text-muted" style="line-height: 1.6;">
-                                    Kami menerima pembayaran secara non-tunai melalui Transfer Bank dan QRIS instan,
-                                    maupun pembayaran langsung secara tunai (cash) di meja kasir gym.
-                                </div>
-                            </div>
-                        </div>
+                        @endforelse
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 5. TRAINER SECTION (Layout: Foto Paling Atas di Tengah, Spesialisasi, Nama Pelatih) -->
-    <section id="section-trainer" class="py-5">
-        <div class="container-xl">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold text-dark" style="font-family: Arial, Helvetica, sans-serif;">
-                    Pelatih Profesional Kami
-                </h2>
-                <p class="text-muted mx-auto" style="max-width: 600px; font-family: Arial, Helvetica, sans-serif;">
-                    Didampingi instruktur terpercaya untuk memastikan setiap gerakan dan sesi latihan Anda berjalan aman
-                    dan terarah.
-                </p>
-            </div>
-
-            <div class="row g-4 justify-content-center">
-                @forelse ($activeTrainers as $tr)
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card h-100 shadow-sm border text-center p-4">
-                            <!-- 1. Profile picture paling atas di tengah -->
-                            <div class="mx-auto mb-3">
-                                @if ($tr->user?->avatar)
-                                    <img src="{{ asset('storage/' . $tr->user->avatar) }}"
-                                        alt="{{ $tr->user?->name }}"
-                                        class="rounded-circle object-fit-cover shadow-sm"
-                                        style="width: 100px; height: 100px;">
-                                @else
-                                    <div class="avatar rounded-circle bg-label-primary d-flex align-items-center justify-content-center mx-auto"
-                                        style="width: 100px; height: 100px;">
-                                        <span class="fs-2 fw-bold text-primary font-monospace">
-                                            {{ strtoupper(substr($tr->user?->name ?? 'T', 0, 2)) }}
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <!-- 2. Detail dia pelatih apa -->
-                            <div class="mb-1">
-                                <span class="text-primary fw-semibold small text-uppercase"
-                                    style="letter-spacing: 0.5px;">
-                                    {{ $tr->specialization ?? 'Fitness & Gym Trainer' }}
-                                </span>
-                            </div>
-
-                            <!-- 3. Nama pelatih -->
-                            <h5 class="fw-bold text-dark mb-0">
-                                {{ $tr->user?->name ?? 'Trainer' }}
-                            </h5>
-                        </div>
-                    </div>
-                @empty
-                    <div class="col-12 text-center py-5 text-muted">
-                        <i class="bx bx-run fs-1 text-muted mb-2 d-block"></i>
-                        Data pelatih belum tersedia saat ini.
-                    </div>
-                @endforelse
             </div>
         </div>
     </section>
@@ -641,6 +695,31 @@
                         'btn btn-sm btn-service-pill flex-fill text-nowrap rounded-2 btn-danger text-white shadow-sm';
                 });
             });
+
+            // Trainer Horizontal Slider Navigation
+            var trainerTrack = document.getElementById('trainerSliderTrack');
+            var btnPrev = document.getElementById('btnTrainerPrev');
+            var btnNext = document.getElementById('btnTrainerNext');
+
+            if (trainerTrack && btnPrev && btnNext) {
+                btnPrev.addEventListener('click', function() {
+                    var card = trainerTrack.querySelector('.trainer-slide-card');
+                    var scrollAmount = card ? (card.offsetWidth + 16) : 220;
+                    trainerTrack.scrollBy({
+                        left: -scrollAmount,
+                        behavior: 'smooth'
+                    });
+                });
+
+                btnNext.addEventListener('click', function() {
+                    var card = trainerTrack.querySelector('.trainer-slide-card');
+                    var scrollAmount = card ? (card.offsetWidth + 16) : 220;
+                    trainerTrack.scrollBy({
+                        left: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                });
+            }
         });
     </script>
 </body>

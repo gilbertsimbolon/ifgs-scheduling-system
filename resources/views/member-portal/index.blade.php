@@ -371,37 +371,6 @@
                         <i class="bx bx-check-circle me-1"></i>Terjadwal
                     </span>
                 </div>
-                @if ($upcomingTrainerBooking)
-                    <div class="mt-2 p-2 rounded-3 d-flex align-items-center justify-content-between gap-2 shadow-xs"
-                        style="background: #fff5f5; border: 1px solid #fee2e2; font-size: 0.73rem;">
-                        <div class="d-flex align-items-center gap-2 overflow-hidden">
-                            <div class="avatar avatar-xs bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
-                                style="width: 24px; height: 24px; font-size: 0.65rem;">
-                                {{ strtoupper(substr($upcomingTrainerBooking->trainer?->user?->name ?? 'T', 0, 2)) }}
-                            </div>
-                            <span class="fw-bold text-dark text-truncate">Coach
-                                {{ $upcomingTrainerBooking->trainer?->user?->name ?? 'Trainer' }}</span>
-                        </div>
-                        @if ($upcomingTrainerBooking->status === \App\Models\TrainerBooking::STATUS_APPROVED)
-                            <span
-                                class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 rounded-pill px-2 py-1"
-                                style="font-size: 0.68rem;">
-                                <i class="bx bx-check-double me-1"></i>Disetujui (ACC)
-                            </span>
-                        @elseif ($upcomingTrainerBooking->status === \App\Models\TrainerBooking::STATUS_PENDING)
-                            <span
-                                class="badge bg-warning bg-opacity-15 text-warning border border-warning border-opacity-30 rounded-pill px-2 py-1"
-                                style="font-size: 0.68rem;">
-                                <i class="bx bx-time-five me-1"></i>Menunggu ACC
-                            </span>
-                        @else
-                            <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1"
-                                style="font-size: 0.68rem;">
-                                {{ $upcomingTrainerBooking->status_label ?? ucfirst($upcomingTrainerBooking->status) }}
-                            </span>
-                        @endif
-                    </div>
-                @endif
             @elseif ($upcomingReservation)
                 <div class="d-flex align-items-center justify-content-between p-2 rounded-3 bg-white border shadow-xs">
                     <div class="d-flex align-items-center gap-2">

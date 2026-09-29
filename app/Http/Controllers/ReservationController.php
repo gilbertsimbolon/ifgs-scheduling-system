@@ -8,7 +8,6 @@ use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use App\Services\GreedySchedulingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -283,23 +282,7 @@ class ReservationController extends Controller
         if (! empty($validated['trainer_id'])) {
             $trainer = Trainer::with('user')->active()->find($validated['trainer_id']);
             if ($trainer) {
-                $occupiedTrainerSlots = $trainer->getOccupiedSlotsForDate($visitDate);
-                $dailyQuota = $trainer->daily_quota ?? 5;
-
-                if ($occupiedTrainerSlots < $dailyQuota) {
-                    TrainerBooking::create([
-                        'trainer_id' => $trainer->id,
-                        'member_id' => $member->id,
-                        'time_slot_id' => $reservation->time_slot_id,
-                        'session_date' => $visitDate,
-                        'training_focus' => $request->filled('training_focus') ? $request->input('training_focus') : null,
-                        'notes' => $validated['notes'] ?? null,
-                        'status' => TrainerBooking::STATUS_PENDING,
-                    ]);
-                    $trainerNotice = " Permohonan sesi latihan bersama Coach {$trainer->user?->name} berhasil diajukan.";
-                } else {
-                    $trainerNotice = " Namun kuota sesi untuk Coach {$trainer->user?->name} pada tanggal tersebut sudah penuh.";
-                }
+                $trainerNotice = " Preferensi pelatih: Coach {$trainer->user?->name}.";
             }
         }
 
@@ -384,23 +367,18 @@ class ReservationController extends Controller
             ];
         });
 
-        // Data ketersediaan slot realtime untuk masing-masing personal trainer
-        $trainers = Trainer::with('user')->active()->get()->map(function (Trainer $trainer) use ($date) {
+        // Data pelatih aktif sebagai informasi
+        $trainers = Trainer::with('user')->active()->get()->map(function (Trainer $trainer) {
             $dailyQuota = $trainer->daily_quota ?? 5;
-            $occupied = TrainerBooking::where('trainer_id', $trainer->id)
-                ->whereDate('session_date', $date)
-                ->whereNotIn('status', [TrainerBooking::STATUS_CANCELLED, TrainerBooking::STATUS_REJECTED])
-                ->count();
-            $remaining = max(0, $dailyQuota - $occupied);
 
             return [
                 'id' => $trainer->id,
                 'name' => $trainer->user?->name ?? 'Trainer',
                 'specialization' => $trainer->specialization ?? 'Personal Trainer',
                 'daily_quota' => $dailyQuota,
-                'occupied' => $occupied,
-                'remaining' => $remaining,
-                'is_full' => $remaining <= 0,
+                'occupied' => 0,
+                'remaining' => $dailyQuota,
+                'is_full' => false,
             ];
         });
 

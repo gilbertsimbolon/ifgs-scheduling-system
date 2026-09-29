@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FaqController;
 use App\Http\Controllers\GreedyController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MemberController;
@@ -184,6 +185,15 @@ Route::middleware('auth')->group(function () {
             Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
             Route::patch('/{paymentMethod}/status', [PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
             Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
+        });
+
+        // Master FAQ Landing Page (Admin Only)
+        Route::prefix('faqs')->name('faqs.')->group(function () {
+            Route::get('/', [FaqController::class, 'index'])->name('index');
+            Route::post('/', [FaqController::class, 'store'])->name('store');
+            Route::put('/{faq}', [FaqController::class, 'update'])->name('update');
+            Route::patch('/{faq}/status', [FaqController::class, 'toggleStatus'])->name('toggle-status');
+            Route::delete('/{faq}', [FaqController::class, 'destroy'])->name('destroy');
         });
 
         // Operasional: Algoritma Greedy & Kuota Reservasi (Admin Only)

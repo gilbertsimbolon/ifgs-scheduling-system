@@ -90,6 +90,13 @@
                         <div class="text-truncate">Metode Pembayaran</div>
                     </a>
                 </li>
+
+                <li class="menu-item {{ request()->routeIs('faqs.*') ? 'active' : '' }}">
+                    <a href="{{ route('faqs.index') }}" class="menu-link">
+                        <i class="menu-icon tf-icons bx bx-help-circle"></i>
+                        <div class="text-truncate">FAQ Landing Page</div>
+                    </a>
+                </li>
             @endhasrole
         @endhasanyrole
 

@@ -37,7 +37,7 @@ class AttendanceController extends Controller
             ->get();
 
         // Riwayat seluruh kehadiran hari ini
-        $todayAttendances = Attendance::with(['member.user', 'membership', 'trainerBooking.trainer.user', 'creator'])
+        $todayAttendances = Attendance::with(['member.user', 'membership', 'creator'])
             ->today()
             ->latest('check_in_at')
             ->paginate(15, ['*'], 'history_page')
@@ -112,23 +112,12 @@ class AttendanceController extends Controller
                 'status' => Attendance::STATUS_COMPLETED,
             ]);
 
-            // Jika ada sesi trainer yang sedang berjalan, tandai selesai
-            $trainerNotice = null;
-            if ($currentAttendance->trainerBooking && $currentAttendance->trainerBooking->status === TrainerBooking::STATUS_IN_PROGRESS) {
-                $currentAttendance->trainerBooking->update([
-                    'status' => TrainerBooking::STATUS_COMPLETED,
-                    'completed_at' => now(),
-                ]);
-                $trainerNotice = "Sesi latihan dengan Coach {$currentAttendance->trainerBooking->trainer?->user?->name} telah selesai dilaksanakan.";
-            }
-
             $currentAttendance->refresh();
 
             return response()->json([
                 'success' => true,
                 'action' => 'check_out',
                 'message' => "Check-out berhasil untuk {$member->user?->name}! Total durasi latihan: {$currentAttendance->duration_formatted}.",
-                'trainer_notice' => $trainerNotice,
                 'member' => $this->formatMemberPayload($member),
                 'attendance' => $this->formatAttendancePayload($currentAttendance),
             ]);
@@ -336,7 +325,7 @@ class AttendanceController extends Controller
             'status_label' => $attendance->status_label,
             'status_badge' => $attendance->status_badge_class,
             'duration' => $attendance->duration_formatted,
-            'trainer_name' => $attendance->trainerBooking?->trainer?->user?->name ?? null,
+            'trainer_name' => null,
         ];
     }
 }

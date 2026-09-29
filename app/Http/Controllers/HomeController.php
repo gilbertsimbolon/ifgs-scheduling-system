@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Faq;
 use App\Models\Member;
 use App\Models\Product;
 use App\Models\TimeSlot;
@@ -36,12 +37,14 @@ class HomeController extends Controller
         $groupedServices = Product::groupedServices();
         $operationalSlots = TimeSlot::active()->orderBy('start_time')->get();
         $activeTrainers = Member::with('user')->activeTrainers()->get();
+        $faqs = Faq::active()->ordered()->get();
 
         return view('welcome', compact(
             'activeProducts',
             'groupedServices',
             'operationalSlots',
-            'activeTrainers'
+            'activeTrainers',
+            'faqs'
         ));
     }
 }

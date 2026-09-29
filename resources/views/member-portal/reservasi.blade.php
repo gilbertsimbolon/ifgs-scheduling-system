@@ -66,10 +66,6 @@
                 <div class="d-flex flex-column gap-2">
                     <!-- Terjadwal (Schedules) -->
                     @foreach ($upcomingSchedules as $sched)
-                        @php
-                            $schedDateStr = \Carbon\Carbon::parse($sched->scheduled_date)->toDateString();
-                            $tb = $trainerBookings->get($schedDateStr);
-                        @endphp
                         <div class="p-3 border rounded-3 bg-white shadow-xs position-relative hover-shadow">
                             <div class="d-flex align-items-start justify-content-between mb-2">
                                 <div class="d-flex align-items-center gap-2">
@@ -158,10 +154,6 @@
                     <!-- Reservasi yang belum dibuatkan schedule langsung (Pending) -->
                     @foreach ($activeReservations as $res)
                         @if (!$upcomingSchedules->contains('reservation_id', $res->id))
-                            @php
-                                $resDateStr = \Carbon\Carbon::parse($res->visit_date)->toDateString();
-                                $tbRes = $trainerBookings->get($resDateStr);
-                            @endphp
                             <div class="p-3 border rounded-3 bg-white shadow-xs position-relative hover-shadow">
                                 <div class="d-flex align-items-start justify-content-between mb-2">
                                     <div class="d-flex align-items-center gap-2">
@@ -205,8 +197,7 @@
                                         class="d-inline">
                                         @csrf
                                         @method('PATCH')
-                                        <input type="hidden" name="redirect_to"
-                                            value="{{ route('member.reservasi') }}">
+                                        <input type="hidden" name="redirect_to" value="{{ route('member.reservasi') }}">
                                         <button type="button" onclick="confirmCancelReservation(this)"
                                             class="btn btn-outline-danger btn-sm py-1 px-3 rounded-pill"
                                             style="font-size: 0.72rem;">
