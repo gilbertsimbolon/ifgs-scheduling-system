@@ -7,7 +7,6 @@ use App\Models\Reservation;
 use App\Models\Schedule;
 use App\Models\TimeSlot;
 use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -318,7 +317,7 @@ test('reservation is rejected if chosen time slot does not match member active m
     expect(Reservation::first()->time_slot_id)->toBe($fitnessSlot->id);
 });
 
-test('member with only 24-hour visit membership does not need and cannot make a reservation', function () {
+test('member with 24-hour visit or 1-day membership can make a reservation for their active date', function () {
     $user = User::factory()->create();
     $user->assignRole('Member');
     $member = Member::factory()->create(['user_id' => $user->id]);
@@ -329,17 +328,17 @@ test('member with only 24-hour visit membership does not need and cannot make a 
         'duration_unit' => Product::DURATION_DAY,
     ]);
 
+    $targetDate = Carbon::today()->isSunday() ? Carbon::tomorrow() : Carbon::today();
+
     Membership::factory()->create([
         'member_id' => $member->id,
         'product_id' => $visitProduct->id,
         'status' => Membership::STATUS_ACTIVE,
-        'start_date' => Carbon::today()->format('Y-m-d'),
-        'end_date' => Carbon::today()->format('Y-m-d'),
+        'start_date' => $targetDate->format('Y-m-d'),
+        'end_date' => $targetDate->format('Y-m-d'),
     ]);
 
-    expect($visitProduct->isDailyVisit())->toBeTrue();
-    expect($member->hasOnlyDailyVisitMembership())->toBeTrue();
-    expect($member->canMakeReservation())->toBeFalse();
+    expect($member->canMakeReservation())->toBeTrue();
 
     $slot = TimeSlot::factory()->create([
         'category' => TimeSlot::CATEGORY_FITNESS,
@@ -348,13 +347,13 @@ test('member with only 24-hour visit membership does not need and cannot make a 
 
     $response = $this->actingAs($user)
         ->post(route('reservations.store'), [
-            'visit_date' => Carbon::today()->format('Y-m-d'),
+            'visit_date' => $targetDate->format('Y-m-d'),
             'time_slot_id' => $slot->id,
         ]);
 
     $response->assertRedirect();
-    $response->assertSessionHas('info');
-    expect(Reservation::count())->toBe(0);
+    $response->assertSessionHas('success');
+    expect(Reservation::count())->toBe(1);
 });
 
 test('available slots endpoint returns realtime trainer slot data', function () {
@@ -370,17 +369,6 @@ test('available slots endpoint returns realtime trainer slot data', function () 
     ]);
 
     $visitDate = Carbon::today()->format('Y-m-d');
-
-    // Create 1 booking for this trainer on the visit date
-    $memberUser = User::factory()->create();
-    $member = Member::factory()->create(['user_id' => $memberUser->id]);
-    TrainerBooking::create([
-        'trainer_id' => $trainer->id,
-        'member_id' => $member->id,
-        'session_date' => $visitDate,
-        'training_focus' => 'Form Squat',
-        'status' => TrainerBooking::STATUS_PENDING,
-    ]);
 
     $response = $this->actingAs($user)
         ->getJson(route('reservations.available-slots', ['date' => $visitDate]));
@@ -398,8 +386,7 @@ test('available slots endpoint returns realtime trainer slot data', function () 
     $trainerData = collect($response->json('trainers'))->firstWhere('id', $trainer->id);
     expect($trainerData)->not->toBeNull();
     expect($trainerData['daily_quota'])->toBe(5);
-    expect($trainerData['occupied'])->toBe(1);
-    expect($trainerData['remaining'])->toBe(4);
+    expect($trainerData['remaining'])->toBe(5);
     expect($trainerData['is_full'])->toBeFalse();
 });
 
@@ -438,7 +425,6 @@ test('member can make a reservation with an optional trainer', function () {
             'visit_date' => $visitDate,
             'time_slot_id' => $slot->id,
             'trainer_id' => $trainer->id,
-            'training_focus' => 'Koreksi Postur & Chest Day',
             'notes' => 'Catatan latihan',
         ]);
 
@@ -446,10 +432,46 @@ test('member can make a reservation with an optional trainer', function () {
     $response->assertSessionHas('success');
 
     expect(Reservation::where('member_id', $member->id)->exists())->toBeTrue();
-    expect(TrainerBooking::where('member_id', $member->id)
-        ->where('trainer_id', $trainer->id)
-        ->whereDate('session_date', $visitDate)
-        ->where('training_focus', 'Koreksi Postur & Chest Day')
-        ->where('status', TrainerBooking::STATUS_PENDING)
-        ->exists())->toBeTrue();
+});
+
+test('member submitting reservation from member portal receives reservation_success flash and sweetalert scan qr guidance', function () {
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    $member = Member::factory()->create(['user_id' => $user->id]);
+
+    $product = Product::factory()->create(['name' => 'Fitness 1 Bulan']);
+    Membership::factory()->create([
+        'member_id' => $member->id,
+        'product_id' => $product->id,
+        'status' => 'active',
+        'start_date' => Carbon::today()->subDays(2)->format('Y-m-d'),
+        'end_date' => Carbon::today()->addDays(28)->format('Y-m-d'),
+    ]);
+
+    $slot = TimeSlot::factory()->create([
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'capacity' => 20,
+        'status' => 'active',
+    ]);
+
+    $visitDate = Carbon::today()->format('Y-m-d');
+
+    $response = $this->actingAs($user)
+        ->post(route('reservations.store'), [
+            'visit_date' => $visitDate,
+            'time_slot_id' => $slot->id,
+            'redirect_to' => route('member.reservasi'),
+        ]);
+
+    $response->assertRedirect(route('member.reservasi'));
+    $response->assertSessionHas('success');
+    $response->assertSessionHas('reservation_success', true);
+
+    $page = $this->actingAs($user)
+        ->withSession(['reservation_success' => true])
+        ->get(route('member.reservasi'));
+    $page->assertOk();
+    $page->assertSee('Slot Berhasil Diamankan!');
+    $page->assertSee('scan QR Code akun Anda');
+    $page->assertSee('absensi kehadiran latihan');
 });

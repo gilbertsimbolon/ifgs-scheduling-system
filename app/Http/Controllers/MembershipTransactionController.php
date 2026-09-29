@@ -78,11 +78,33 @@ class MembershipTransactionController extends Controller
      */
     public function approve(Request $request, Membership $membership): RedirectResponse|JsonResponse
     {
-        $startDate = $membership->start_date ? $membership->start_date->format('Y-m-d') : now()->toDateString();
-        if (Carbon::parse($startDate)->isPast() && ! Carbon::parse($startDate)->isToday()) {
-            $startDate = now()->toDateString();
+        $duration = $membership->duration ?? $membership->product->activeDurations()->first();
+
+        // Cek sistem akumulasi: apakah member memiliki membership aktif untuk paket ini (di luar transaksi ini)
+        $latestActiveMembership = Membership::where('member_id', $membership->member_id)
+            ->where('product_id', $membership->product_id)
+            ->where('id', '!=', $membership->id)
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->first();
+
+        if ($latestActiveMembership && Carbon::parse($latestActiveMembership->end_date)->gte(today())) {
+            // Akumulasi dari tanggal berakhir membership aktif
+            $startDate = Carbon::parse($latestActiveMembership->end_date)->addDay()->format('Y-m-d');
+        } else {
+            // Jika membership sebelumnya sudah tersimpan dengan start_date hari ini atau masa depan, gunakan itu
+            $storedStartDate = $membership->start_date ? $membership->start_date->format('Y-m-d') : null;
+            if (! $storedStartDate || Carbon::parse($storedStartDate)->lt(today())) {
+                $startDate = now()->toDateString();
+            } else {
+                $startDate = $storedStartDate;
+            }
         }
-        $endDate = $membership->product->calculateEndDate($startDate)->format('Y-m-d');
+
+        $endDate = $duration
+            ? $duration->calculateEndDate($startDate)->format('Y-m-d')
+            : ($membership->end_date ? Carbon::parse($membership->end_date)->format('Y-m-d') : Carbon::parse($startDate)->addMonth()->format('Y-m-d'));
 
         DB::transaction(function () use ($membership, $startDate, $endDate) {
             if ($membership->transaction) {

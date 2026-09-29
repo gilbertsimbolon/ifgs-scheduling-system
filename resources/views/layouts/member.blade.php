@@ -223,7 +223,7 @@
         }
 
         // Global Flash Message SweetAlert2 Triggers
-        @if (session('success'))
+        @if (session('success') && !session('reservation_success'))
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil',

@@ -238,18 +238,23 @@ class TimeSlot extends Model
 
     /**
      * Menghasilkan N tanggal operasional mendatang untuk slot ini dimulai dari hari ini.
+     * Dapat dibatasi oleh endDate agar tidak melebihi masa aktif membership.
      *
      * @return array<CarbonInterface>
      */
-    public function getUpcomingOperationalDates(int $count = 10, ?CarbonInterface $startDate = null): array
+    public function getUpcomingOperationalDates(int $count = 10, ?CarbonInterface $startDate = null, ?CarbonInterface $endDate = null): array
     {
         $startDate = $startDate ? $startDate->copy()->startOfDay() : now()->startOfDay();
         $operationalDays = $this->getOperationalDaysOfWeek();
         $dates = [];
         $cursor = $startDate->copy();
+        $end = $endDate ? $endDate->copy()->startOfDay() : null;
 
         // Cari hingga $count hari operasional tercapai (maksimal batas 60 hari ke depan)
         for ($i = 0; $i < 60 && count($dates) < $count; $i++) {
+            if ($end && $cursor->gt($end)) {
+                break;
+            }
             if (in_array($cursor->dayOfWeek, $operationalDays, true)) {
                 $dates[] = $cursor->copy();
             }

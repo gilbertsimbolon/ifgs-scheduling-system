@@ -125,7 +125,7 @@ class ReservationController extends Controller
         if ($isMember && $user->member) {
             $myActiveMembership = $user->member->activeMembership();
             $canMakeReservation = $user->member->canMakeReservation();
-            $isDailyVisitOnly = $user->member->hasOnlyDailyVisitMembership();
+            $isDailyVisitOnly = false;
             if ($myActiveMembership && $myActiveMembership->product) {
                 $myAllowedCategories = $myActiveMembership->product->supportedCategories();
             }
@@ -157,7 +157,7 @@ class ReservationController extends Controller
             'visit_date' => ['required', 'date', 'after_or_equal:today'],
             'time_slot_id' => ['nullable', 'exists:time_slots,id'],
             'notes' => ['nullable', 'string', 'max:500'],
-            'trainer_id' => ['nullable', 'exists:trainers,id'],
+            'trainer_id' => ['nullable', 'exists:members,id'],
             'training_focus' => ['nullable', 'string', 'max:255'],
         ];
 
@@ -194,13 +194,6 @@ class ReservationController extends Controller
                 ->with('error', 'Indo Fitness Gym Sport tutup pada hari Minggu sesuai ketentuan jadwal operasional.');
         }
 
-        // Validasi logika bisnis: Member dengan paket Visit (24 Jam) tidak perlu melakukan reservasi
-        if ($member->hasOnlyDailyVisitMembership()) {
-            return redirect()->back()
-                ->withInput()
-                ->with('info', "Member '{$member->user->name}' menggunakan paket Visit (24 Jam) yang berlaku hari ini. Paket visit tidak perlu reservasi, Anda dapat langsung datang ke gym dan melakukan absensi QR.");
-        }
-
         // 1. Validasi membership aktif pada tanggal kunjungan
         $activeMemberships = $member->memberships()
             ->where('status', Membership::STATUS_ACTIVE)
@@ -213,13 +206,6 @@ class ReservationController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Member '{$member->user->name}' tidak memiliki paket membership aktif pada tanggal {$visitDate}.");
-        }
-
-        // Validasi apakah membership pada tanggal tersebut mensyaratkan reservasi
-        if (! $activeMemberships->contains(fn (Membership $m) => $m->requiresReservation())) {
-            return redirect()->back()
-                ->withInput()
-                ->with('info', "Paket membership aktif Anda untuk tanggal {$visitDate} adalah paket Visit (24 Jam) yang tidak memerlukan reservasi. Anda dapat langsung datang dan melakukan absensi QR di gym.");
         }
 
         // 2. Validasi kesesuaian kategori Time Slot dengan paket membership
@@ -295,7 +281,9 @@ class ReservationController extends Controller
                 ? "Jadwal latihan Anda berhasil dikonfirmasi{$slotInfo}!".($trainerNotice ?? '')
                 : "Reservasi berhasil dijadwalkan! {$scheduleResult['message']}".($trainerNotice ?? '');
 
-            return redirect($destination)->with('success', $msg);
+            return redirect($destination)
+                ->with('success', $msg)
+                ->with('reservation_success', true);
         }
 
         // Jika seluruh slot penuh pada tanggal tersebut

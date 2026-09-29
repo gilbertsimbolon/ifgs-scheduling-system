@@ -228,13 +228,13 @@ class MemberPortalController extends Controller
         $member = $user->member;
 
         $activeMembership = $member?->activeMembership();
-        $isDailyVisit = $member?->hasOnlyDailyVisitMembership();
-        $canMakeReservation = $member?->canMakeReservation() ?? false;
+        $isDailyVisit = false;
+        $canMakeReservation = $member?->hasActiveMembership() ?? false;
 
         $activeMemberships = $member ? $member->memberships()
             ->where('status', Membership::STATUS_ACTIVE)
-            ->whereDate('start_date', '<=', now())
-            ->whereDate('end_date', '>=', now())
+            ->whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
             ->with('product')
             ->get() : collect();
 
@@ -245,6 +245,16 @@ class MemberPortalController extends Controller
             }
         }
         $subscribedCategories = array_values(array_unique($subscribedCategories));
+
+        $today = now()->startOfDay();
+        $latestActiveEndDate = $activeMemberships->max('end_date');
+        $overallDaysRemaining = 10;
+        if ($latestActiveEndDate) {
+            $endCarbon = Carbon::parse($latestActiveEndDate)->startOfDay();
+            if ($endCarbon->gte($today)) {
+                $overallDaysRemaining = (int) $today->diffInDays($endCarbon) + 1;
+            }
+        }
 
         $trainers = Trainer::with('user')->active()->get();
 
@@ -259,7 +269,25 @@ class MemberPortalController extends Controller
 
         $slotDatesMap = [];
         foreach ($operationalSlots as $slot) {
-            $upcomingDates = $slot->getUpcomingOperationalDates(10);
+            // Tentukan membership aktif yang sesuai untuk slot ini
+            $slotMembership = $activeMemberships->first(function ($ms) use ($slot) {
+                return $ms->product && $ms->product->supportsCategory($slot->category);
+            });
+
+            if ($slotMembership && $slotMembership->end_date) {
+                $slotEndDate = $slotMembership->end_date->copy()->startOfDay();
+                $slotDaysRemaining = $slotEndDate->gte($today)
+                    ? ((int) $today->diffInDays($slotEndDate) + 1)
+                    : 1;
+            } else {
+                $slotDaysRemaining = $overallDaysRemaining;
+                $slotEndDate = $latestActiveEndDate ? Carbon::parse($latestActiveEndDate)->startOfDay() : null;
+            }
+
+            // Jumlah kartu hari operasional menyesuaikan sisa durasi aktif (contoh: 7 hari sisa = 7 kartu, 1 hari = 1 kartu, maks 10)
+            $cardCount = min(10, max(1, $slotDaysRemaining));
+
+            $upcomingDates = $slot->getUpcomingOperationalDates($cardCount, null, $slotEndDate);
             $slotDatesMap[$slot->id] = [];
 
             foreach ($upcomingDates as $d) {
@@ -435,7 +463,7 @@ class MemberPortalController extends Controller
         $user = $request->user()->load(['member']);
         $member = $user->member;
 
-        $products = Product::with(['durations' => fn ($q) => $q->orderBy('duration_value')])
+        $products = Product::with(['activeDurations'])
             ->where('status', Product::STATUS_ACTIVE)
             ->orderBy('name')
             ->get();
@@ -445,6 +473,10 @@ class MemberPortalController extends Controller
             ->orderBy('name')
             ->get();
 
+        $trainers = Trainer::with('user')
+            ->active()
+            ->get();
+
         $activeMembership = $member?->activeMembership();
         $pendingMembership = $member ? $member->memberships()
             ->with(['product', 'paymentMethod'])
@@ -452,13 +484,39 @@ class MemberPortalController extends Controller
             ->latest()
             ->first() : null;
 
+        // Data paket aktif member dikelompokkan berdasarkan product_id untuk sistem akumulasi durasi
+        $activeMembershipsByProduct = $member ? $member->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->get()
+            ->keyBy('product_id') : collect();
+
+        $activeMembershipsData = $activeMembershipsByProduct->mapWithKeys(function ($m) {
+            $nextStart = $m->end_date ? $m->end_date->copy()->addDay() : now();
+
+            return [$m->product_id => [
+                'id' => $m->id,
+                'product_id' => $m->product_id,
+                'product_name' => $m->product?->name ?? 'Paket Gym',
+                'end_date' => $m->end_date ? $m->end_date->format('Y-m-d') : null,
+                'end_date_formatted' => $m->end_date ? $m->end_date->translatedFormat('d F Y') : '-',
+                'days_remaining' => $m->days_remaining,
+                'next_start_date' => $nextStart->format('Y-m-d'),
+                'next_start_date_formatted' => $nextStart->translatedFormat('d F Y'),
+            ]];
+        });
+
         return view('member-portal.paket-layanan', compact(
             'user',
             'member',
             'products',
             'paymentMethods',
+            'trainers',
             'activeMembership',
-            'pendingMembership'
+            'pendingMembership',
+            'activeMembershipsByProduct',
+            'activeMembershipsData'
         ));
     }
 

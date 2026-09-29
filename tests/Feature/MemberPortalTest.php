@@ -5,7 +5,6 @@ use App\Models\Membership;
 use App\Models\Product;
 use App\Models\TimeSlot;
 use App\Models\Trainer;
-use App\Models\TrainerBooking;
 use App\Models\User;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -164,8 +163,8 @@ test('member can access /member/riwayat and view history tabs', function () {
 
     $response->assertStatus(200);
     $response->assertSee('Riwayat Kunjungan');
-    $response->assertSee('Kehadiran Gym');
-    $response->assertSee('Jadwal Selesai');
+    $response->assertSee('Riwayat Langganan');
+    $response->assertSee('Log Aktivitas');
 });
 
 test('member can access /member/paket-layanan and view products from database', function () {
@@ -190,6 +189,37 @@ test('member can access /member/paket-layanan and view products from database', 
     $response->assertSee('Paket Layanan Gym');
     $response->assertSee('Membership Bulanan VIP');
     $response->assertSee('Rp 250.000');
+});
+
+test('member sees 4-step checkout modals and responsive summary card in step 4', function () {
+    Product::factory()->create([
+        'name' => 'Membership Bulanan VIP',
+        'price' => 250000,
+        'duration_value' => 1,
+        'duration_unit' => Product::DURATION_MONTH,
+        'status' => Product::STATUS_ACTIVE,
+    ]);
+
+    $user = User::factory()->create();
+    $user->assignRole('Member');
+    Member::create([
+        'user_id' => $user->id,
+        'member_code' => 'IFGS-2026-MODAL-01',
+    ]);
+
+    $response = $this->actingAs($user)->get(route('member.paket-layanan'));
+
+    $response->assertStatus(200);
+    $response->assertSee('modalCheckoutStep1');
+    $response->assertSee('modalCheckoutStep2');
+    $response->assertSee('modalCheckoutStep3');
+    $response->assertSee('modalCheckoutStep4');
+    $response->assertSee('m4_product_name');
+    $response->assertSee('m4_product_duration');
+    $response->assertSee('m4_product_price');
+    $response->assertSee('m4_payment_name');
+    $response->assertSee('m4_accum_row');
+    $response->assertSee('m4_accum_badge');
 });
 
 test('member can access /member/profil and view digital qr code and account info', function () {
@@ -320,7 +350,7 @@ test('member can directly upload avatar and then delete avatar with x button', f
     $pageAfterDelete->assertSee('MT');
 });
 
-test('member with active membership can see 7-day selector, dynamic package cards, and trainer options on reservation modal', function () {
+test('member with active membership can see dynamic operational date selector, package cards, and confirmation guidance on reservation modal without trainer', function () {
     $user = User::factory()->create(['name' => 'John Gym']);
     $user->assignRole('Member');
     $member = Member::factory()->create(['user_id' => $user->id]);
@@ -346,20 +376,12 @@ test('member with active membership can see 7-day selector, dynamic package card
         'status' => 'active',
     ]);
 
-    $trainerUser = User::factory()->create(['name' => 'Coach Mario']);
-    $trainer = Trainer::create([
-        'user_id' => $trainerUser->id,
-        'specialization' => 'Fitness & Bodybuilding',
-        'status' => 'active',
-        'daily_quota' => 5,
-    ]);
-
     $response = $this->actingAs($user)->get(route('member.reservasi'));
 
     $response->assertStatus(200);
     // Check modal exists
     $response->assertSee('modalBuatReservasi');
-    // Check dynamic 10-day operational selector container
+    // Check dynamic operational selector container
     $response->assertSee('operationalDaysGrid');
     $response->assertSee('days-grid-10');
     $response->assertSee('day-pill-btn');
@@ -368,17 +390,12 @@ test('member with active membership can see 7-day selector, dynamic package card
     $response->assertSee('Berlangganan');
     $response->assertSee('Sesi Zumba Spesial');
     $response->assertSee('Belum Berlangganan');
-    // Check trainer options in Step 2
-    $response->assertSee('modalBuatReservasiStep2');
+    // Step 2 is now Confirmation and Guidance without trainer
     $response->assertSee('btnNextToStep2');
-    $response->assertSee('Tanpa Trainer');
-    $response->assertSee('Coach Mario');
-    $response->assertSee('Fitness & Bodybuilding');
-    $response->assertDontSee('trainingFocusWrapper');
-    // Check Confirmation in Step 3
-    $response->assertSee('modalBuatReservasiStep3');
-    $response->assertSee('btnNextToStep3');
     $response->assertSee('btnSubmitReservasi');
+    $response->assertSee('Panduan Kunjungan');
+    $response->assertSee('Wajib Scan QR Code');
+    $response->assertDontSee('trainer-choice-card');
 });
 
 test('timeslot generates correct operational dates for fitness and zumba cycling', function () {
@@ -446,7 +463,53 @@ test('member can submit reservation with trainer without training_focus', functi
     ]);
 
     $response->assertSessionHas('success');
-    expect(TrainerBooking::where('member_id', $member->id)->where('trainer_id', $trainer->id)->count())->toBe(1);
-    $booking = TrainerBooking::where('member_id', $member->id)->where('trainer_id', $trainer->id)->first();
-    expect($booking->training_focus)->toBeNull();
+    expect(session('success'))->toContain('Coach Mario');
+});
+
+test('operational date cards count in reservation modal matches remaining membership duration', function () {
+    // 1. Member with 7 days remaining
+    $user7 = User::factory()->create(['name' => 'Member 7 Hari']);
+    $user7->assignRole('Member');
+    $member7 = Member::factory()->create(['user_id' => $user7->id]);
+
+    $product7 = Product::factory()->create(['name' => 'Paket Fitness Mingguan']);
+    Membership::factory()->create([
+        'member_id' => $member7->id,
+        'product_id' => $product7->id,
+        'status' => Membership::STATUS_ACTIVE,
+        'start_date' => now()->startOfDay()->format('Y-m-d'),
+        'end_date' => now()->startOfDay()->addDays(6)->format('Y-m-d'), // 7 days inclusive
+    ]);
+
+    $slot = TimeSlot::factory()->create([
+        'name' => 'Sesi Fitness Reguler',
+        'category' => TimeSlot::CATEGORY_FITNESS,
+        'status' => 'active',
+    ]);
+
+    $res7 = $this->actingAs($user7)->get(route('member.reservasi'));
+    $res7->assertStatus(200);
+    $availableDays7 = $res7->viewData('availableDays');
+    expect(count($availableDays7))->toBeLessThanOrEqual(7);
+
+    // 2. Member with 1 day (visit) remaining
+    $user1 = User::factory()->create(['name' => 'Member 1 Hari']);
+    $user1->assignRole('Member');
+    $member1 = Member::factory()->create(['user_id' => $user1->id]);
+
+    $product1 = Product::factory()->create(['name' => 'Paket Visit 1 Hari']);
+    $todayDate = now()->isSunday() ? now()->addDay() : now();
+    Membership::factory()->create([
+        'member_id' => $member1->id,
+        'product_id' => $product1->id,
+        'status' => Membership::STATUS_ACTIVE,
+        'start_date' => $todayDate->startOfDay()->format('Y-m-d'),
+        'end_date' => $todayDate->startOfDay()->format('Y-m-d'), // 1 day only
+    ]);
+
+    $res1 = $this->actingAs($user1)->get(route('member.reservasi'));
+    $res1->assertStatus(200);
+    $res1->assertSee('modalBuatReservasi');
+    $availableDays1 = $res1->viewData('availableDays');
+    expect(count($availableDays1))->toBe(1);
 });

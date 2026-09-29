@@ -118,14 +118,37 @@ class Member extends Model
 
     /**
      * Get the current active membership for this member.
+     * Mendukung sistem akumulasi: Jika member aktif hari ini, mengembalikan membership aktif dengan masa berlaku terpanjang.
      */
     public function activeMembership(): ?Membership
     {
+        $hasCurrentActive = $this->memberships()
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('start_date', '<=', now()->toDateString())
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->exists();
+
+        if (! $hasCurrentActive) {
+            return null;
+        }
+
         return $this->memberships()
             ->where('status', Membership::STATUS_ACTIVE)
-            ->whereDate('start_date', '<=', now())
-            ->whereDate('end_date', '>=', now())
-            ->latest('end_date')
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->first();
+    }
+
+    /**
+     * Get the active membership for a specific product, taking accumulations into account.
+     */
+    public function activeMembershipForProduct(int $productId): ?Membership
+    {
+        return $this->memberships()
+            ->where('product_id', $productId)
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
             ->first();
     }
 
@@ -158,22 +181,11 @@ class Member extends Model
 
     /**
      * Memeriksa apakah member memenuhi syarat untuk membuat reservasi kunjungan.
-     * Member yang hanya memiliki paket visit (24 jam) tidak perlu melakukan reservasi.
+     * Seluruh member yang memiliki paket membership aktif dapat melakukan reservasi.
      */
     public function canMakeReservation(): bool
     {
-        $activeMemberships = $this->memberships()
-            ->where('status', Membership::STATUS_ACTIVE)
-            ->whereDate('start_date', '<=', now())
-            ->whereDate('end_date', '>=', now())
-            ->with('product')
-            ->get();
-
-        if ($activeMemberships->isEmpty()) {
-            return false;
-        }
-
-        return $activeMemberships->contains(fn (Membership $m) => $m->requiresReservation());
+        return $this->hasActiveMembership();
     }
 
     /**

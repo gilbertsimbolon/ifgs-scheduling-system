@@ -151,19 +151,39 @@ class MembershipController extends Controller
             $duration = $product->activeDurations()->first() ?? $product->durations()->first();
         }
 
+        $startDate = $validated['start_date'];
+
+        // Cek sistem akumulasi durasi:
+        // Jika start_date diisi hari ini (default) dan member sudah memiliki paket aktif yang sama dengan sisa durasi
+        $latestActiveMembership = Membership::where('member_id', $validated['member_id'])
+            ->where('product_id', $product->id)
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->first();
+
+        $isAccumulated = false;
+        if ($latestActiveMembership && Carbon::parse($startDate)->isToday() && Carbon::parse($latestActiveMembership->end_date)->gte(today())) {
+            $startDate = Carbon::parse($latestActiveMembership->end_date)->addDay()->format('Y-m-d');
+            $isAccumulated = true;
+        }
+
         $endDate = ! empty($validated['end_date'])
             ? $validated['end_date']
-            : $duration->calculateEndDate($validated['start_date'])->format('Y-m-d');
+            : ($duration ? $duration->calculateEndDate($startDate)->format('Y-m-d') : Carbon::parse($startDate)->addMonth()->format('Y-m-d'));
         $price = isset($validated['price']) && $validated['price'] !== ''
             ? (float) $validated['price']
-            : (float) $duration->price;
+            : (float) ($duration ? $duration->price : 0.0);
 
         // Status diatur 100% oleh sistem berdasarkan tanggal berakhir
         $status = Carbon::parse($endDate)->isPast() && ! Carbon::parse($endDate)->isToday()
             ? Membership::STATUS_EXPIRED
             : Membership::STATUS_ACTIVE;
 
-        DB::transaction(function () use ($validated, $product, $duration, $endDate, $price, $status) {
+        DB::transaction(function () use ($validated, $product, $duration, $startDate, $endDate, $price, $status, $isAccumulated) {
+            $durationLabel = $duration?->duration_formatted ?? '';
+            $notePrefix = $isAccumulated ? 'Perpanjangan (Akumulasi) Membership ' : 'Pendaftaran Membership ';
+
             // 1. Catat Transaksi Header dengan user_id pembuat (kasir atau admin)
             $transaction = Transaction::create([
                 'invoice_number' => Transaction::generateInvoiceNumber(),
@@ -174,14 +194,14 @@ class MembershipController extends Controller
                 'paid_amount' => $price,
                 'change_amount' => 0.00,
                 'status' => Transaction::STATUS_COMPLETED,
-                'notes' => 'Pendaftaran Membership '.$product->name.' ('.$duration->duration_formatted.')',
+                'notes' => $notePrefix.$product->name.($durationLabel ? " ({$durationLabel})" : ''),
             ]);
 
             // 2. Catat Item Transaksi (Snapshot price & duration reference)
             $transaction->items()->create([
                 'product_id' => $product->id,
-                'product_duration_id' => $duration->id,
-                'product_name' => $product->name.' ('.$duration->duration_formatted.')',
+                'product_duration_id' => $duration?->id,
+                'product_name' => $product->name.($durationLabel ? " ({$durationLabel})" : ''),
                 'price' => $price,
                 'quantity' => 1,
                 'subtotal' => $price,
@@ -192,9 +212,9 @@ class MembershipController extends Controller
                 'transaction_id' => $transaction->id,
                 'member_id' => $validated['member_id'],
                 'product_id' => $product->id,
-                'product_duration_id' => $duration->id,
+                'product_duration_id' => $duration?->id,
                 'payment_method_id' => $validated['payment_method_id'],
-                'start_date' => $validated['start_date'],
+                'start_date' => $startDate,
                 'end_date' => $endDate,
                 'price' => $price,
                 'status' => $status,
@@ -214,31 +234,69 @@ class MembershipController extends Controller
             'start_date' => ['required', 'date'],
             'product_duration_id' => ['nullable', 'exists:product_durations,id'],
             'product_id' => ['nullable', 'exists:products,id'],
+            'member_id' => ['nullable', 'exists:members,id'],
         ]);
+
+        $startDate = $request->start_date;
+        $memberId = $request->member_id;
+        $isAccumulated = false;
+        $activeEndDate = null;
+        $daysRemaining = 0;
+
+        $productId = $request->product_id;
+        if (! $productId && $request->filled('product_duration_id')) {
+            $duration = ProductDuration::find($request->product_duration_id);
+            $productId = $duration?->product_id;
+        }
+
+        // Cek sistem akumulasi jika ada member_id & product_id
+        if ($memberId && $productId) {
+            $latestActive = Membership::where('member_id', $memberId)
+                ->where('product_id', $productId)
+                ->where('status', Membership::STATUS_ACTIVE)
+                ->whereDate('end_date', '>=', now()->toDateString())
+                ->orderByDesc('end_date')
+                ->first();
+
+            if ($latestActive && Carbon::parse($startDate)->isToday()) {
+                $isAccumulated = true;
+                $activeEndDate = $latestActive->end_date->format('Y-m-d');
+                $daysRemaining = $latestActive->days_remaining;
+                $startDate = Carbon::parse($latestActive->end_date)->addDay()->format('Y-m-d');
+            }
+        }
 
         if ($request->filled('product_duration_id')) {
             $duration = ProductDuration::findOrFail($request->product_duration_id);
-            $endDate = $duration->calculateEndDate($request->start_date)->format('Y-m-d');
+            $endDate = $duration->calculateEndDate($startDate)->format('Y-m-d');
 
             return response()->json([
+                'start_date' => $startDate,
                 'end_date' => $endDate,
                 'price' => (float) $duration->price,
                 'formatted_price' => $duration->formatted_price,
                 'duration_formatted' => $duration->duration_formatted,
+                'is_accumulated' => $isAccumulated,
+                'active_end_date' => $activeEndDate,
+                'days_remaining' => $daysRemaining,
             ]);
         }
 
-        if ($request->filled('product_id')) {
-            $product = Product::findOrFail($request->product_id);
+        if ($productId) {
+            $product = Product::findOrFail($productId);
             $duration = $product->activeDurations()->first() ?? $product->durations()->first();
             if ($duration) {
-                $endDate = $duration->calculateEndDate($request->start_date)->format('Y-m-d');
+                $endDate = $duration->calculateEndDate($startDate)->format('Y-m-d');
 
                 return response()->json([
+                    'start_date' => $startDate,
                     'end_date' => $endDate,
                     'price' => (float) $duration->price,
                     'formatted_price' => $duration->formatted_price,
                     'duration_formatted' => $duration->duration_formatted,
+                    'is_accumulated' => $isAccumulated,
+                    'active_end_date' => $activeEndDate,
+                    'days_remaining' => $daysRemaining,
                 ]);
             }
         }
@@ -303,8 +361,6 @@ class MembershipController extends Controller
             'payment_proof.max' => 'Ukuran file gambar maksimal 5MB.',
         ]);
 
-        $startDate = ! empty($validated['start_date']) ? $validated['start_date'] : now()->toDateString();
-
         $user = $request->user();
         $member = $user->member;
         if (! $member) {
@@ -322,13 +378,32 @@ class MembershipController extends Controller
             $duration = $product->activeDurations()->first() ?? $product->durations()->first();
         }
 
+        // Cek sistem akumulasi durasi:
+        // Jika member sudah memiliki paket aktif untuk produk ini yang belum kedaluwarsa, akumulasikan dari tanggal berakhir aktif
+        $latestActiveMembership = Membership::where('member_id', $member->id)
+            ->where('product_id', $product->id)
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->first();
+
+        $isAccumulated = false;
+        if ($latestActiveMembership && Carbon::parse($latestActiveMembership->end_date)->gte(today())) {
+            $startDate = Carbon::parse($latestActiveMembership->end_date)->addDay()->format('Y-m-d');
+            $isAccumulated = true;
+        } else {
+            $inputDate = ! empty($validated['start_date']) ? $validated['start_date'] : now()->toDateString();
+            $startDate = Carbon::parse($inputDate)->lt(today()) ? now()->toDateString() : $inputDate;
+        }
+
         $endDate = $duration ? $duration->calculateEndDate($startDate)->format('Y-m-d') : Carbon::parse($startDate)->addMonth()->format('Y-m-d');
         $price = $duration ? (float) $duration->price : 0.0;
         $durationFormatted = $duration?->duration_formatted ?? '';
 
         $proofPath = $request->file('payment_proof')->store('payment_proofs', 'public');
 
-        DB::transaction(function () use ($validated, $member, $product, $duration, $startDate, $endDate, $price, $durationFormatted, $proofPath) {
+        DB::transaction(function () use ($validated, $member, $product, $duration, $startDate, $endDate, $price, $durationFormatted, $proofPath, $isAccumulated) {
+            $notePrefix = $isAccumulated ? 'Perpanjangan (Akumulasi) Paket ' : 'Pemesanan Mandiri Paket ';
             $transaction = Transaction::create([
                 'invoice_number' => Transaction::generateInvoiceNumber(),
                 'member_id' => $member->id,
@@ -338,7 +413,7 @@ class MembershipController extends Controller
                 'paid_amount' => $price,
                 'change_amount' => 0.00,
                 'status' => Transaction::STATUS_PENDING,
-                'notes' => $validated['notes'] ?? 'Pemesanan Mandiri Paket '.$product->name.($durationFormatted ? " ({$durationFormatted})" : ''),
+                'notes' => $validated['notes'] ?? ($notePrefix.$product->name.($durationFormatted ? " ({$durationFormatted})" : '')),
                 'payment_proof' => $proofPath,
             ]);
 
@@ -380,15 +455,33 @@ class MembershipController extends Controller
      */
     public function approve(Request $request, Membership $membership): RedirectResponse|JsonResponse
     {
-        $startDate = $membership->start_date ? $membership->start_date->format('Y-m-d') : now()->toDateString();
-        if (Carbon::parse($startDate)->isPast() && ! Carbon::parse($startDate)->isToday()) {
-            $startDate = now()->toDateString();
+        $duration = $membership->duration ?? $membership->product->activeDurations()->first();
+
+        // Cek sistem akumulasi: apakah member memiliki membership aktif untuk paket ini (di luar transaksi ini)
+        $latestActiveMembership = Membership::where('member_id', $membership->member_id)
+            ->where('product_id', $membership->product_id)
+            ->where('id', '!=', $membership->id)
+            ->where('status', Membership::STATUS_ACTIVE)
+            ->whereDate('end_date', '>=', now()->toDateString())
+            ->orderByDesc('end_date')
+            ->first();
+
+        if ($latestActiveMembership && Carbon::parse($latestActiveMembership->end_date)->gte(today())) {
+            // Akumulasi dari tanggal berakhir membership aktif
+            $startDate = Carbon::parse($latestActiveMembership->end_date)->addDay()->format('Y-m-d');
+        } else {
+            // Jika membership sebelumnya sudah tersimpan dengan start_date hari ini atau masa depan, gunakan itu
+            $storedStartDate = $membership->start_date ? $membership->start_date->format('Y-m-d') : null;
+            if (! $storedStartDate || Carbon::parse($storedStartDate)->lt(today())) {
+                $startDate = now()->toDateString();
+            } else {
+                $startDate = $storedStartDate;
+            }
         }
 
-        $duration = $membership->duration ?? $membership->product->activeDurations()->first();
         $endDate = $duration
             ? $duration->calculateEndDate($startDate)->format('Y-m-d')
-            : Carbon::parse($membership->end_date)->format('Y-m-d');
+            : ($membership->end_date ? Carbon::parse($membership->end_date)->format('Y-m-d') : Carbon::parse($startDate)->addMonth()->format('Y-m-d'));
 
         DB::transaction(function () use ($membership, $startDate, $endDate) {
             if ($membership->transaction) {

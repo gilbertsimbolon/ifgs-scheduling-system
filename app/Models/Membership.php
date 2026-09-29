@@ -257,10 +257,9 @@ class Membership extends Model
 
     /**
      * Mengetahui apakah membership memerlukan reservasi jadwal kunjungan.
-     * Paket visit (24 jam) tidak memerlukan reservasi karena langsung aktif di hari pembelian.
      */
     public function requiresReservation(): bool
     {
-        return ! $this->isDailyVisit();
+        return true;
     }
 }
